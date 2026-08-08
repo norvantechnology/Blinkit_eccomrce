@@ -1,0 +1,13 @@
+const Joi = require('joi');
+const { email } = require('../../utils/joiSchemas');
+
+const updateMeSchema = Joi.object({
+  name: Joi.string().min(1).max(100).optional(),
+  email: email().optional(),
+}).min(1);
+
+const updateLanguageSchema = Joi.object({
+  languagePref: Joi.string().min(2).max(10).required(),
+});
+
+module.exports = { updateMeSchema, updateLanguageSchema };

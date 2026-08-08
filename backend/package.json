@@ -1,0 +1,43 @@
+{
+  "name": "blinkit-backend",
+  "version": "1.0.0",
+  "description": "Tapi Grocery single-store backend API",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "NODE_ENV=test OTP_TEST_CODE=123456 TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5433/blinkit?schema=public jest --runInBand --forceExit",
+    "db:generate": "prisma generate --schema=src/database/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=src/database/prisma/schema.prisma",
+    "db:push": "prisma db push --schema=src/database/prisma/schema.prisma",
+    "db:migrate:postgis": "node src/database/prisma/apply-postgis.js",
+    "db:setup": "npm run db:push && npm run db:migrate:postgis && npm run db:seed",
+    "db:seed": "node src/database/prisma/seed.js",
+    "db:studio": "prisma studio --schema=src/database/prisma/schema.prisma"
+  },
+  "prisma": {
+    "schema": "src/database/prisma/schema.prisma",
+    "seed": "node src/database/prisma/seed.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1104.0",
+    "@aws-sdk/s3-request-presigner": "^3.1104.0",
+    "@prisma/client": "^6.5.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "google-auth-library": "^9.15.1",
+    "helmet": "^8.0.0",
+    "ioredis": "^5.6.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "prisma": "^6.5.0",
+    "supertest": "^7.0.0"
+  }
+}

@@ -1,0 +1,237 @@
+// Blinkit-clone — Milestone 1 schema (§6.1 + §6.2)
+// PostGIS geography columns use Unsupported(); GIST indexes applied via migration SQL.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum AuthProvider {
+  phone
+  google
+  apple
+  firebase
+}
+
+enum OtpPurpose {
+  login
+  signup
+  delete_account
+}
+
+enum AddressLabel {
+  home
+  work
+  other
+}
+
+enum DevicePlatform {
+  android
+  ios
+  web
+}
+
+// ─── §6.1 Store & Config ──────────────────────────────────────────────────────
+
+model Store {
+  id                 String   @id @default(uuid()) @db.Uuid
+  name               String
+  slug               String   @unique
+  logoUrl            String?  @map("logo_url")
+  address            String
+  /// PostGIS geography(Point,4326) — use raw SQL for spatial queries
+  location           Unsupported("geography(Point,4326)")
+  contactPhone       String   @map("contact_phone")
+  contactEmail       String   @map("contact_email")
+  deliveryRadiusKm   Decimal  @map("delivery_radius_km") @db.Decimal(6, 2)
+  minOrderValue      Decimal  @map("min_order_value") @db.Decimal(10, 2)
+  isActive           Boolean  @default(true) @map("is_active")
+  timezone           String   @default("Asia/Kolkata")
+  currency           String   @default("INR")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  settings   StoreSetting[]
+  adminUsers AdminUser[]
+
+  @@map("stores")
+}
+
+model StoreSetting {
+  id        String   @id @default(uuid()) @db.Uuid
+  storeId   String   @map("store_id") @db.Uuid
+  key       String
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, key])
+  @@index([storeId])
+  @@map("store_settings")
+}
+
+// ─── §6.2 Identity, Auth & RBAC ─────────────────────────────────────────────
+
+model User {
+  id           String       @id @default(uuid()) @db.Uuid
+  phone        String?      @unique
+  email        String?      @unique
+  name         String?
+  passwordHash String?      @map("password_hash")
+  authProvider AuthProvider @default(phone) @map("auth_provider")
+  providerId   String?      @map("provider_id")
+  languagePref String       @default("en") @map("language_pref")
+  isActive     Boolean      @default(true) @map("is_active")
+  deletedAt    DateTime?    @map("deleted_at")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  devices   UserDevice[]
+  addresses Address[]
+
+  @@index([phone])
+  @@index([email])
+  @@map("users")
+}
+
+model OtpVerification {
+  id         String     @id @default(uuid()) @db.Uuid
+  phone      String?
+  email      String?
+  otpHash    String     @map("otp_hash")
+  purpose    OtpPurpose
+  expiresAt  DateTime   @map("expires_at")
+  verifiedAt DateTime?  @map("verified_at")
+  attempts   Int        @default(0)
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@index([phone, purpose])
+  @@index([email, purpose])
+  @@map("otp_verifications")
+}
+
+model UserDevice {
+  id               String         @id @default(uuid()) @db.Uuid
+  userId           String         @map("user_id") @db.Uuid
+  deviceId         String         @map("device_id")
+  fcmToken         String?        @map("fcm_token")
+  platform         DevicePlatform @default(web)
+  /// Hashed refresh token (§7.1 — stored against user_devices)
+  refreshTokenHash String?        @map("refresh_token_hash")
+  lastActiveAt     DateTime?      @map("last_active_at")
+  isRevoked        Boolean        @default(false) @map("is_revoked")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+  @@map("user_devices")
+}
+
+model Address {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @map("user_id") @db.Uuid
+  label       AddressLabel @default(home)
+  fullAddress String       @map("full_address")
+  /// PostGIS geography(Point,4326) — use raw SQL for spatial queries
+  location    Unsupported("geography(Point,4326)")
+  landmark    String?
+  isDefault   Boolean      @default(false) @map("is_default")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+model AdminUser {
+  id               String    @id @default(uuid()) @db.Uuid
+  storeId          String?   @map("store_id") @db.Uuid
+  name             String
+  email            String    @unique
+  passwordHash     String    @map("password_hash")
+  roleId           String    @map("role_id") @db.Uuid
+  /// Hashed refresh token (admin session; mirrors user_devices pattern)
+  refreshTokenHash String?   @map("refresh_token_hash")
+  isActive         Boolean   @default(true) @map("is_active")
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  store     Store?     @relation(fields: [storeId], references: [id])
+  role      Role       @relation(fields: [roleId], references: [id])
+  auditLogs AuditLog[]
+
+  @@index([storeId])
+  @@index([roleId])
+  @@map("admin_users")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  adminUsers      AdminUser[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String @id @default(uuid()) @db.Uuid
+  key         String @unique
+  description String?
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String @id @default(uuid()) @db.Uuid
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+/// Production uses monthly range partitioning on created_at (§6.2).
+/// Prisma manages the parent table; partition DDL is applied via raw migration SQL.
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  adminUserId String   @map("admin_user_id") @db.Uuid
+  action      String
+  entity      String
+  entityId    String?  @map("entity_id")
+  ipAddress   String?  @map("ip_address")
+  meta        Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  adminUser AdminUser @relation(fields: [adminUserId], references: [id])
+
+  @@index([adminUserId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

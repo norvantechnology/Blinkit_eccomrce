@@ -1,0 +1,56 @@
+name: Deploy Backend → EC2
+
+# Blinkit.md §13 — API on server (EC2 Docker). Push to main or run manually.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy-backend-ec2.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend-ec2
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: SSH deploy backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            set -euo pipefail
+            APP_DIR="${{ secrets.EC2_APP_DIR }}"
+            if [ -z "${APP_DIR}" ]; then
+              APP_DIR="/opt/blinkit"
+            fi
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            if [ ! -d .git ]; then
+              git clone https://github.com/norvantechnology/Blinkit_eccomrce.git .
+            else
+              git remote set-url origin https://github.com/norvantechnology/Blinkit_eccomrce.git || true
+              git fetch origin main
+              git checkout -B main origin/main
+            fi
+
+            if [ ! -f backend/.env ]; then
+              echo "ERROR: missing $APP_DIR/backend/.env on EC2 — create it before deploy."
+              exit 1
+            fi
+
+            docker compose pull || true
+            docker compose up -d --build backend postgres redis
+            docker compose ps
+            echo "Backend deploy finished at $(date -u +%Y-%m-%dT%H:%M:%SZ)"

@@ -1,0 +1,55 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const env = require('./config/env');
+const errorHandler = require('./middlewares/errorHandler');
+const { globalAdminAudit } = require('./middlewares/auditLogger');
+const swaggerRoutes = require('./docs/swagger.routes');
+
+// Milestone 1 route modules
+const authRoutes = require('./modules/auth/auth.routes');
+const { authRouter, adminRouter } = require('./modules/admin-users/admin-users.routes');
+const usersRoutes = require('./modules/users/users.routes');
+const addressesRoutes = require('./modules/addresses/addresses.routes');
+
+const app = express();
+
+app.set('trust proxy', true);
+
+// API docs — mount before helmet (Swagger UI needs inline assets)
+app.use('/api-docs', swaggerRoutes);
+
+app.use(helmet());
+app.use(cors({ origin: env.nodeEnv === 'development' ? '*' : undefined }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get('/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    env: env.nodeEnv,
+    s3: Boolean(env.aws.s3Bucket),
+  });
+});
+
+const apiRouter = express.Router();
+
+// Global audit: logs mutating admin actions when req.admin is present
+apiRouter.use(globalAdminAudit);
+
+// §8.1 Auth (User App)
+apiRouter.use('/auth', authRoutes);
+
+// §8.2 Admin Auth + admin routes (RBAC-protected)
+apiRouter.use('/admin/auth', authRouter);
+apiRouter.use('/admin', adminRouter);
+
+// §8.3 User Profile & Addresses
+apiRouter.use('/users', usersRoutes);
+apiRouter.use('/addresses', addressesRoutes);
+
+app.use('/api/v1', apiRouter);
+
+app.use(errorHandler);
+
+module.exports = app;
