@@ -80,8 +80,8 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const [landmark, setLandmark] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [lat, setLat] = useState(blinkitTokens.defaultStore.lat);
-  const [lng, setLng] = useState(blinkitTokens.defaultStore.lng);
+  const [lat, setLat] = useState<number>(blinkitTokens.defaultStore.lat);
+  const [lng, setLng] = useState<number>(blinkitTokens.defaultStore.lng);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [searchHint, setSearchHint] = useState('');
