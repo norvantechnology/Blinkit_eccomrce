@@ -27,6 +27,15 @@ export const authService = {
     return data.data as AuthResult;
   },
 
+  loginGoogle: async (idToken: string): Promise<AuthResult> => {
+    const { data } = await apiClient.post('/auth/oauth/google', {
+      idToken,
+      deviceId: getDeviceId(),
+      platform: 'web',
+    });
+    return data.data as AuthResult;
+  },
+
   register: async (payload: { name: string; email?: string; phone?: string }) => {
     const { data } = await apiClient.post('/auth/register', payload);
     return data.data.user as UserProfile;

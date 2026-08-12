@@ -10,8 +10,9 @@ const MAX_OTP_ATTEMPTS = 5;
 const OTP_EXPIRY_MINUTES = 5;
 
 const generateOtp = () => {
-  if (process.env.OTP_TEST_CODE) {
-    return process.env.OTP_TEST_CODE;
+  // Free/static mode (default) — Blinkit.md allows SNS/MSG91/Firebase later
+  if (smsProvider.isStaticMode()) {
+    return smsProvider.resolveStaticCode();
   }
   return String(Math.floor(100000 + Math.random() * 900000));
 };
@@ -54,9 +55,14 @@ const sendOtp = async ({ phone }) => {
     expiresAt,
   });
 
-  await smsProvider.sendOtp(phone, otp);
+  const delivery = await smsProvider.sendOtp(phone, otp);
 
-  return { message: 'If this phone number is valid, an OTP has been sent.' };
+  const payload = { message: 'If this phone number is valid, an OTP has been sent.' };
+  if (delivery?.staticOtp) {
+    payload.staticOtp = true;
+    payload.otp = otp; // free/static mode only — never enable with paid SMS
+  }
+  return payload;
 };
 
 const verifyOtp = async ({ phone, otp, deviceId = 'default', fcmToken, platform = 'web' }) => {

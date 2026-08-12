@@ -63,6 +63,9 @@ const JWT_EXPIRY = {
 
 const AUDIT_RETENTION_DAYS = 5;
 
+/** Free/static OTP for now (Blinkit.md SMS: SNS/MSG91 later). Not a production secret. */
+const OTP_STATIC_CODE = '123456';
+
 /** Secrets Manager identity (not a secret) */
 const SECRETS_MANAGER = {
   SECRET_NAME: 'tapi-grocery/backend',
@@ -77,5 +80,6 @@ module.exports = {
   ADDRESS_LABEL,
   JWT_EXPIRY,
   AUDIT_RETENTION_DAYS,
+  OTP_STATIC_CODE,
   SECRETS_MANAGER,
 };

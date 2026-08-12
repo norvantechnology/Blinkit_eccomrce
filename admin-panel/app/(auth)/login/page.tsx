@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, ArrowRight, LogIn } from 'lucide-react';
 import apiClient from '@/lib/api-client';
 import { setSession, getLoginErrorMessage } from '@/lib/auth';
@@ -13,8 +13,9 @@ import { Input } from '@/components/ui/Input';
 
 const isDev = process.env.NODE_ENV === 'development';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setUser = useAuthStore((s) => s.setUser);
   const [email, setEmail] = useState(isDev ? 'admin@gmail.com' : '');
   const [password, setPassword] = useState('');
@@ -51,7 +52,12 @@ export default function LoginPage() {
       });
       setSession(data.data.user, data.data.tokens);
       setUser(data.data.user);
-      router.push('/dashboard');
+      const redirect = searchParams.get('redirect');
+      const safeRedirect =
+        redirect && redirect.startsWith('/') && !redirect.startsWith('//')
+          ? redirect
+          : '/dashboard';
+      router.push(safeRedirect);
       router.refresh();
     } catch (err: unknown) {
       setFormError(getLoginErrorMessage(err));
@@ -141,5 +147,19 @@ export default function LoginPage() {
         </p>
       )}
     </AuthShell>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-slate-50">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-slate-300 border-t-green-600" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

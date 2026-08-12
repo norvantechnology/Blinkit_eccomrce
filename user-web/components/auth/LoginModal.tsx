@@ -8,12 +8,14 @@ import { setSession, getApiErrorMessage, type UserProfile, type AuthTokens } fro
 import { useAuthStore } from '@/store/authStore';
 import { formatPhoneForApi, cn } from '@/lib/utils';
 
-type Step = 'phone' | 'otp' | 'profile';
+type Step = 'phone' | 'email' | 'otp' | 'profile';
 
 interface LoginModalProps {
   redirectTo?: string;
   onCloseHref?: string;
 }
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 /** Blinkit-style product mosaic tiles for mobile login hero */
 const LOGIN_PRODUCTS = [
@@ -48,9 +50,12 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
   const [step, setStep] = useState<Step>('phone');
   const [phoneDigits, setPhoneDigits] = useState('');
   const [otpDigits, setOtpDigits] = useState<string[]>(Array(6).fill(''));
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [staticOtpHint, setStaticOtpHint] = useState<string | null>(null);
   const [resendIn, setResendIn] = useState(0);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -59,7 +64,6 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
     [phoneDigits],
   );
   const phoneValid = /^[6-9]\d{9}$/.test(phoneDigits.replace(/\D/g, ''));
-  const isDev = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -90,7 +94,9 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
     setError('');
     setLoading(true);
     try {
-      await authService.sendOtp(formattedPhone);
+      const { data } = await authService.sendOtp(formattedPhone);
+      const payload = data?.data as { staticOtp?: boolean; otp?: string } | undefined;
+      setStaticOtpHint(payload?.staticOtp && payload?.otp ? payload.otp : null);
       setStep('otp');
       setOtpDigits(Array(6).fill(''));
       setResendIn(30);
@@ -106,6 +112,42 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
     e.preventDefault();
     if (!phoneValid || loading) return;
     await sendOtp();
+  };
+
+  const handleEmailLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
+    setError('');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Enter a valid email address');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await authService.loginEmail(email.trim(), password);
+      finishAuth(result.user, result.tokens);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Invalid email or password'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    if (!GOOGLE_CLIENT_ID) {
+      setError('Google sign-in is not configured yet (needs GOOGLE_CLIENT_ID).');
+      return;
+    }
+    setError('Google sign-in opens when GOOGLE_CLIENT_ID is set on Amplify. Use phone OTP or email for now.');
+  };
+
+  const handleAppleLogin = () => {
+    setError('Apple sign-in is deferred (API returns 501 until Milestone later). Use phone OTP or email.');
   };
 
   const verifyOtp = async (code: string) => {
@@ -198,11 +240,104 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
         )}
       </button>
 
+      <div className="relative py-1 text-center text-[11px] uppercase tracking-wide text-[#999]">
+        <span className="relative z-10 bg-white px-2">or</span>
+        <span className="absolute inset-x-0 top-1/2 h-px bg-[#eee]" />
+      </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          setStep('email');
+          setError('');
+        }}
+        className="flex h-11 w-full items-center justify-center rounded-xl border border-[#e0e0e0] text-[13px] font-semibold text-[#1f1f1f] hover:bg-[#fafafa]"
+      >
+        Continue with email
+      </button>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => void handleGoogleLogin()}
+          disabled={loading}
+          className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] text-[12px] font-semibold text-[#1f1f1f] hover:bg-[#fafafa]"
+        >
+          Google
+        </button>
+        <button
+          type="button"
+          onClick={handleAppleLogin}
+          disabled={loading}
+          className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] text-[12px] font-semibold text-[#1f1f1f] hover:bg-[#fafafa]"
+        >
+          Apple
+        </button>
+      </div>
+
       <p className="pt-1 text-center text-[11px] leading-relaxed text-[#666]">
         By continuing, you agree to our{' '}
         <span className="underline decoration-dotted underline-offset-2">Terms of service</span>
         {' '}&{' '}
         <span className="underline decoration-dotted underline-offset-2">Privacy policy</span>
+      </p>
+    </form>
+  );
+
+  const emailForm = (
+    <form onSubmit={handleEmailLogin} className="mt-5 w-full max-w-[340px] space-y-3.5">
+      <div className="relative flex items-center justify-center">
+        <button
+          type="button"
+          onClick={() => {
+            setStep('phone');
+            setError('');
+          }}
+          className="absolute left-0 flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5f5f5]"
+          aria-label="Back"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+        <h2 className="text-base font-extrabold text-[#1f1f1f]">Email login</h2>
+      </div>
+
+      <input
+        type="email"
+        autoComplete="email"
+        placeholder="Email address"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="h-12 w-full rounded-xl border border-[#e0e0e0] px-3 text-[15px] outline-none focus:border-[var(--cart-green)]"
+        autoFocus
+      />
+      <input
+        type="password"
+        autoComplete="current-password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="h-12 w-full rounded-xl border border-[#e0e0e0] px-3 text-[15px] outline-none focus:border-[var(--cart-green)]"
+      />
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={loading || !email.trim() || !password}
+        className={cn(
+          'flex h-12 w-full items-center justify-center rounded-xl text-[15px] font-bold text-white transition',
+          !loading && email.trim() && password
+            ? 'bg-[var(--cart-green)] hover:bg-[#097019]'
+            : 'cursor-not-allowed bg-[#b0b0b0]',
+        )}
+      >
+        {loading ? 'Signing in…' : 'Sign in'}
+      </button>
+
+      <p className="text-center text-[11px] text-[#999]">
+        Sample: rahul@example.com / Customer@123
       </p>
     </form>
   );
@@ -251,9 +386,9 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
       </div>
 
       {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
-      {isDev && (
+      {staticOtpHint && (
         <p className="mt-2 text-center text-xs text-[#999]">
-          Dev: use OTP <span className="font-semibold">123456</span>
+          Use OTP <span className="font-semibold">{staticOtpHint}</span> (static / free mode)
         </p>
       )}
 
@@ -341,6 +476,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
               {phoneForm}
             </>
           )}
+          {step === 'email' && emailForm}
           {step === 'otp' && otpForm}
           {step === 'profile' && profileForm}
         </div>
@@ -378,6 +514,9 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
               <p className="mt-1 text-center text-sm text-[#666]">Log in or Sign up</p>
               {phoneForm}
             </div>
+          )}
+          {step === 'email' && (
+            <div className="flex flex-col items-center">{emailForm}</div>
           )}
           {step === 'otp' && otpForm}
           {step === 'profile' && profileForm}

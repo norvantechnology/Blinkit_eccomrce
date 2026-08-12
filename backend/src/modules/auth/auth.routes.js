@@ -10,7 +10,19 @@ const router = Router();
 const otpSendLimiter = rateLimiter({
   max: 3,
   windowSeconds: 600,
-  keyGenerator: (req) => `otp:send:${req.body.phone}`,
+  keyGenerator: (req) => `otp:send:${req.body.phone || req.ip}`,
+});
+
+const otpVerifyLimiter = rateLimiter({
+  max: 10,
+  windowSeconds: 600,
+  keyGenerator: (req) => `otp:verify:${req.body.phone || req.ip}`,
+});
+
+const authIpLimiter = rateLimiter({
+  max: 20,
+  windowSeconds: 600,
+  keyGenerator: (req) => `auth:ip:${req.ip}`,
 });
 
 router.post(
@@ -23,6 +35,7 @@ router.post(
 router.post(
   '/otp/verify',
   validateRequest(authValidator.verifyOtpSchema),
+  otpVerifyLimiter,
   authController.verifyOtp,
 );
 
@@ -36,12 +49,14 @@ router.post(
 router.post(
   '/login/email',
   validateRequest(authValidator.loginEmailSchema),
+  authIpLimiter,
   authController.loginEmail,
 );
 
 router.post(
   '/oauth/google',
   validateRequest(authValidator.googleOAuthSchema),
+  authIpLimiter,
   authController.loginGoogle,
 );
 router.post('/oauth/apple', authValidator.notImplemented);
@@ -50,6 +65,7 @@ router.post('/firebase/verify', authValidator.notImplemented);
 router.post(
   '/refresh-token',
   validateRequest(authValidator.refreshTokenSchema),
+  authIpLimiter,
   authController.refreshToken,
 );
 

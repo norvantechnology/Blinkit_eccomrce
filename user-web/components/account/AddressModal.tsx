@@ -25,6 +25,7 @@ import {
   type AddressLabel,
   type PlaceSuggestion,
 } from '@/services/addresses.service';
+import { usersService } from '@/services/users.service';
 
 export type UiAddressTag = 'home' | 'work' | 'hotel' | 'other';
 
@@ -222,6 +223,18 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       const saved = editing
         ? await addressesService.update(editing.id, payload)
         : await addressesService.create(payload);
+
+      // §19A.2 — name/phone in modal mirror Blinkit UX; persist name via profile PATCH
+      const trimmedName = name.trim();
+      if (trimmedName && trimmedName !== (user?.name || '')) {
+        try {
+          const updated = await usersService.updateMe({ name: trimmedName });
+          useAuthStore.getState().setUser(updated);
+        } catch {
+          // Address save succeeded; profile sync is best-effort
+        }
+      }
+
       onSaved(saved);
       onClose();
     } catch (err) {
