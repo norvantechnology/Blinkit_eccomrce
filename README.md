@@ -4,10 +4,10 @@ Monorepo for the Blinkit-clone quick-commerce platform — backend API + **custo
 
 Storefront brand: **Tapi Grocery** (Blinkit-parity UI chrome; DB slug `blinkit-store`).
 
-> **Source of truth:** [`Blinkit.md`](./Blinkit.md) — full technical specification (**v2.6**)  
+> **Source of truth:** [`Blinkit.md`](./Blinkit.md) — full technical specification (**v2.7**)  
 > **Implementation tracker:** [`Blinkit.md` §21](./Blinkit.md#21-implementation-status-current)  
 > **M1 final audit:** [`MILESTONE_1_AUDIT.md`](./MILESTONE_1_AUDIT.md) — **CLOSED**  
-> **Deploy / CI:** [`DEPLOY.md`](./DEPLOY.md) — EC2 + Amplify GitHub Actions + required secrets
+> **Deploy / CI:** [`DEPLOY.md`](./DEPLOY.md) — one workflow deploys backend → user-web → admin (EC2 + Amplify)
 
 ## Structure
 

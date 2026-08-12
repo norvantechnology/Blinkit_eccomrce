@@ -12,7 +12,7 @@
 
 > **v2.5 changelog (2026-08-08):** Locked **User Web M1 Blinkit-parity account UI** — Account dropdown, account sidebar layout, My Addresses list, and two-column **Enter complete address** modal (map + form). Storefront brand wordmark = **Tapi Grocery** (slug remains `blinkit-store`). Updated §5A tree, §19A.2, §21.5A, README / audit / user-web README.
 
-> **v2.6 changelog (2026-08-08):** **Milestone 1 closed.** Desktop full-width header + body width tune; mobile Blinkit header (no bottom tab bar); Plus Jakarta Sans (Okra substitute); final audit in [`MILESTONE_1_AUDIT.md`](./MILESTONE_1_AUDIT.md). Active work → **Milestone 2**.
+> **v2.7 changelog (2026-08-08):** Locked frontend hosting to **AWS Amplify only** (no CloudFront / ECS for `user-web` or `admin-panel`). Backend deploy = EC2 Docker. Single GitHub Actions workflow deploys all three in order. CloudFront remains optional later for S3 image CDN only.
 
 ---
 
@@ -45,16 +45,16 @@
 | Search | **AWS OpenSearch Service** — instant search, voice search, suggestions, typo-tolerant product search |
 | Auth | JWT (access + refresh) issued by our backend; OTP via SMS provider or **Firebase Phone Auth**; OAuth (Google/Apple) |
 | File Storage | **AWS S3** (product images, invoices, review images, KYC docs) |
-| CDN | **AWS CloudFront** in front of S3 for images/static assets |
+| CDN (images only, optional later) | **Not required for app hosting.** S3 public URLs or Amplify-served assets are enough for M1–M2; CloudFront in front of S3 is optional later for image CDN only — **never** used to host `user-web` / `admin-panel` |
 | Realtime | Socket.IO (self-hosted) for live order tracking, rider location |
 | Push Notifications | **Firebase Cloud Messaging (FCM)** |
 | SMS | AWS SNS (SMS) or third-party SMS gateway (MSG91/Twilio) — whichever the client's telecom region needs |
 | Email | **AWS SES** |
 | WhatsApp | WhatsApp Business Cloud API |
 | Payments | Razorpay/Stripe-style gateway (UPI, Card, Net Banking, Wallet, COD) |
-| Compute (Backend) | **AWS ECS Fargate** (containerized Node.js) behind an **AWS ALB** |
-| Compute (User Web App) | **AWS Amplify Hosting** or ECS Fargate (Next.js SSR container) |
-| Compute (Admin Panel) | **AWS Amplify Hosting** or ECS Fargate (Next.js SSR container) |
+| Compute (Backend) | **EC2** (Docker Compose) for current deploy; ECS Fargate + ALB is the longer-term option in IaC |
+| Compute (User Web App) | **AWS Amplify Hosting only** (Next.js SSR — chosen because it is simplest; no CloudFront / ECS for the storefront) |
+| Compute (Admin Panel) | **AWS Amplify Hosting only** (Next.js SSR — same as user-web; no CloudFront / ECS for admin) |
 | Background Jobs | BullMQ workers on ECS Fargate, backed by ElastiCache Redis |
 | Secrets | **AWS Secrets Manager** |
 | Monitoring/Logs | **AWS CloudWatch** (logs, alarms, dashboards) + optional Sentry for error tracking |
@@ -62,7 +62,7 @@
 | Speech-to-Text (voice search) | **AWS Transcribe** (or browser/device STT from User Web App; backend may receive text only) |
 | DNS / SSL | **AWS Route 53** + **AWS Certificate Manager (ACM)** |
 | IaC | Terraform (recommended) for reproducible AWS provisioning |
-| CI/CD | GitHub Actions → ECR → ECS deploy |
+| CI/CD | **One** GitHub Actions workflow: backend → EC2, then `user-web` → Amplify, then `admin-panel` → Amplify |
 
 ---
 
@@ -77,59 +77,37 @@ flowchart TB
 
   subgraph Edge
     R53[Route 53 DNS]
-    CF[CloudFront CDN]
     ACM[ACM - TLS Certs]
   end
 
-  subgraph VPC["AWS VPC"]
-    ALB[Application Load Balancer]
-    subgraph Private Subnet - Compute
-      ECS_API[ECS Fargate: Node.js API]
-      ECS_WORKER[ECS Fargate: BullMQ Workers]
-      ECS_USER[ECS Fargate / Amplify: Next.js User Web]
-      ECS_ADMIN[ECS Fargate / Amplify: Next.js Admin]
-      SOCKET[Socket.IO Service]
-    end
-    subgraph Private Subnet - Data
-      RDS[(RDS PostgreSQL + PostGIS)]
-      REDIS[(ElastiCache Redis)]
-      OS[(OpenSearch)]
-    end
+  subgraph Hosting["Chosen hosting — easy path"]
+    AMP_UW[Amplify Hosting: user-web]
+    AMP_AD[Amplify Hosting: admin-panel]
+    EC2_API[EC2 + Docker: Backend API]
   end
 
   S3[(S3 - images/invoices/docs)]
   SES[SES - Email]
   SNS[SNS - SMS]
   FCM[Firebase - Push Notifications]
-  SM[Secrets Manager]
-  CW[CloudWatch - Logs and Alarms]
-  REK[Rekognition - Image Search]
-  TRX[Transcribe - Voice Search]
+  RDS[(PostgreSQL + PostGIS)]
+  REDIS[(Redis)]
+  CW[CloudWatch]
 
-  UW --> R53 --> CF --> ALB
-  AD --> R53
-  ALB --> ECS_API
-  ALB --> ECS_USER
-  ALB --> ECS_ADMIN
-  ECS_API --> RDS
-  ECS_API --> REDIS
-  ECS_API --> OS
-  ECS_API --> S3
-  ECS_API --> SES
-  ECS_API --> SNS
-  ECS_API --> FCM
-  ECS_API --> SM
-  ECS_API --> REK
-  ECS_API --> TRX
-  ECS_WORKER --> REDIS
-  ECS_WORKER --> SES
-  ECS_WORKER --> SNS
-  ECS_WORKER --> FCM
-  SOCKET --> REDIS
-  CF --> S3
-  ECS_API --> CW
-  ECS_WORKER --> CW
+  UW --> R53 --> AMP_UW
+  AD --> R53 --> AMP_AD
+  AMP_UW -->|/api/v1| EC2_API
+  AMP_AD -->|/api/v1| EC2_API
+  EC2_API --> RDS
+  EC2_API --> REDIS
+  EC2_API --> S3
+  EC2_API --> SES
+  EC2_API --> SNS
+  EC2_API --> FCM
+  EC2_API --> CW
 ```
+
+> **Hosting decision:** `user-web` and `admin-panel` run on **AWS Amplify Hosting only** (simplest Next.js path). **Do not** put the frontends behind CloudFront or ECS. CloudFront is **not** part of the app hosting stack; S3 object URLs are enough for images until a later optional CDN is needed.
 
 ### 3.1 Rationale per service
 | Requirement | AWS/Firebase Service | Why |
@@ -137,7 +115,7 @@ flowchart TB
 | Relational data, geospatial nearest-store filtering | RDS PostgreSQL + PostGIS | Managed, automated backups, PostGIS gives `ST_DWithin` queries for delivery radius / nearest area filtering |
 | OTP, sessions, rate limiting, job queue | ElastiCache Redis | Sub-ms latency, managed failover |
 | Instant/voice search, typo tolerance, autosuggest | OpenSearch | Postgres LIKE/ILIKE doesn't scale for autosuggest at product-catalog volume |
-| Images, invoices, KYC/rider docs | S3 + CloudFront | Durable object storage + CDN edge caching for product images |
+| Images, invoices, KYC/rider docs | S3 (CloudFront optional later) | Durable object storage; **no CloudFront required** to ship — Amplify hosts the apps, not CloudFront |
 | Push notifications | Firebase Cloud Messaging | Cross-platform (Android/iOS/Web) push is Firebase's core strength; avoids building our own push infra |
 | Phone OTP (optional) | Firebase Phone Auth | Can replace custom SMS-OTP build-out if client prefers Firebase-managed OTP; otherwise SNS/SMS gateway + our own `otp_verifications` table |
 | Email | SES | Cheap, scalable transactional email with our own domain |
@@ -999,22 +977,26 @@ Socket.IO runs as its own ECS Fargate service behind the ALB (sticky sessions) a
 ## 13. Deployment, CI/CD, Backup & DR
 
 ### 13.1 CI/CD Pipeline
+
+**Chosen path (easy):** one GitHub Actions workflow deploys all three apps in order. Frontends use **Amplify only** — not CloudFront, not ECS.
+
 ```mermaid
 flowchart LR
-  A[Git Push] --> B[GitHub Actions: Lint + Test]
-  B --> C[Build Docker Images]
-  C --> D[Push to ECR]
-  D --> E[Deploy ECS: API + Workers]
-  D --> F[Deploy Amplify/ECS: user-web]
-  D --> G[Deploy Amplify/ECS: admin-panel]
-  E --> H[CloudWatch Health Checks]
-  F --> H
-  G --> H
-  H -->|Healthy| I[Traffic Shifted]
-  H -->|Unhealthy| J[Automatic Rollback]
+  A[Git Push main] --> B[GitHub Actions: Deploy All]
+  B --> C[1 Backend → EC2 Docker]
+  C --> D[2 user-web → Amplify]
+  D --> E[3 admin-panel → Amplify]
 ```
 
-Pipelines build three deployables: `backend`, `user-web`, `admin-panel` (independent promote paths; shared API contract tests).
+| Step | App | Target | Why |
+|------|-----|--------|-----|
+| 1 | `backend/` | **EC2** + Docker Compose | Full control for API + Postgres/Redis |
+| 2 | `user-web/` | **AWS Amplify Hosting** | Easiest Next.js hosting (SSR, HTTPS, Git-connected) |
+| 3 | `admin-panel/` | **AWS Amplify Hosting** | Same as user-web |
+
+Workflow file: [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) · secrets list: [`DEPLOY.md`](./DEPLOY.md).
+
+> **Out of scope for frontend hosting:** CloudFront distributions for Next.js, ECS Fargate for Next.js, S3 static website hosting for the App Router apps.
 
 ### 13.2 Environments
 - `dev` → `staging` → `production`, each with its own RDS instance (or schema), ElastiCache cluster, and OpenSearch domain, isolated by VPC/subnet and Secrets Manager namespace.
@@ -1779,4 +1761,4 @@ Run: `cd backend && npm test` (requires PostGIS + Redis).
 
 ---
 
-*End of specification (v2.6). This file is the canonical reference for scope, schema, folder structure (`backend`, `user-web`, `admin-panel`), API contracts, AWS/Firebase infrastructure, security model, realtime flows, search/caching architecture, deployment/DR, admin-panel screen specs (§19), **User Web Blinkit pixel-parity specs (§19A)**, backend controller/service logic, milestone-to-deliverable mapping, and **§21 implementation tracker** for this project.*
+*End of specification (v2.7). This file is the canonical reference for scope, schema, folder structure (`backend`, `user-web`, `admin-panel`), API contracts, AWS/Firebase infrastructure, security model, realtime flows, search/caching architecture, deployment/DR, admin-panel screen specs (§19), **User Web Blinkit pixel-parity specs (§19A)**, backend controller/service logic, milestone-to-deliverable mapping, and **§21 implementation tracker** for this project.*

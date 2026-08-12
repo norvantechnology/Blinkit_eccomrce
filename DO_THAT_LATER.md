@@ -51,7 +51,7 @@ CLOUDFRONT_DOMAIN=<optional-cdn-domain>
 **Checklist:**
 - [ ] Create S3 bucket (e.g. `blinkit-uploads`)
 - [ ] Create IAM user/key with `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` on that bucket
-- [ ] (Optional) CloudFront distribution in front of the bucket
+- [ ] (Optional, later) CloudFront in front of S3 for product images only — **not** for hosting Next.js apps (those stay on Amplify)
 - [ ] Set env vars and restart backend
 - [ ] Confirm `GET /health` shows `"s3": true`
 
