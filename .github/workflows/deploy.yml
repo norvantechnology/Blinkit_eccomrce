@@ -13,10 +13,10 @@ env:
   EC2_USER: ubuntu
   EC2_NAME_TAG: tapi-grocery-api
   AMPLIFY_BRANCH: main
+  REPO_URL: https://github.com/norvantechnology/Blinkit_eccomrce
 
 # Push to main → deploy backend (EC2) + both frontends (Amplify).
-# Backend config: AWS Secrets Manager `tapi-grocery/backend` (no .env file).
-# Frontend env: Amplify Console (manual).
+# Backend config: Secrets Manager. Frontend env: Amplify Console (manual).
 
 jobs:
   deploy-backend:
@@ -29,12 +29,14 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           missing=0
           [ -n "$AWS_ACCESS_KEY_ID" ] || { echo "Missing: AWS_ACCESS_KEY_ID"; missing=1; }
           [ -n "$AWS_SECRET_ACCESS_KEY" ] || { echo "Missing: AWS_SECRET_ACCESS_KEY"; missing=1; }
           [ -n "$AWS_REGION" ] || { echo "Missing: AWS_REGION"; missing=1; }
           [ -n "$EC2_SSH_KEY" ] || { echo "Missing: EC2_SSH_KEY"; missing=1; }
+          [ -n "$GH_PAT" ] || { echo "Missing: GH_PAT"; missing=1; }
           exit $missing
 
       - uses: aws-actions/configure-aws-credentials@v4
@@ -59,24 +61,45 @@ jobs:
 
       - name: Deploy backend over SSH
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         with:
           host: ${{ steps.resolve.outputs.host }}
           username: ${{ env.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script_stop: true
+          envs: GH_PAT
           script: |
             set -euo pipefail
             APP_DIR="/opt/blinkit"
-            REPO_URL="https://github.com/norvantechnology/Blinkit_eccomrce.git"
+            CLONE_URL="https://x-access-token:${GH_PAT}@github.com/norvantechnology/Blinkit_eccomrce.git"
             command -v docker >/dev/null || { echo "docker missing"; exit 1; }
-            mkdir -p "$APP_DIR" && cd "$APP_DIR"
-            if [ ! -d .git ]; then git clone "$REPO_URL" .
-            else
-              git remote set-url origin "$REPO_URL" || true
-              git fetch origin main && git checkout -B main origin/main
+            command -v git >/dev/null || { echo "git missing"; exit 1; }
+            if ! command -v rsync >/dev/null; then
+              sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq rsync
             fi
-            # No backend/.env — config from Secrets Manager via EC2 instance role
+
+            mkdir -p "$APP_DIR"
+            TMP="$(mktemp -d /tmp/blinkit-src.XXXXXX)"
+            cleanup() { rm -rf "$TMP"; }
+            trap cleanup EXIT
+
+            echo "Cloning main → temp…"
+            git clone --depth 1 --branch main "$CLONE_URL" "$TMP"
+
+            echo "Syncing code into ${APP_DIR}…"
+            rsync -a --delete \
+              --exclude '.git/' \
+              --exclude 'backend/.env' \
+              --exclude 'backend/node_modules/' \
+              --exclude 'admin-panel/node_modules/' \
+              --exclude 'user-web/node_modules/' \
+              --exclude 'admin-panel/.next/' \
+              --exclude 'user-web/.next/' \
+              "${TMP}/" "${APP_DIR}/"
+
+            cd "$APP_DIR"
             rm -f backend/.env
             docker compose up -d --build backend postgres redis
             docker compose ps
@@ -91,12 +114,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Start Amplify RELEASE
+      - name: Amplify user-web
         env:
           APP_ID: ${{ secrets.AMPLIFY_APP_ID_USER_WEB }}
           APP_ROOT: user-web
           AMPLIFY_BRANCH: main
           GH_PAT: ${{ secrets.GH_PAT }}
+          REPO_URL: ${{ env.REPO_URL }}
         run: bash .github/scripts/amplify-deploy.sh
 
   deploy-admin-panel:
@@ -109,10 +133,11 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Start Amplify RELEASE
+      - name: Amplify admin
         env:
           APP_ID: ${{ secrets.AMPLIFY_APP_ID_ADMIN }}
           APP_ROOT: admin-panel
           AMPLIFY_BRANCH: main
           GH_PAT: ${{ secrets.GH_PAT }}
+          REPO_URL: ${{ env.REPO_URL }}
         run: bash .github/scripts/amplify-deploy.sh
