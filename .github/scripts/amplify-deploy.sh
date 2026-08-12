@@ -34,6 +34,22 @@ applications:
 EOF
 }
 
+is_active_status() {
+  case "$1" in
+    RUNNING|PENDING|PROVISIONING|CREATED|CANCELLING) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+latest_job() {
+  aws amplify list-jobs \
+    --app-id "${APP_ID}" \
+    --branch-name "${BRANCH_NAME}" \
+    --max-items 5 \
+    --query 'jobSummaries[0].{id:jobId,status:status}' \
+    --output text 2>/dev/null | tr -d '\r' || true
+}
+
 BUILD_SPEC="$(build_spec_for_root "${APP_ROOT}")"
 
 echo "Amplify APP_ID=${APP_ID} root=${APP_ROOT} branch=${BRANCH_NAME}"
@@ -90,35 +106,51 @@ if [ -z "${BRANCH_EXISTS}" ] || [ "${BRANCH_EXISTS}" = "None" ] || [ "${BRANCH_E
   sleep 3
 fi
 
-# If git push already kicked off a build, don't fail the workflow.
-LATEST_STATUS="$(aws amplify list-jobs --app-id "${APP_ID}" --branch-name "${BRANCH_NAME}" --max-items 1 \
-  --query 'jobSummaries[0].status' --output text 2>/dev/null | tr -d '\r' || true)"
-LATEST_ID="$(aws amplify list-jobs --app-id "${APP_ID}" --branch-name "${BRANCH_NAME}" --max-items 1 \
-  --query 'jobSummaries[0].jobId' --output text 2>/dev/null | tr -d '\r' || true)"
+# Git push webhook often already started a build — treat that as success.
+LATEST="$(latest_job)"
+LATEST_ID="$(echo "${LATEST}" | awk '{print $1}')"
+LATEST_STATUS="$(echo "${LATEST}" | awk '{print $2}')"
 
-if [ "${LATEST_STATUS}" = "RUNNING" ] || [ "${LATEST_STATUS}" = "PENDING" ] || [ "${LATEST_STATUS}" = "PROVISIONING" ]; then
+if is_active_status "${LATEST_STATUS}"; then
   echo "Amplify job ${LATEST_ID} already ${LATEST_STATUS} (likely from git webhook) — OK"
   exit 0
 fi
 
 echo "Starting RELEASE…"
-if JOB_ID="$(aws amplify start-job \
+START_ERR="$(mktemp)"
+set +e
+JOB_ID="$(aws amplify start-job \
   --app-id "${APP_ID}" \
   --branch-name "${BRANCH_NAME}" \
   --job-type RELEASE \
   --query 'jobSummary.jobId' \
-  --output text 2>&1)"; then
+  --output text 2>"${START_ERR}")"
+START_RC=$?
+set -e
+
+if [ "${START_RC}" -eq 0 ] && [ -n "${JOB_ID}" ] && [ "${JOB_ID}" != "None" ]; then
   echo "Done. jobId=${JOB_ID}"
+  rm -f "${START_ERR}"
   exit 0
 fi
 
-echo "start-job failed: ${JOB_ID}"
-# Common when webhook already queued a job between list and start
-LATEST_STATUS="$(aws amplify list-jobs --app-id "${APP_ID}" --branch-name "${BRANCH_NAME}" --max-items 1 \
-  --query 'jobSummaries[0].status' --output text 2>/dev/null | tr -d '\r' || true)"
-LATEST_ID="$(aws amplify list-jobs --app-id "${APP_ID}" --branch-name "${BRANCH_NAME}" --max-items 1 \
-  --query 'jobSummaries[0].jobId' --output text 2>/dev/null | tr -d '\r' || true)"
-if [ "${LATEST_STATUS}" = "RUNNING" ] || [ "${LATEST_STATUS}" = "PENDING" ] || [ "${LATEST_STATUS}" = "PROVISIONING" ] || [ "${LATEST_STATUS}" = "SUCCEED" ]; then
+ERR_TEXT="$(cat "${START_ERR}" 2>/dev/null || true)"
+rm -f "${START_ERR}"
+echo "start-job failed (rc=${START_RC}): ${ERR_TEXT}"
+
+# LimitExceededException = another job is already pending/running (webhook race).
+if echo "${ERR_TEXT}" | grep -qi 'LimitExceededException\|already have pending or running'; then
+  LATEST="$(latest_job)"
+  LATEST_ID="$(echo "${LATEST}" | awk '{print $1}')"
+  LATEST_STATUS="$(echo "${LATEST}" | awk '{print $2}')"
+  echo "Amplify already has a job in flight — OK (job ${LATEST_ID} ${LATEST_STATUS})"
+  exit 0
+fi
+
+LATEST="$(latest_job)"
+LATEST_ID="$(echo "${LATEST}" | awk '{print $1}')"
+LATEST_STATUS="$(echo "${LATEST}" | awk '{print $2}')"
+if is_active_status "${LATEST_STATUS}" || [ "${LATEST_STATUS}" = "SUCCEED" ]; then
   echo "Continuing with existing job ${LATEST_ID} (${LATEST_STATUS})"
   exit 0
 fi
