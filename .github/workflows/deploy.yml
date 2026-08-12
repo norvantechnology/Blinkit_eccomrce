@@ -1,4 +1,4 @@
-name: Deploy All
+name: Deploy
 
 on:
   push:
@@ -6,21 +6,22 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-all
+  group: deploy
   cancel-in-progress: false
 
 env:
   EC2_USER: ubuntu
   EC2_NAME_TAG: tapi-grocery-api
   AMPLIFY_BRANCH: main
-  REPO_URL: https://github.com/norvantechnology/Blinkit_eccomrce
+
+# Push to main → deploy backend (EC2) + both frontends (Amplify).
+# Backend config: AWS Secrets Manager `tapi-grocery/backend` (no .env file).
+# Frontend env: Amplify Console (manual).
 
 jobs:
   deploy-backend:
-    name: '1 · Backend → EC2'
+    name: Backend → EC2
     runs-on: ubuntu-latest
-    outputs:
-      api_url: ${{ steps.resolve.outputs.api_url }}
     steps:
       - name: Require secrets
         env:
@@ -54,7 +55,6 @@ jobs:
             exit 1
           fi
           echo "host=$HOST" >> "$GITHUB_OUTPUT"
-          echo "api_url=http://${HOST}:4000" >> "$GITHUB_OUTPUT"
           echo "EC2 → $HOST"
 
       - name: Deploy backend over SSH
@@ -76,14 +76,13 @@ jobs:
               git remote set-url origin "$REPO_URL" || true
               git fetch origin main && git checkout -B main origin/main
             fi
-            [ -f backend/.env ] || { echo "missing backend/.env"; exit 1; }
-            docker compose --env-file backend/.env pull || true
-            docker compose --env-file backend/.env up -d --build backend postgres redis
+            # No backend/.env — config from Secrets Manager via EC2 instance role
+            rm -f backend/.env
+            docker compose up -d --build backend postgres redis
             docker compose ps
 
   deploy-user-web:
-    name: '2 · User web → Amplify'
-    needs: deploy-backend
+    name: User web → Amplify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -92,20 +91,16 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Amplify user-web
+      - name: Start Amplify RELEASE
         env:
           APP_ID: ${{ secrets.AMPLIFY_APP_ID_USER_WEB }}
-          APP_NAME: tapi-grocery-user-web
           APP_ROOT: user-web
           AMPLIFY_BRANCH: main
           GH_PAT: ${{ secrets.GH_PAT }}
-          API_PUBLIC_URL: ${{ secrets.API_PUBLIC_URL }}
-          API_FALLBACK: ${{ needs.deploy-backend.outputs.api_url }}
         run: bash .github/scripts/amplify-deploy.sh
 
   deploy-admin-panel:
-    name: '3 · Admin panel → Amplify'
-    needs: [deploy-backend, deploy-user-web]
+    name: Admin → Amplify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -114,13 +109,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Amplify admin
+      - name: Start Amplify RELEASE
         env:
           APP_ID: ${{ secrets.AMPLIFY_APP_ID_ADMIN }}
-          APP_NAME: tapi-grocery-admin
           APP_ROOT: admin-panel
           AMPLIFY_BRANCH: main
           GH_PAT: ${{ secrets.GH_PAT }}
-          API_PUBLIC_URL: ${{ secrets.API_PUBLIC_URL }}
-          API_FALLBACK: ${{ needs.deploy-backend.outputs.api_url }}
         run: bash .github/scripts/amplify-deploy.sh

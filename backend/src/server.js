@@ -1,11 +1,15 @@
-require('dotenv').config();
-const app = require('./app');
-const env = require('./config/env');
-const logger = require('./utils/logger');
-const redis = require('./config/redis');
-const { startAuditLogPurgeJob } = require('./middlewares/auditLogger');
+const { loadSecrets } = require('./config/loadSecrets');
 
 const start = async () => {
+  await loadSecrets();
+
+  // Require after secrets so env.js / clients see populated process.env
+  const app = require('./app');
+  const env = require('./config/env');
+  const logger = require('./utils/logger');
+  const redis = require('./config/redis');
+  const { startAuditLogPurgeJob } = require('./middlewares/auditLogger');
+
   try {
     await redis.connect();
   } catch (err) {
@@ -31,4 +35,7 @@ const start = async () => {
   });
 };
 
-start();
+start().catch((err) => {
+  console.error('[boot] Failed:', err.message);
+  process.exit(1);
+});

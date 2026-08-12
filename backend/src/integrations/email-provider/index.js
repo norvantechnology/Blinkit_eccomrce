@@ -7,7 +7,7 @@ const env = require('../../config/env');
  * In dev/test: logs reset link to console (same pattern as OTP SMS stub).
  */
 const sendPasswordResetEmail = async (email, resetToken) => {
-  const adminPanelUrl = process.env.ADMIN_PANEL_URL || 'http://localhost:3000';
+  const adminPanelUrl = env.adminPanelUrl;
   const resetUrl = `${adminPanelUrl}/forgot-password?token=${resetToken}`;
 
   if (process.env.NODE_ENV !== 'production') {
@@ -15,8 +15,10 @@ const sendPasswordResetEmail = async (email, resetToken) => {
     return { success: true, provider: 'console' };
   }
 
+  // SES not wired yet — log link so resets still work in live without SES
   if (!env.aws.sesFromEmail) {
-    throw new Error('SES_FROM_EMAIL not configured for production email delivery');
+    logger.info(`[EMAIL] SES not configured — reset link for ${email}: ${resetUrl}`);
+    return { success: true, provider: 'console' };
   }
 
   return aws.ses.sendEmail({

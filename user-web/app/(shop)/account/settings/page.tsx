@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { usersService } from '@/services/users.service';
 import { authService } from '@/services/auth.service';
 import { getApiErrorMessage, setStoredUser } from '@/lib/auth';
+import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { cn } from '@/lib/utils';
 
 const LANGUAGES = [
@@ -23,6 +24,7 @@ export default function SettingsPage() {
   const [languagePref, setLanguagePref] = useState(user?.languagePref || 'en');
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatarUrl || null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -38,6 +40,7 @@ export default function SettingsPage() {
       const updatedProfile = await usersService.updateMe({
         name: name.trim(),
         ...(email.trim() ? { email: email.trim() } : {}),
+        avatarUrl,
       });
       const updatedLang = await usersService.updateLanguage(languagePref);
       const merged = { ...updatedProfile, ...updatedLang };
@@ -70,6 +73,15 @@ export default function SettingsPage() {
       <form onSubmit={handleSave} className="mt-6 max-w-md space-y-4">
         {error && <p className="text-[13px] text-red-600">{error}</p>}
         {message && <p className="text-[13px] text-emerald-700">{message}</p>}
+
+        <div>
+          <p className="mb-2 text-[13px] font-semibold text-[#1f1f1f]">Profile photo</p>
+          <AvatarUpload
+            value={avatarUrl}
+            onUploaded={(file) => setAvatarUrl(file.url)}
+            onClear={() => setAvatarUrl(null)}
+          />
+        </div>
 
         <div>
           <label htmlFor="privacy-name" className="mb-1.5 block text-[13px] font-semibold text-[#1f1f1f]">

@@ -1,8 +1,30 @@
 /**
- * Stub shared AWS SDK clients for local development.
- * In production: SES, SNS, Rekognition, Transcribe, Secrets Manager.
+ * Shared AWS helpers. Secrets Manager is real when credentials + region are set.
  */
+const {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} = require('@aws-sdk/client-secrets-manager');
 const env = require('./env');
+
+let secretsClient = null;
+
+const getSecretsClient = () => {
+  if (!secretsClient) {
+    secretsClient = new SecretsManagerClient({
+      region: env.aws.region,
+      ...(env.aws.accessKeyId && env.aws.secretAccessKey
+        ? {
+            credentials: {
+              accessKeyId: env.aws.accessKeyId,
+              secretAccessKey: env.aws.secretAccessKey,
+            },
+          }
+        : {}),
+    });
+  }
+  return secretsClient;
+};
 
 const aws = {
   region: env.aws.region,
@@ -17,7 +39,6 @@ const aws = {
   sns: {
     async publishSMS({ phone, message }) {
       console.log(`[aws.sns] Stub SMS to=${phone} message=${message}`);
-      return { MessageId: 'stub-sms-id' };
     },
   },
 
@@ -36,9 +57,19 @@ const aws = {
   },
 
   secretsManager: {
-    async getSecret(_secretName) {
-      console.log('[aws.secretsManager] Stub getSecret');
-      return {};
+    async getSecret(secretName) {
+      const name = secretName || env.aws.secretsManagerSecretName;
+      if (!name) {
+        console.log('[aws.secretsManager] No secret name configured');
+        return {};
+      }
+
+      const res = await getSecretsClient().send(
+        new GetSecretValueCommand({ SecretId: name }),
+      );
+      const raw = res.SecretString
+        || (res.SecretBinary ? Buffer.from(res.SecretBinary).toString('utf8') : '{}');
+      return JSON.parse(raw);
     },
   },
 };

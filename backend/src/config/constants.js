@@ -54,10 +54,28 @@ const ADDRESS_LABEL = {
   OTHER: 'other',
 };
 
+/** Non-secret app defaults (do not put secrets here) */
+const JWT_EXPIRY = {
+  ACCESS: '15m',
+  ADMIN_ACCESS: '8h',
+  REFRESH: '30d',
+};
+
+const AUDIT_RETENTION_DAYS = 5;
+
+/** Secrets Manager identity (not a secret) */
+const SECRETS_MANAGER = {
+  SECRET_NAME: 'tapi-grocery/backend',
+  REGION: 'ap-south-1',
+};
+
 module.exports = {
   ROLES,
   PERMISSIONS,
   AUTH_PROVIDER,
   OTP_PURPOSE,
   ADDRESS_LABEL,
+  JWT_EXPIRY,
+  AUDIT_RETENTION_DAYS,
+  SECRETS_MANAGER,
 };

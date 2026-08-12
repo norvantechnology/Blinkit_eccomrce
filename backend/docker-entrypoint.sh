@@ -1,15 +1,13 @@
 #!/bin/sh
 set -e
 
-echo "Starting Blinkit backend..."
+echo "Starting Tapi Grocery backend..."
 
-if [ "${RUN_DB_SETUP}" = "1" ] || [ "${RUN_DB_SETUP}" = "true" ]; then
-  echo "Running Prisma db push..."
-  npx prisma db push --schema=src/database/prisma/schema.prisma --skip-generate
-  echo "Applying PostGIS / GIST migrations..."
-  node src/database/prisma/apply-postgis.js
-  echo "Seeding database..."
-  node src/database/prisma/seed.js
-fi
+# Empty AWS key env vars break the default credential chain (EC2 instance role).
+if [ -z "${AWS_ACCESS_KEY_ID:-}" ]; then unset AWS_ACCESS_KEY_ID; fi
+if [ -z "${AWS_SECRET_ACCESS_KEY:-}" ]; then unset AWS_SECRET_ACCESS_KEY; fi
+if [ -z "${AWS_SESSION_TOKEN:-}" ]; then unset AWS_SESSION_TOKEN; fi
+
+# App config loads inside Node from Secrets Manager (no .env).
 
 exec "$@"

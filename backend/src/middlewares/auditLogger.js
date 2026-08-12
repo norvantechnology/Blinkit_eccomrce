@@ -1,6 +1,7 @@
 const prisma = require('../config/database');
 const logger = require('../utils/logger');
 const env = require('../config/env');
+const { AUDIT_RETENTION_DAYS } = require('../config/constants');
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const SKIP_PATHS = [
@@ -10,7 +11,6 @@ const SKIP_PATHS = [
   '/api/v1/admin/auth/reset-password',
 ];
 
-const AUDIT_RETENTION_DAYS = parseInt(process.env.AUDIT_RETENTION_DAYS || '5', 10);
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // hourly
 
 /**

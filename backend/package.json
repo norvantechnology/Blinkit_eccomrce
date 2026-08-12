@@ -8,19 +8,17 @@
     "start": "node src/server.js",
     "test": "NODE_ENV=test OTP_TEST_CODE=123456 TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5433/blinkit?schema=public jest --runInBand --forceExit",
     "db:generate": "prisma generate --schema=src/database/prisma/schema.prisma",
-    "db:migrate": "prisma migrate dev --schema=src/database/prisma/schema.prisma",
     "db:push": "prisma db push --schema=src/database/prisma/schema.prisma",
-    "db:migrate:postgis": "node src/database/prisma/apply-postgis.js",
-    "db:setup": "npm run db:push && npm run db:migrate:postgis && npm run db:seed",
-    "db:seed": "node src/database/prisma/seed.js",
+    "db:postgis": "node src/database/prisma/apply-postgis.js",
+    "db:setup": "npm run db:push && npm run db:postgis",
     "db:studio": "prisma studio --schema=src/database/prisma/schema.prisma"
   },
   "prisma": {
-    "schema": "src/database/prisma/schema.prisma",
-    "seed": "node src/database/prisma/seed.js"
+    "schema": "src/database/prisma/schema.prisma"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1104.0",
+    "@aws-sdk/client-secrets-manager": "^3.1108.0",
     "@aws-sdk/s3-request-presigner": "^3.1104.0",
     "@prisma/client": "^6.5.0",
     "bcryptjs": "^2.4.3",
@@ -32,6 +30,7 @@
     "ioredis": "^5.6.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.2.0",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0"
   },

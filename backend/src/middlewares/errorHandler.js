@@ -7,7 +7,11 @@ const errorHandler = (err, _req, res, _next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Internal server error';
 
-  if (err instanceof Prisma.PrismaClientInitializationError) {
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+    message =
+      err.code === 'LIMIT_FILE_SIZE' ? 'File too large (max 10MB)' : err.message;
+  } else if (err instanceof Prisma.PrismaClientInitializationError) {
     statusCode = 503;
     message = 'Database connection failed. Check DATABASE_URL and ensure PostgreSQL is running.';
   } else if (err instanceof Prisma.PrismaClientKnownRequestError) {

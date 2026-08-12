@@ -47,6 +47,8 @@ function buildOpenApiSpec(req) {
       { name: 'Admin', description: 'Admin RBAC endpoints' },
       { name: 'Users', description: 'User profile' },
       { name: 'Addresses', description: 'User addresses' },
+      { name: 'Uploads', description: 'S3 image/file uploads (user)' },
+      { name: 'Admin Uploads', description: 'S3 image/file uploads (admin)' },
     ],
     components: {
       securitySchemes: {
@@ -78,6 +80,36 @@ function buildOpenApiSpec(req) {
             message: { type: 'string' },
           },
         },
+        UploadedFile: {
+          type: 'object',
+          properties: {
+            key: { type: 'string', example: 'uploads/products/uuid-name.jpg' },
+            url: {
+              type: 'string',
+              example:
+                'https://bucket.s3.ap-south-1.amazonaws.com/uploads/products/uuid-name.jpg',
+            },
+            contentType: { type: 'string', example: 'image/jpeg' },
+            size: { type: 'integer', example: 245678 },
+            originalName: { type: 'string', example: 'mango.jpg' },
+            stub: { type: 'boolean', example: false },
+          },
+        },
+        PresignUpload: {
+          type: 'object',
+          properties: {
+            key: { type: 'string' },
+            uploadUrl: { type: 'string', description: 'Presigned S3 PUT URL' },
+            publicUrl: { type: 'string', description: 'Final public object URL' },
+            headers: {
+              type: 'object',
+              properties: { 'Content-Type': { type: 'string' } },
+            },
+            expiresIn: { type: 'integer', example: 900 },
+            method: { type: 'string', example: 'PUT' },
+            stub: { type: 'boolean' },
+          },
+        },
       },
     },
     paths: {
@@ -96,6 +128,7 @@ function buildOpenApiSpec(req) {
                     properties: {
                       status: { type: 'string', example: 'ok' },
                       env: { type: 'string' },
+                      s3: { type: 'boolean' },
                     },
                   },
                 },
@@ -350,12 +383,32 @@ function buildOpenApiSpec(req) {
           tags: ['Users'],
           summary: 'Get current user profile',
           security: [{ bearerAuth: [] }],
-          responses: { 200: { description: 'User profile' } },
+          responses: { 200: { description: 'User profile (includes avatarUrl)' } },
         },
         patch: {
           tags: ['Users'],
           summary: 'Update current user profile',
           security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    email: { type: 'string', format: 'email' },
+                    avatarUrl: {
+                      type: 'string',
+                      format: 'uri',
+                      nullable: true,
+                      description: 'Public URL returned by /uploads',
+                    },
+                  },
+                },
+              },
+            },
+          },
           responses: { 200: { description: 'Updated profile' } },
         },
       },
@@ -365,6 +418,141 @@ function buildOpenApiSpec(req) {
           summary: 'Update preferred language',
           security: [{ bearerAuth: [] }],
           responses: { 200: { description: 'Language updated' } },
+        },
+      },
+      '/uploads': {
+        post: {
+          tags: ['Uploads'],
+          summary: 'Upload file via multipart (server → S3)',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'multipart/form-data': {
+                schema: {
+                  type: 'object',
+                  required: ['file'],
+                  properties: {
+                    file: { type: 'string', format: 'binary' },
+                    folder: {
+                      type: 'string',
+                      enum: ['products', 'banners', 'avatars', 'documents', 'reviews', 'misc'],
+                      default: 'misc',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            201: {
+              description: 'Uploaded',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean' },
+                      message: { type: 'string' },
+                      data: {
+                        type: 'object',
+                        properties: { file: { $ref: '#/components/schemas/UploadedFile' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        delete: {
+          tags: ['Uploads'],
+          summary: 'Delete uploaded object by key',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['key'],
+                  properties: { key: { type: 'string', example: 'uploads/avatars/uuid-a.jpg' } },
+                },
+              },
+            },
+          },
+          responses: { 200: { description: 'Deleted' } },
+        },
+      },
+      '/uploads/presign': {
+        post: {
+          tags: ['Uploads'],
+          summary: 'Get presigned PUT URL (browser → S3 direct)',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['fileName', 'contentType'],
+                  properties: {
+                    fileName: { type: 'string', example: 'avatar.jpg' },
+                    contentType: {
+                      type: 'string',
+                      enum: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'],
+                    },
+                    folder: {
+                      type: 'string',
+                      enum: ['products', 'banners', 'avatars', 'documents', 'reviews', 'misc'],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: 'Presign payload',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean' },
+                      message: { type: 'string' },
+                      data: {
+                        type: 'object',
+                        properties: { upload: { $ref: '#/components/schemas/PresignUpload' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/admin/uploads': {
+        post: {
+          tags: ['Admin Uploads'],
+          summary: 'Admin multipart upload',
+          security: [{ bearerAuth: [] }],
+          responses: { 201: { description: 'Same shape as POST /uploads' } },
+        },
+        delete: {
+          tags: ['Admin Uploads'],
+          summary: 'Admin delete object',
+          security: [{ bearerAuth: [] }],
+          responses: { 200: { description: 'Deleted' } },
+        },
+      },
+      '/admin/uploads/presign': {
+        post: {
+          tags: ['Admin Uploads'],
+          summary: 'Admin presigned PUT URL',
+          security: [{ bearerAuth: [] }],
+          responses: { 200: { description: 'Same shape as POST /uploads/presign' } },
         },
       },
       '/addresses/search': {

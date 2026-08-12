@@ -11,6 +11,10 @@ const authRoutes = require('./modules/auth/auth.routes');
 const { authRouter, adminRouter } = require('./modules/admin-users/admin-users.routes');
 const usersRoutes = require('./modules/users/users.routes');
 const addressesRoutes = require('./modules/addresses/addresses.routes');
+const {
+  userUploadsRouter,
+  adminUploadsRouter,
+} = require('./modules/uploads/uploads.routes');
 
 const app = express();
 
@@ -20,8 +24,13 @@ app.set('trust proxy', true);
 app.use('/api-docs', swaggerRoutes);
 
 app.use(helmet());
-app.use(cors({ origin: env.nodeEnv === 'development' ? '*' : undefined }));
-app.use(express.json());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
+app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', (_req, res) => {
@@ -42,11 +51,15 @@ apiRouter.use('/auth', authRoutes);
 
 // §8.2 Admin Auth + admin routes (RBAC-protected)
 apiRouter.use('/admin/auth', authRouter);
+apiRouter.use('/admin/uploads', adminUploadsRouter);
 apiRouter.use('/admin', adminRouter);
 
 // §8.3 User Profile & Addresses
 apiRouter.use('/users', usersRoutes);
 apiRouter.use('/addresses', addressesRoutes);
+
+// Uploads (S3) — user + admin mirrors
+apiRouter.use('/uploads', userUploadsRouter);
 
 app.use('/api/v1', apiRouter);
 

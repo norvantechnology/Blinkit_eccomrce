@@ -11,3 +11,5 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+export type { UploadedFile, PresignUpload, UploadFolder } from '@/services/uploads.service';

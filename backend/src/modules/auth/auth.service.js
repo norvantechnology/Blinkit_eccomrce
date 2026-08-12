@@ -21,6 +21,7 @@ const formatUserProfile = (user) => ({
   phone: user.phone,
   email: user.email,
   name: user.name,
+  avatarUrl: user.avatarUrl ?? null,
   languagePref: user.languagePref,
   authProvider: user.authProvider,
   isActive: user.isActive,

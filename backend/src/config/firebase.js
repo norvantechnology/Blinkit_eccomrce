@@ -1,27 +1,18 @@
 /**
- * Stub Firebase Admin SDK for local development.
- * In production: FCM push notifications + optional Phone Auth verification.
+ * Stub Firebase Admin SDK — enable later with FIREBASE_* env if needed.
  */
-const env = require('./env');
-
 const firebase = {
   initialized: false,
 
   init() {
-    if (!env.firebase.projectId) {
-      console.log('[firebase] Stub mode — Firebase credentials not configured');
-      return;
-    }
-    console.log('[firebase] Would initialize with project:', env.firebase.projectId);
-    this.initialized = true;
+    console.log('[firebase] Stub mode — not configured');
   },
 
   async verifyIdToken(_idToken) {
-    console.log('[firebase] Stub verifyIdToken');
-    throw new Error('Firebase Phone Auth not configured in local dev');
+    throw new Error('Firebase Phone Auth not configured');
   },
 
-  async sendPushNotification({ token, title, body, data }) {
+  async sendPushNotification({ token, title }) {
     console.log(`[firebase] Stub FCM push token=${token} title=${title}`);
     return { success: true };
   },

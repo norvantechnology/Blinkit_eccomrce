@@ -41,16 +41,11 @@ services:
     ports:
       - "4000:4000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/blinkit?schema=public
-      REDIS_URL: redis://redis:6379
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access-secret}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-secret}
-      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-admin@gmail.com}
-      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-admin@123}
-      SUPER_ADMIN_NAME: ${SUPER_ADMIN_NAME:-Super Admin}
-      PORT: 4000
+      # No .env — config from Secrets Manager at boot.
+      # Live: EC2 instance role. Local: export AWS_* before compose, or mount ~/.aws.
+      AWS_REGION: ap-south-1
       NODE_ENV: production
-      RUN_DB_SETUP: ${RUN_DB_SETUP:-0}
+      PORT: 4000
     depends_on:
       postgres:
         condition: service_healthy

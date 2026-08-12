@@ -7,7 +7,7 @@ export const usersService = {
     return data.data.user as UserProfile;
   },
 
-  updateMe: async (payload: { name?: string; email?: string }) => {
+  updateMe: async (payload: { name?: string; email?: string; avatarUrl?: string | null }) => {
     const { data } = await apiClient.patch('/users/me', payload);
     return data.data.user as UserProfile;
   },

@@ -87,6 +87,7 @@ model User {
   phone        String?      @unique
   email        String?      @unique
   name         String?
+  avatarUrl    String?      @map("avatar_url")
   passwordHash String?      @map("password_hash")
   authProvider AuthProvider @default(phone) @map("auth_provider")
   providerId   String?      @map("provider_id")

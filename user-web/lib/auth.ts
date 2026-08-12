@@ -3,6 +3,7 @@ export interface UserProfile {
   phone: string | null;
   email: string | null;
   name: string | null;
+  avatarUrl?: string | null;
   languagePref: string;
   authProvider: string;
   isActive: boolean;
