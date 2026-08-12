@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getAccessToken } from '@/lib/auth';
 import { refreshUserTokens, forceLogout } from '@/lib/token-refresh';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
 export const apiClient = axios.create({
   baseURL: API_URL,

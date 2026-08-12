@@ -9,7 +9,7 @@ import {
 } from '@/lib/auth';
 import { getDeviceId } from '@/lib/utils';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 const REFRESH_BUFFER_MS = 2 * 60 * 1000;
 const REFRESH_CHECK_INTERVAL_MS = 60 * 1000;
 

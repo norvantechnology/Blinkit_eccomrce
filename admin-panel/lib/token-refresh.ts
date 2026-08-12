@@ -8,7 +8,7 @@ import {
   type AuthTokens,
 } from '@/lib/auth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
 /** Refresh access token if it expires within this window (ms). */
 const REFRESH_BUFFER_MS = 5 * 60 * 1000;
