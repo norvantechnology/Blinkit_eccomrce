@@ -9,7 +9,7 @@ APP_NAME="${APP_NAME:?APP_NAME required}"
 APP_ROOT="${APP_ROOT:?APP_ROOT required}"
 BRANCH_NAME="${AMPLIFY_BRANCH:-main}"
 REPO_URL="${REPO_URL:-https://github.com/norvantechnology/Blinkit_eccomrce}"
-API_URL="${API_PUBLIC_URL:-}"
+API_URL="${API_PUBLIC_URL:-${API_FALLBACK:-}}"
 
 build_spec_for_root() {
   local root="$1"

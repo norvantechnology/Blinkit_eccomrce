@@ -1,9 +1,5 @@
 name: Deploy All
 
-# 1) Backend → EC2  2) user-web → Amplify  3) admin → Amplify
-# EC2 IP discovered via AWS (tag Name=tapi-grocery-api). User/path/branch hardcoded.
-# Amplify: APP_ID set → update + RELEASE; empty → create + print ID.
-
 on:
   push:
     branches: [main]
@@ -15,17 +11,15 @@ concurrency:
 
 env:
   EC2_USER: ubuntu
-  EC2_APP_DIR: /opt/blinkit
   EC2_NAME_TAG: tapi-grocery-api
   AMPLIFY_BRANCH: main
-  REPO_URL: https://github.com/norvantechnology/Blinkit_eccomrce.git
+  REPO_URL: https://github.com/norvantechnology/Blinkit_eccomrce
 
 jobs:
   deploy-backend:
     name: '1 · Backend → EC2'
     runs-on: ubuntu-latest
     outputs:
-      ec2_host: ${{ steps.resolve.outputs.host }}
       api_url: ${{ steps.resolve.outputs.api_url }}
     steps:
       - name: Require secrets
@@ -39,7 +33,7 @@ jobs:
           [ -n "$AWS_ACCESS_KEY_ID" ] || { echo "Missing: AWS_ACCESS_KEY_ID"; missing=1; }
           [ -n "$AWS_SECRET_ACCESS_KEY" ] || { echo "Missing: AWS_SECRET_ACCESS_KEY"; missing=1; }
           [ -n "$AWS_REGION" ] || { echo "Missing: AWS_REGION"; missing=1; }
-          [ -n "$EC2_SSH_KEY" ] || { echo "Missing: EC2_SSH_KEY (paste full PEM file contents)"; missing=1; }
+          [ -n "$EC2_SSH_KEY" ] || { echo "Missing: EC2_SSH_KEY"; missing=1; }
           exit $missing
 
       - uses: aws-actions/configure-aws-credentials@v4
@@ -48,21 +42,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Resolve EC2 public IP from Name tag
+      - name: Resolve EC2 public IP
         id: resolve
         run: |
           set -euo pipefail
           HOST=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=${EC2_NAME_TAG}" "Name=instance-state-name,Values=running" \
-            --query 'Reservations[0].Instances[0].PublicIpAddress' \
-            --output text)
-          if [ -z "$HOST" ] || [ "$HOST" = "None" ] || [ "$HOST" = "null" ]; then
-            echo "ERROR: no running EC2 with Name=${EC2_NAME_TAG}"
+            --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
+          if [ -z "$HOST" ] || [ "$HOST" = "None" ]; then
+            echo "ERROR: no running EC2 tagged Name=${EC2_NAME_TAG}"
             exit 1
           fi
           echo "host=$HOST" >> "$GITHUB_OUTPUT"
           echo "api_url=http://${HOST}:4000" >> "$GITHUB_OUTPUT"
-          echo "Using EC2 ${EC2_NAME_TAG} → ${HOST}"
+          echo "EC2 → $HOST"
 
       - name: Deploy backend over SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -76,28 +69,14 @@ jobs:
             set -euo pipefail
             APP_DIR="/opt/blinkit"
             REPO_URL="https://github.com/norvantechnology/Blinkit_eccomrce.git"
-
-            if ! command -v docker >/dev/null 2>&1; then
-              echo "ERROR: docker not installed on EC2."
-              exit 1
-            fi
-
-            mkdir -p "$APP_DIR"
-            cd "$APP_DIR"
-
-            if [ ! -d .git ]; then
-              git clone "$REPO_URL" .
+            command -v docker >/dev/null || { echo "docker missing"; exit 1; }
+            mkdir -p "$APP_DIR" && cd "$APP_DIR"
+            if [ ! -d .git ]; then git clone "$REPO_URL" .
             else
               git remote set-url origin "$REPO_URL" || true
-              git fetch origin main
-              git checkout -B main origin/main
+              git fetch origin main && git checkout -B main origin/main
             fi
-
-            if [ ! -f backend/.env ]; then
-              echo "ERROR: missing $APP_DIR/backend/.env — create it on the server first."
-              exit 1
-            fi
-
+            [ -f backend/.env ] || { echo "missing backend/.env"; exit 1; }
             docker compose --env-file backend/.env pull || true
             docker compose --env-file backend/.env up -d --build backend postgres redis
             docker compose ps
@@ -108,26 +87,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Update or create Amplify app + RELEASE
+      - name: Amplify user-web
         env:
           APP_ID: ${{ secrets.AMPLIFY_APP_ID_USER_WEB }}
           APP_NAME: tapi-grocery-user-web
           APP_ROOT: user-web
           AMPLIFY_BRANCH: main
           GH_PAT: ${{ secrets.GH_PAT }}
-          API_PUBLIC_URL_SECRET: ${{ secrets.API_PUBLIC_URL }}
-          API_PUBLIC_URL_EC2: ${{ needs.deploy-backend.outputs.api_url }}
-        run: |
-          export API_PUBLIC_URL="${API_PUBLIC_URL_SECRET:-$API_PUBLIC_URL_EC2}"
-          chmod +x scripts/ci/ensure-amplify-app.sh
-          scripts/ci/ensure-amplify-app.sh
+          API_PUBLIC_URL: ${{ secrets.API_PUBLIC_URL }}
+          API_FALLBACK: ${{ needs.deploy-backend.outputs.api_url }}
+        run: bash .github/scripts/amplify-deploy.sh
 
   deploy-admin-panel:
     name: '3 · Admin panel → Amplify'
@@ -135,23 +109,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Update or create Amplify app + RELEASE
+      - name: Amplify admin
         env:
           APP_ID: ${{ secrets.AMPLIFY_APP_ID_ADMIN }}
           APP_NAME: tapi-grocery-admin
           APP_ROOT: admin-panel
           AMPLIFY_BRANCH: main
           GH_PAT: ${{ secrets.GH_PAT }}
-          API_PUBLIC_URL_SECRET: ${{ secrets.API_PUBLIC_URL }}
-          API_PUBLIC_URL_EC2: ${{ needs.deploy-backend.outputs.api_url }}
-        run: |
-          export API_PUBLIC_URL="${API_PUBLIC_URL_SECRET:-$API_PUBLIC_URL_EC2}"
-          chmod +x scripts/ci/ensure-amplify-app.sh
-          scripts/ci/ensure-amplify-app.sh
+          API_PUBLIC_URL: ${{ secrets.API_PUBLIC_URL }}
+          API_FALLBACK: ${{ needs.deploy-backend.outputs.api_url }}
+        run: bash .github/scripts/amplify-deploy.sh
