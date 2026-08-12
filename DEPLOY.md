@@ -1,44 +1,29 @@
 # Deployment — Tapi Grocery
 
-## Why not EC2_HOST / EC2_USER / EC2_APP_DIR / AMPLIFY_BRANCH?
+## GitHub Secrets (required)
 
-| Old secret | Now |
-|------------|-----|
-| `EC2_HOST` | Auto from AWS: running instance tagged `Name=tapi-grocery-api` |
-| `EC2_USER` | Hardcoded `ubuntu` |
-| `EC2_APP_DIR` | Hardcoded `/opt/blinkit` |
-| `AMPLIFY_BRANCH` | Hardcoded `main` |
-| `EC2_SSH_KEY` | **Still required** — this *is* your `.pem` file contents (GitHub has no local file access) |
-
----
-
-## GitHub Secrets (only these)
-
-| Secret | What |
-|--------|------|
-| `EC2_SSH_KEY` | Full PEM (`-----BEGIN…` through `-----END…`) from `~/.blinkit-aws-deploy/tapi-grocery-ec2-20260812.pem` |
+| Secret | Notes |
+|--------|--------|
+| `EC2_SSH_KEY` | Full PEM file contents |
 | `AWS_ACCESS_KEY_ID` | IAM access key |
 | `AWS_SECRET_ACCESS_KEY` | IAM secret |
 | `AWS_REGION` | `ap-south-1` |
-| `AMPLIFY_APP_ID_USER_WEB` | `d14bykpxg1lhlf` (update if set; create if empty) |
-| `AMPLIFY_APP_ID_ADMIN` | `d2wf1d5bejg599` (update if set; create if empty) |
-| `GH_PAT` | GitHub classic PAT (`repo`) — Amplify must pull the repo to build |
+| `AMPLIFY_APP_ID_USER_WEB` | e.g. `d14bykpxg1lhlf` |
+| `AMPLIFY_APP_ID_ADMIN` | e.g. `d2wf1d5bejg599` |
+| `GH_PAT` | Classic PAT with `repo` (Amplify GitHub pull) |
 
-Optional: `API_PUBLIC_URL` — if omitted, workflow uses `http://<ec2-ip>:4000`.
+**Not needed:** `EC2_HOST`, `EC2_USER`, `EC2_APP_DIR`, `AMPLIFY_BRANCH` (hardcoded / auto-discovered).
 
----
+Optional: `API_PUBLIC_URL` — otherwise uses `http://<ec2-ip>:4000`.
 
-## Live (ap-south-1)
+## Behaviour
 
-| Resource | Value |
-|----------|--------|
-| EC2 Name tag | `tapi-grocery-api` |
-| API | http://35.154.74.19:4000/health |
-| Amplify user-web | `d14bykpxg1lhlf` |
-| Amplify admin | `d2wf1d5bejg599` |
+1. Backend → EC2 (`Name=tapi-grocery-api`, user `ubuntu`, path `/opt/blinkit`)
+2. User web → Amplify (`APP_ID` set = update; empty = create)
+3. Admin → Amplify (same)
 
-Admin seed: `admin@gmail.com` / `admin@123`
+Branch for Amplify builds: always `main`.
 
 ## Redeploy
 
-Push to `main` or **Actions → Deploy All**.
+Push to `main` or run **Actions → Deploy All**.
