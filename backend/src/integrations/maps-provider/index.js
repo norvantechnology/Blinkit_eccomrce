@@ -5,28 +5,33 @@ const logger = require('../../utils/logger');
 const PLACES_AUTOCOMPLETE_URL = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
 const PLACE_DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
 
+/** Default bias: Bangalore (Blinkit-style single store) */
+const DEFAULT_BIAS = { lat: 12.9352, lng: 77.6245 };
+
 /**
  * Google Places Autocomplete — requires MAPS_API_KEY with Places API enabled.
- * @param {string} query - Search text
- * @param {object} [options]
- * @param {string} [options.country] - ISO country code restriction (default: in)
+ * Uses geocode type for area/street search in India (Blinkit “search delivery location”).
  */
 const searchAddresses = async (query, options = {}) => {
   const apiKey = env.mapsApiKey;
 
   if (!apiKey) {
     throw new AppError(
-      'Maps API is not configured. Set MAPS_API_KEY in .env (Google Places API must be enabled).',
+      'Maps API is not configured. Set MAPS_API_KEY (Google Places API must be enabled).',
       503,
     );
   }
 
   const country = options.country || 'in';
+  const bias = options.bias || DEFAULT_BIAS;
   const params = new URLSearchParams({
     input: query,
     key: apiKey,
     components: `country:${country}`,
-    types: 'address',
+    types: 'geocode',
+    location: `${bias.lat},${bias.lng}`,
+    radius: '50000',
+    language: options.language || 'en',
   });
 
   const autocompleteRes = await fetch(`${PLACES_AUTOCOMPLETE_URL}?${params}`);
@@ -40,14 +45,18 @@ const searchAddresses = async (query, options = {}) => {
     );
   }
 
-  if (autocompleteData.status !== 'OK' && autocompleteData.status !== 'ZERO_RESULTS') {
+  if (autocompleteData.status === 'ZERO_RESULTS') {
+    return [];
+  }
+
+  if (autocompleteData.status !== 'OK') {
     throw new AppError(`Maps search failed: ${autocompleteData.status}`, 502);
   }
 
   const predictions = autocompleteData.predictions || [];
 
   const results = await Promise.all(
-    predictions.slice(0, 5).map(async (prediction) => {
+    predictions.slice(0, 6).map(async (prediction) => {
       const details = await fetchPlaceDetails(prediction.place_id, apiKey);
       return {
         placeId: prediction.place_id,
@@ -61,7 +70,7 @@ const searchAddresses = async (query, options = {}) => {
     }),
   );
 
-  return results;
+  return results.filter((r) => r.lat != null && r.lng != null);
 };
 
 const fetchPlaceDetails = async (placeId, apiKey) => {

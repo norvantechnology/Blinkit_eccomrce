@@ -6,13 +6,14 @@ const authenticate = require('../../middlewares/authenticate');
 
 const router = Router();
 
-router.use(authenticate('user'));
-
+/** Authenticated address search (same as /places/search) */
 router.get(
   '/search',
   validateRequest(addressesValidator.searchQuerySchema, 'query'),
   addressesController.search,
 );
+
+router.use(authenticate('user'));
 
 router.get('/', addressesController.list);
 

@@ -46,6 +46,15 @@ const loginGoogle = async (req, res, next) => {
   }
 };
 
+const loginApple = async (req, res, next) => {
+  try {
+    const result = await authService.loginWithApple(req.body);
+    return success(res, result, 'Apple login successful');
+  } catch (err) {
+    next(err);
+  }
+};
+
 const refreshToken = async (req, res, next) => {
   try {
     const result = await authService.refreshToken(req.body.refreshToken, req.body.deviceId);
@@ -73,13 +82,24 @@ const deleteAccount = async (req, res, next) => {
   }
 };
 
+const setPassword = async (req, res, next) => {
+  try {
+    const user = await authService.setPassword(req.user.id, req.body.password);
+    return success(res, { user }, 'Password updated');
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   sendOtp,
   verifyOtp,
   register,
   loginEmail,
   loginGoogle,
+  loginApple,
   refreshToken,
   logout,
   deleteAccount,
+  setPassword,
 };

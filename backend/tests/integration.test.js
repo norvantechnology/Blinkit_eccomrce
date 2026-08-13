@@ -10,6 +10,15 @@ jest.mock('../src/integrations/google-auth', () => ({
   }),
 }));
 
+jest.mock('../src/integrations/apple-auth', () => ({
+  verifyAppleIdToken: jest.fn().mockResolvedValue({
+    providerId: 'apple-test-uid-456',
+    email: 'appleuser@test.local',
+    name: 'Apple Test User',
+    emailVerified: true,
+  }),
+}));
+
 jest.mock('../src/integrations/email-provider', () => ({
   sendPasswordResetEmail: jest.fn().mockImplementation(async (email, token) => {
     capturedResetTokens.push({ email, token });
@@ -22,6 +31,7 @@ const app = require('../src/app');
 const TEST_PHONE = '+919999999999';
 const TEST_OTP = process.env.OTP_TEST_CODE || '123456';
 const GOOGLE_TEST_EMAIL = 'googleuser@test.local';
+const APPLE_TEST_EMAIL = 'appleuser@test.local';
 
 describe('Auth OTP flow', () => {
   it('POST /auth/otp/send → verify → returns tokens and user profile', async () => {
@@ -72,6 +82,26 @@ describe('Google OAuth flow', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.user.email).toBe(GOOGLE_TEST_EMAIL);
     expect(res.body.data.user.authProvider).toBe('google');
+    expect(res.body.data.tokens.accessToken).toBeDefined();
+    expect(res.body.data.tokens.refreshToken).toBeDefined();
+  });
+});
+
+describe('Apple OAuth flow', () => {
+  it('POST /auth/oauth/apple → find-or-create user → returns tokens', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/oauth/apple')
+      .send({
+        idToken: 'fake-apple-id-token',
+        email: APPLE_TEST_EMAIL,
+        name: 'Apple Test User',
+        deviceId: 'apple-device',
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.user.email).toBe(APPLE_TEST_EMAIL);
+    expect(res.body.data.user.authProvider).toBe('apple');
     expect(res.body.data.tokens.accessToken).toBeDefined();
     expect(res.body.data.tokens.refreshToken).toBeDefined();
   });

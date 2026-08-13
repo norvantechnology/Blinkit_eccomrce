@@ -59,7 +59,12 @@ router.post(
   authIpLimiter,
   authController.loginGoogle,
 );
-router.post('/oauth/apple', authValidator.notImplemented);
+router.post(
+  '/oauth/apple',
+  validateRequest(authValidator.appleOAuthSchema),
+  authIpLimiter,
+  authController.loginApple,
+);
 router.post('/firebase/verify', authValidator.notImplemented);
 
 router.post(
@@ -77,5 +82,12 @@ router.post(
 );
 
 router.delete('/account', authenticate('user'), authController.deleteAccount);
+
+router.post(
+  '/password',
+  authenticate('user'),
+  validateRequest(authValidator.setPasswordSchema),
+  authController.setPassword,
+);
 
 module.exports = router;

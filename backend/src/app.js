@@ -11,6 +11,7 @@ const authRoutes = require('./modules/auth/auth.routes');
 const { authRouter, adminRouter } = require('./modules/admin-users/admin-users.routes');
 const usersRoutes = require('./modules/users/users.routes');
 const addressesRoutes = require('./modules/addresses/addresses.routes');
+const placesRoutes = require('./modules/places/places.routes');
 const {
   userUploadsRouter,
   adminUploadsRouter,
@@ -56,6 +57,8 @@ apiRouter.use('/admin', adminRouter);
 
 // §8.3 User Profile & Addresses
 apiRouter.use('/users', usersRoutes);
+/** Public Google Places search (no auth) — used by location picker before login */
+apiRouter.use('/places', placesRoutes);
 apiRouter.use('/addresses', addressesRoutes);
 
 // Uploads (S3) — user + admin mirrors

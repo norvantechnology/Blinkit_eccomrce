@@ -1659,14 +1659,16 @@ backend/src/
 | Account dropdown | **Done** | My Account, phone, Saved Addresses, Privacy, Log Out + Soon placeholders |
 | Phone OTP login | **Done** | `/login` + `LoginModal` — send/verify OTP, complete profile name; static OTP free mode |
 | Email login | **Done** | LoginModal “Continue with email”; sample `Customer@123` |
-| Google / Apple UI | **Partial** | Buttons present; Google needs `GOOGLE_CLIENT_ID`; Apple API → 501 stub |
+| Google / Apple UI | **Done** | Google GIS + Apple JS → backend verify; needs env credentials ([`SOCIAL_LOGIN_SETUP.md`](./SOCIAL_LOGIN_SETUP.md)) |
 | Session + refresh | **Done** | Cookies + `SessionKeepAlive` + axios interceptor (15 min access) |
 | Account shell | **Done** | `account/layout.tsx` + `AccountSidebar` (Blinkit left nav) |
 | My Addresses list | **Done** | `/account/addresses` — icons, ⋮ menu (edit/default/delete), “+ Add new address” |
-| Address modal | **Done** | `AddressModal` — map/search/GPS + form; name edits PATCH `/users/me` |
-| Account privacy | **Done** | `/account/settings` — name, email, language, delete account |
+| Address modal | **Done** | `AddressModal` — map/search/GPS + form; OSM fallback when Maps key missing; GPS reverse-geocode |
+| Account privacy | **Done** | `/account/settings` — name, email, password, language (en/hi applied to auth/account chrome), delete account |
 | Logout | **Done** | Header dropdown + sidebar |
-| Maps search | **Conditional** | Works with `MAPS_API_KEY`; else manual + OSM embed + GPS |
+| Language selection | **Done** | Pref stored + applied (en/hi) on login/settings chrome |
+| Delete account | **Done** | Soft-delete + revoke all device refresh tokens |
+| Maps search | **Done** (hybrid) | Google Places with `MAPS_API_KEY`; else OSM Nominatim + manual + GPS |
 | Mobile Blinkit chrome | **Done** | Sticky full-bleed header (location + profile + search); **no** bottom tab bar (matches Blinkit web) |
 | Home / catalog / cart UI | Partial / N/A | Home shell + category grid; shelves/ADD → **Milestone 2** |
 | Checkout / tracking UI | **Not started** | Milestone 3 |
@@ -1707,7 +1709,8 @@ backend/src/
 | `JWT_*` | Signing + expiry |
 | `DEFAULT_STORE_ID` | Single-store scope (from seed) |
 | `SUPER_ADMIN_*` | Seed admin credentials |
-| `GOOGLE_CLIENT_ID` | Google OAuth — **optional until set** |
+| `GOOGLE_CLIENT_ID` | Google OAuth — set with frontend `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
+| `APPLE_CLIENT_ID` | Apple Services ID — set with frontend `NEXT_PUBLIC_APPLE_CLIENT_ID` |
 | `MAPS_API_KEY` | Address search — **optional until set** |
 | `S3_BUCKET` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Real S3 uploads — **optional until set** |
 | `AUDIT_RETENTION_DAYS` | Audit log purge (default `5`) |
@@ -1726,6 +1729,9 @@ backend/src/
 |---|---|
 | `NEXT_PUBLIC_API_URL` | API base (default `http://localhost:4000/api/v1`) |
 | `BACKEND_URL` | Proxy target for `/api/v1` rewrites |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google Sign-In (must match backend `GOOGLE_CLIENT_ID`) |
+| `NEXT_PUBLIC_APPLE_CLIENT_ID` | Apple Services ID (must match backend `APPLE_CLIENT_ID`) |
+| `NEXT_PUBLIC_APPLE_REDIRECT_URI` | Exact Apple Return URL (e.g. `https://…/login`) |
 
 ### 21.8 Tests
 

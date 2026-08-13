@@ -13,20 +13,14 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
-
-const NAV = [
-  { href: '/account/addresses', label: 'My Addresses', icon: MapPin },
-  { href: '/account', label: 'My Orders', icon: ClipboardList, soon: true },
-  { href: '/account', label: 'My Prescriptions', icon: FileText, soon: true },
-  { href: '/account', label: 'E-Gift Cards', icon: Gift, soon: true },
-  { href: '/account/settings', label: 'Account privacy', icon: Shield },
-];
+import { useI18n } from '@/lib/i18n/useI18n';
 
 export function AccountSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const { t } = useI18n();
 
   const phone = user?.phone
     ? user.phone.startsWith('+')
@@ -41,13 +35,21 @@ export function AccountSidebar() {
     router.refresh();
   };
 
+  const nav = [
+    { href: '/account/addresses', label: t('account.addresses'), icon: MapPin },
+    { href: '/account', label: 'My Orders', icon: ClipboardList, soon: true },
+    { href: '/account', label: 'My Prescriptions', icon: FileText, soon: true },
+    { href: '/account', label: 'E-Gift Cards', icon: Gift, soon: true },
+    { href: '/account/settings', label: t('account.settings'), icon: Shield },
+  ];
+
   return (
     <aside className="w-full">
       <div className="border-b border-[#f0f0f0] px-4 py-3.5">
         <p className="text-[13px] text-[#666]">{phone}</p>
       </div>
       <nav className="p-2">
-        {NAV.map(({ href, label, icon: Icon, soon }) => {
+        {nav.map(({ href, label, icon: Icon, soon }) => {
           const isActive =
             (href === '/account/addresses' && pathname.startsWith('/account/addresses')) ||
             (href === '/account/settings' && pathname.startsWith('/account/settings'));
@@ -77,7 +79,7 @@ export function AccountSidebar() {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-[14px] font-medium text-[#1f1f1f] hover:bg-[#f7f7f7]"
         >
           <LogOut className="h-[18px] w-[18px] text-[#555]" strokeWidth={1.75} />
-          Logout
+          {t('account.logout')}
         </button>
       </nav>
     </aside>

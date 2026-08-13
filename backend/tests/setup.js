@@ -32,7 +32,7 @@ beforeAll(async () => {
 afterAll(async () => {
   const prisma = require('../src/config/database');
   await prisma.user.deleteMany({
-    where: { OR: [{ phone: '+919999999999' }, { email: 'googleuser@test.local' }] },
+    where: { OR: [{ phone: '+919999999999' }, { email: 'googleuser@test.local' }, { email: 'appleuser@test.local' }] },
   });
   await prisma.otpVerification.deleteMany({
     where: { phone: '+919999999999' },

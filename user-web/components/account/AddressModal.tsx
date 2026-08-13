@@ -27,6 +27,8 @@ import {
 } from '@/services/addresses.service';
 import { usersService } from '@/services/users.service';
 import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
+import { reverseGeocode } from '@/lib/geocode';
+import { searchDeliveryPlaces } from '@/lib/places-search';
 
 export type UiAddressTag = 'home' | 'work' | 'hotel' | 'other';
 
@@ -169,13 +171,14 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       return;
     }
     try {
-      const results = await addressesService.search(value.trim());
+      const results = await searchDeliveryPlaces(value.trim());
       setSuggestions(results);
-    } catch (err) {
+      if (results.length === 0) {
+        setSearchHint('No places found — enter area manually.');
+      }
+    } catch {
       setSuggestions([]);
-      setSearchHint(
-        getApiErrorMessage(err, 'Maps search unavailable — enter area manually.'),
-      );
+      setSearchHint('Maps search unavailable — enter area manually.');
     }
   };
 
@@ -195,13 +198,29 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       setError('Geolocation is not supported in this browser');
       return;
     }
+    setSearchHint('Detecting location…');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLat(pos.coords.latitude);
-        setLng(pos.coords.longitude);
-        setSearchHint('Moved pin to your current location');
+        const nextLat = pos.coords.latitude;
+        const nextLng = pos.coords.longitude;
+        setLat(nextLat);
+        setLng(nextLng);
+        void (async () => {
+          try {
+            const address = await reverseGeocode(nextLat, nextLng);
+            setQuery(address);
+            setArea(address);
+            setSearchHint('Moved pin to your current location');
+          } catch {
+            setSearchHint('Moved pin to your current location');
+          }
+        })();
       },
-      () => setError('Could not get current location. Allow location access or search manually.'),
+      () => {
+        setSearchHint('');
+        setError('Could not get current location. Allow location access or search manually.');
+      },
+      { enableHighAccuracy: true, timeout: 12000 },
     );
   };
 
@@ -455,17 +474,17 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     );
   }
 
-  /* ——— DESKTOP: two-column modal ——— */
+  /* ——— DESKTOP / laptop: two-column modal ——— */
   return createPortal(
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-5">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
       <button
         type="button"
         aria-label="Close overlay"
         className="absolute inset-0 bg-black/50"
         onClick={dismiss}
       />
-      <div className="relative z-10 flex h-[min(90vh,680px)] w-full max-w-[980px] overflow-hidden rounded-2xl bg-white shadow-[0_16px_48px_rgba(0,0,0,0.28)]">
-        <div className="flex h-full w-[46%] flex-col border-r border-[#eee]">
+      <div className="relative z-10 flex h-[min(90vh,720px)] w-full max-w-[min(980px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_16px_48px_rgba(0,0,0,0.28)] xl:h-[min(85vh,640px)] xl:flex-row">
+        <div className="flex h-[38%] min-h-[220px] shrink-0 flex-col border-b border-[#eee] xl:h-full xl:min-h-0 xl:w-[46%] xl:shrink-0 xl:border-b-0 xl:border-r">
           <div className="relative min-h-0 flex-1 bg-[#dfe7ef]">
             <iframe title="Map" src={mapSrc} className="absolute inset-0 h-full w-full border-0" />
             <div className="absolute left-3 right-3 top-3 z-20">{searchBox}</div>
@@ -501,7 +520,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden xl:min-w-0 xl:flex-1">
           <div className="flex items-center justify-between px-5 pb-2 pt-4">
             <h2 className="text-[18px] font-extrabold text-[#1f1f1f]">Enter complete address</h2>
             <button

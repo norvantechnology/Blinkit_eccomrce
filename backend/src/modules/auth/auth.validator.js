@@ -44,6 +44,19 @@ const googleOAuthSchema = Joi.object({
   platform: Joi.string().valid('android', 'ios', 'web').optional(),
 });
 
+const appleOAuthSchema = Joi.object({
+  idToken: Joi.string().required(),
+  email: email().optional().allow(null, ''),
+  name: Joi.string().max(100).optional().allow(null, ''),
+  deviceId: Joi.string().max(255).optional(),
+  fcmToken: Joi.string().optional().allow(null, ''),
+  platform: Joi.string().valid('android', 'ios', 'web').optional(),
+});
+
+const setPasswordSchema = Joi.object({
+  password: Joi.string().min(6).max(128).required(),
+});
+
 const notImplemented = (_req, res) => {
   return error(res, 'Not implemented', 501);
 };
@@ -56,5 +69,7 @@ module.exports = {
   refreshTokenSchema,
   logoutSchema,
   googleOAuthSchema,
+  appleOAuthSchema,
+  setPasswordSchema,
   notImplemented,
 };

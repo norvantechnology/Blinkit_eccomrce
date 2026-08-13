@@ -234,8 +234,25 @@ function buildOpenApiSpec(req) {
       '/auth/oauth/apple': {
         post: {
           tags: ['Auth'],
-          summary: 'Apple OAuth (not implemented)',
-          responses: { 501: { description: 'Not implemented' } },
+          summary: 'Apple Sign-In (identity token)',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['idToken'],
+                  properties: {
+                    idToken: { type: 'string' },
+                    email: { type: 'string' },
+                    name: { type: 'string' },
+                    deviceId: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: { 200: { description: 'Tokens + user' } },
         },
       },
       '/auth/firebase/verify': {
@@ -555,11 +572,18 @@ function buildOpenApiSpec(req) {
           responses: { 200: { description: 'Same shape as POST /uploads/presign' } },
         },
       },
+      '/places/search': {
+        get: {
+          tags: ['Places'],
+          summary: 'Public address search (Google Places or 503 — UI falls back to OSM)',
+          parameters: [{ name: 'q', in: 'query', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'Search results' }, 503: { description: 'Maps not configured' } },
+        },
+      },
       '/addresses/search': {
         get: {
           tags: ['Addresses'],
-          summary: 'Search addresses (Google Places)',
-          security: [{ bearerAuth: [] }],
+          summary: 'Search addresses (same as /places/search; no auth required)',
           parameters: [{ name: 'q', in: 'query', required: true, schema: { type: 'string' } }],
           responses: { 200: { description: 'Search results' }, 503: { description: 'Maps not configured' } },
         },

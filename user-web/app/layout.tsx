@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthHydration } from '@/components/layout/AuthHydration';
+import { LocaleHtmlLang } from '@/components/layout/LocaleHtmlLang';
 import { SessionKeepAlive } from '@/components/layout/SessionKeepAlive';
 
 /**
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${okra.className} min-h-full bg-[var(--background)] font-sans text-[var(--foreground)] antialiased`}
       >
         <AuthHydration>
+          <LocaleHtmlLang />
           <SessionKeepAlive />
           {children}
         </AuthHydration>

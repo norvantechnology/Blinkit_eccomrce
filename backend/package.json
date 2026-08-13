@@ -10,11 +10,13 @@
     "db:generate": "prisma generate --schema=src/database/prisma/schema.prisma",
     "db:push": "prisma db push --schema=src/database/prisma/schema.prisma",
     "db:postgis": "node src/database/prisma/apply-postgis.js",
-    "db:setup": "npm run db:push && npm run db:postgis",
+    "db:seed": "node src/database/prisma/seed.js",
+    "db:setup": "npm run db:push && npm run db:postgis && npm run db:seed",
     "db:studio": "prisma studio --schema=src/database/prisma/schema.prisma"
   },
   "prisma": {
-    "schema": "src/database/prisma/schema.prisma"
+    "schema": "src/database/prisma/schema.prisma",
+    "seed": "node src/database/prisma/seed.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1104.0",

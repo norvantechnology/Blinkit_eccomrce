@@ -106,5 +106,8 @@ export const getApiErrorMessage = (err: unknown, fallback = 'Something went wron
   if (message && !message.includes('prisma') && !message.includes('Invalid `prisma')) {
     return message;
   }
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
   return fallback;
 };

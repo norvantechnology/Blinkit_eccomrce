@@ -1,11 +1,12 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 import { setSession, getApiErrorMessage, type UserProfile, type AuthTokens } from '@/lib/auth';
 import { useAuthStore } from '@/store/authStore';
 import { formatPhoneForApi, cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 type Step = 'phone' | 'email' | 'otp' | 'profile';
 
@@ -15,6 +16,7 @@ interface LoginModalProps {
 }
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+const APPLE_CLIENT_ID = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || '';
 
 /** Blinkit-style product mosaic tiles for mobile login hero */
 const LOGIN_PRODUCTS = [
@@ -45,6 +47,7 @@ function LoginMark() {
 export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: LoginModalProps) {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
+  const { t } = useI18n();
 
   const [step, setStep] = useState<Step>('phone');
   const [phoneDigits, setPhoneDigits] = useState('');
@@ -56,7 +59,8 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
   const [error, setError] = useState('');
   const [staticOtpHint, setStaticOtpHint] = useState<string | null>(null);
   const [resendIn, setResendIn] = useState(0);
-  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [otpFocusIndex, setOtpFocusIndex] = useState(0);
 
   const formattedPhone = useMemo(
     () => formatPhoneForApi(phoneDigits),
@@ -114,8 +118,9 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
       setStaticOtpHint(payload?.staticOtp && payload?.otp ? payload.otp : null);
       setStep('otp');
       setOtpDigits(Array(6).fill(''));
+      setOtpFocusIndex(0);
       setResendIn(30);
-      setTimeout(() => otpRefs.current[0]?.focus(), 50);
+      setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Could not send OTP'));
     } finally {
@@ -155,14 +160,63 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
   const handleGoogleLogin = async () => {
     setError('');
     if (!GOOGLE_CLIENT_ID) {
-      setError('Google sign-in is not configured yet (needs GOOGLE_CLIENT_ID).');
+      setError('Google sign-in is not configured yet (needs NEXT_PUBLIC_GOOGLE_CLIENT_ID).');
       return;
     }
-    setError('Google sign-in opens when GOOGLE_CLIENT_ID is set on Amplify. Use phone OTP or email for now.');
+    setLoading(true);
+    try {
+      const { requestGoogleIdToken } = await import('@/lib/google-auth');
+      const idToken = await requestGoogleIdToken(GOOGLE_CLIENT_ID);
+      const result = await authService.loginGoogle(idToken);
+      finishAuth(result.user, result.tokens);
+    } catch (err) {
+      const msg = getApiErrorMessage(err, 'Google sign-in failed');
+      if (msg.toLowerCase().includes('cancelled')) {
+        setError('');
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAppleLogin = () => {
-    setError('Apple sign-in is deferred (API returns 501 until Milestone later). Use phone OTP or email.');
+  const handleAppleLogin = async () => {
+    setError('');
+    if (!APPLE_CLIENT_ID) {
+      setError('Apple Sign-In is not configured yet (needs NEXT_PUBLIC_APPLE_CLIENT_ID).');
+      return;
+    }
+    const redirectURI =
+      process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI ||
+      (typeof window !== 'undefined' ? `${window.location.origin}/login` : '');
+    if (!redirectURI) {
+      setError('Apple Sign-In redirect URI is missing (NEXT_PUBLIC_APPLE_REDIRECT_URI).');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { requestAppleIdToken } = await import('@/lib/apple-auth');
+      const apple = await requestAppleIdToken({
+        clientId: APPLE_CLIENT_ID,
+        redirectURI,
+      });
+      const result = await authService.loginApple({
+        idToken: apple.idToken,
+        email: apple.email,
+        name: apple.name,
+      });
+      finishAuth(result.user, result.tokens);
+    } catch (err) {
+      const msg = getApiErrorMessage(err, 'Apple sign-in failed');
+      if (msg.toLowerCase().includes('cancelled')) {
+        setError('');
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const verifyOtp = async (code: string) => {
@@ -175,120 +229,70 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
     } catch (err) {
       setError(getApiErrorMessage(err, 'Invalid OTP'));
       setOtpDigits(Array(6).fill(''));
-      otpRefs.current[0]?.focus();
+      setOtpFocusIndex(0);
+      setTimeout(() => otpInputRefs.current[0]?.focus(), 50);
     } finally {
       setLoading(false);
     }
   };
 
-  const focusOtpBox = (index: number) => {
-    window.setTimeout(() => {
-      const el = otpRefs.current[index];
-      if (!el) return;
-      el.focus();
-      el.select?.();
-    }, 0);
+  useEffect(() => {
+    if (step !== 'otp') return;
+    setOtpFocusIndex(0);
+    const t = window.setTimeout(() => otpInputRefs.current[0]?.focus(), 150);
+    return () => window.clearTimeout(t);
+  }, [step]);
+
+  const applyOtpDigits = (digits: string) => {
+    const normalized = digits.replace(/\D/g, '').slice(0, 6);
+    const next = Array(6)
+      .fill('')
+      .map((_, i) => normalized[i] || '');
+    setOtpDigits(next);
+    if (normalized.length === 6) {
+      void verifyOtp(normalized);
+      return normalized.length - 1;
+    }
+    return normalized.length;
   };
 
-  const applyOtpDigits = (next: string[]) => {
+  const handleOtpInput = (raw: string) => {
+    const focusAt = applyOtpDigits(raw);
+    setOtpFocusIndex(Math.min(focusAt, 5));
+    otpInputRefs.current[Math.min(focusAt, 5)]?.focus();
+  };
+
+  const handleOtpDigitChange = (index: number, raw: string) => {
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length > 1) {
+      handleOtpInput(digits);
+      return;
+    }
+    const next = [...otpDigits];
+    next[index] = digits.slice(-1);
     setOtpDigits(next);
+    if (digits && index < 5) {
+      setOtpFocusIndex(index + 1);
+      otpInputRefs.current[index + 1]?.focus();
+    }
     const code = next.join('');
     if (code.length === 6 && next.every(Boolean)) {
       void verifyOtp(code);
     }
   };
 
-  const onOtpChange = (index: number, value: string) => {
-    // SMS autofill / paste can dump the full code into one box
-    const digits = value.replace(/\D/g, '');
-    if (digits.length > 1) {
-      const next = Array(6)
-        .fill('')
-        .map((_, i) => digits[i] || '');
-      applyOtpDigits(next);
-      focusOtpBox(Math.min(digits.length, 5));
-      return;
-    }
-
-    const digit = digits.slice(-1);
-    setOtpDigits((prev) => {
-      const next = [...prev];
-      next[index] = digit;
-      const code = next.join('');
-      if (code.length === 6 && next.every(Boolean)) {
-        window.setTimeout(() => void verifyOtp(code), 0);
-      }
-      return next;
-    });
-
-    if (digit && index < 5) {
-      focusOtpBox(index + 1);
-    }
-  };
-
-  const onOtpKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace') {
-      if (otpDigits[index]) {
-        setOtpDigits((prev) => {
-          const next = [...prev];
-          next[index] = '';
-          return next;
-        });
-        return;
-      }
-      if (index > 0) {
-        e.preventDefault();
-        setOtpDigits((prev) => {
-          const next = [...prev];
-          next[index - 1] = '';
-          return next;
-        });
-        focusOtpBox(index - 1);
-      }
-      return;
-    }
-
-    if (e.key === 'ArrowLeft' && index > 0) {
+  const handleOtpDigitKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
       e.preventDefault();
-      focusOtpBox(index - 1);
-      return;
+      const next = [...otpDigits];
+      next[index - 1] = '';
+      setOtpDigits(next);
+      setOtpFocusIndex(index - 1);
+      otpInputRefs.current[index - 1]?.focus();
     }
-    if (e.key === 'ArrowRight' && index < 5) {
-      e.preventDefault();
-      focusOtpBox(index + 1);
-      return;
-    }
-
-    // Digit keys: write + advance even when onChange is flaky on some mobile browsers
-    if (/^\d$/.test(e.key)) {
-      e.preventDefault();
-      setOtpDigits((prev) => {
-        const next = [...prev];
-        next[index] = e.key;
-        const code = next.join('');
-        if (code.length === 6 && next.every(Boolean)) {
-          window.setTimeout(() => void verifyOtp(code), 0);
-        }
-        return next;
-      });
-      if (index < 5) focusOtpBox(index + 1);
-    }
-  };
-
-  const onOtpPaste = (index: number, e: ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const digits = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (!digits) return;
-    const next = Array(6).fill('');
-    if (digits.length === 6) {
-      for (let i = 0; i < 6; i += 1) next[i] = digits[i];
-    } else {
-      for (let i = 0; i < digits.length; i += 1) {
-        next[Math.min(index + i, 5)] = digits[i];
-      }
-    }
-    applyOtpDigits(next);
-    focusOtpBox(Math.min((digits.length === 6 ? digits.length : index + digits.length) - 1, 5));
   };
 
   const handleProfile = async (e: FormEvent) => {
@@ -344,7 +348,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
         {loading ? (
           <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
         ) : (
-          'Continue'
+          t('login.continue')
         )}
       </button>
 
@@ -361,7 +365,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
         }}
         className="flex h-11 w-full items-center justify-center rounded-xl border border-[#e0e0e0] text-[13px] font-semibold text-[#1f1f1f] hover:bg-[#fafafa]"
       >
-        Continue with email
+        {t('login.email')}
       </button>
 
       <div className="grid grid-cols-2 gap-2">
@@ -375,7 +379,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
         </button>
         <button
           type="button"
-          onClick={handleAppleLogin}
+          onClick={() => void handleAppleLogin()}
           disabled={loading}
           className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] text-[12px] font-semibold text-[#1f1f1f] hover:bg-[#fafafa]"
         >
@@ -466,33 +470,53 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
             <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
-        <h2 className="text-base font-extrabold text-[#1f1f1f]">OTP Verification</h2>
+        <h2 className="text-base font-extrabold text-[#1f1f1f]">{t('login.otpTitle')}</h2>
       </div>
 
       <p className="mt-6 text-center text-sm text-[#666]">
-        We have sent a verification code to{' '}
+        {t('login.otpSent')}{' '}
         <span className="font-semibold text-[#1f1f1f]">+91-{phoneDigits}</span>
       </p>
 
-      <div className="mt-6 flex justify-center gap-2">
+      <div
+        className="relative mt-6 flex h-12 justify-center gap-2 sm:h-14"
+        role="group"
+        aria-label="Enter 6-digit OTP"
+      >
+        {/* Hidden field for iOS/Android SMS autofill */}
+        <input
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          tabIndex={-1}
+          aria-hidden
+          className="pointer-events-none absolute h-0 w-0 opacity-0"
+          onChange={(e) => handleOtpInput(e.target.value)}
+        />
         {otpDigits.map((d, i) => (
           <input
             key={i}
             ref={(el) => {
-              otpRefs.current[i] = el;
+              otpInputRefs.current[i] = el;
             }}
             type="text"
             inputMode="numeric"
-            pattern="[0-9]*"
             autoComplete={i === 0 ? 'one-time-code' : 'off'}
-            maxLength={1}
+            maxLength={i === 0 ? 6 : 1}
             value={d}
-            onChange={(e) => onOtpChange(i, e.target.value)}
-            onKeyDown={(e) => onOtpKeyDown(i, e)}
-            onPaste={(e) => onOtpPaste(i, e)}
-            onFocus={(e) => e.target.select()}
-            className="h-12 w-10 rounded-lg border border-[#d0d0d0] text-center text-lg font-bold text-[#1f1f1f] outline-none focus:border-[var(--cart-green)] sm:h-14 sm:w-11"
-            aria-label={`Digit ${i + 1}`}
+            disabled={loading}
+            onChange={(e) => handleOtpDigitChange(i, e.target.value)}
+            onKeyDown={(e) => handleOtpDigitKeyDown(i, e)}
+            onFocus={() => setOtpFocusIndex(i)}
+            className={cn(
+              'h-12 w-10 rounded-lg border bg-white text-center text-lg font-bold text-[#1f1f1f] outline-none sm:h-14 sm:w-11',
+              'focus:border-[var(--cart-green)] focus:ring-1 focus:ring-[var(--cart-green)]',
+              otpFocusIndex === i || d
+                ? 'border-[var(--cart-green)]'
+                : 'border-[#d0d0d0]',
+            )}
+            style={{ fontSize: 16 }}
+            aria-label={`Digit ${i + 1} of 6`}
           />
         ))}
       </div>
@@ -500,13 +524,13 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
       {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
       {staticOtpHint && (
         <p className="mt-2 text-center text-xs text-[#999]">
-          Use OTP <span className="font-semibold">{staticOtpHint}</span> (static / free mode)
+          {t('login.staticOtp', { code: staticOtpHint })}
         </p>
       )}
 
       <p className="mt-6 text-center text-sm text-[#999]">
         {resendIn > 0 ? (
-          <>Resend Code (in {resendIn} secs)</>
+          <>{t('login.resendIn', { n: resendIn })}</>
         ) : (
           <button
             type="button"
@@ -514,7 +538,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
             onClick={() => void sendOtp()}
             disabled={loading}
           >
-            Resend Code
+            {t('login.resend')}
           </button>
         )}
       </p>
@@ -523,7 +547,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
 
   const profileForm = (
     <form onSubmit={handleProfile} className="mt-2 w-full max-w-[340px] space-y-4">
-      <h2 className="text-center text-xl font-extrabold text-[#1f1f1f]">Complete your profile</h2>
+      <h2 className="text-center text-xl font-extrabold text-[#1f1f1f]">{t('login.profileTitle')}</h2>
       <p className="text-center text-sm text-[#666]">Tell us your name to continue</p>
       <input
         value={name}
@@ -583,9 +607,9 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
             <>
               <LoginMark />
               <h1 className="mt-4 text-center text-[22px] font-extrabold leading-tight text-[#1f1f1f]">
-                India&apos;s last minute app
+                {t('login.title')}
               </h1>
-              <p className="mt-1.5 text-center text-[14px] text-[#666]">Log in or Sign up</p>
+              <p className="mt-1.5 text-center text-[14px] text-[#666]">{t('login.subtitle')}</p>
               {phoneForm}
             </>
           )}
@@ -624,9 +648,9 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
               </div>
               <LoginMark />
               <h1 className="mt-4 text-center text-[22px] font-extrabold text-[#1f1f1f]">
-                India&apos;s last minute app
+                {t('login.title')}
               </h1>
-              <p className="mt-1 text-center text-sm text-[#666]">Log in or Sign up</p>
+              <p className="mt-1 text-center text-sm text-[#666]">{t('login.subtitle')}</p>
               {phoneForm}
             </div>
           )}

@@ -15,11 +15,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { blinkitTokens } from '@/lib/design-tokens';
-import { reverseGeocode, searchPlaces, type GeoSuggestion } from '@/lib/geocode';
+import { reverseGeocode, type GeoSuggestion } from '@/lib/geocode';
+import { searchDeliveryPlaces } from '@/lib/places-search';
 import { useAuthStore } from '@/store/authStore';
 import { useLocationStore } from '@/store/locationStore';
 import { useUiStore } from '@/store/uiStore';
 import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
+import { useI18n } from '@/lib/i18n/useI18n';
 import { addressesService, type Address } from '@/services/addresses.service';
 
 function LabelIcon({ label, compact = false }: { label: Address['label']; compact?: boolean }) {
@@ -79,6 +81,7 @@ export function LocationPickerSheet() {
   }, [setOpen]);
 
   const dismiss = useCloseOnPopstate(open, close);
+  const { t } = useI18n();
 
   const reloadSaved = useCallback(async () => {
     if (!user) {
@@ -135,25 +138,16 @@ export function LocationPickerSheet() {
     debounceRef.current = window.setTimeout(() => {
       void (async () => {
         try {
-          let results: GeoSuggestion[] = [];
-          if (user) {
-            try {
-              const api = await addressesService.search(value.trim());
-              results = api
-                .filter((s) => s.lat != null && s.lng != null)
-                .map((s) => ({
-                  placeId: s.placeId,
-                  description: s.description || s.fullAddress,
-                  fullAddress: s.fullAddress || s.description,
-                  lat: s.lat as number,
-                  lng: s.lng as number,
-                }));
-            } catch {
-              /* fall through to OSM */
-            }
-          }
-          if (results.length === 0) results = await searchPlaces(value.trim());
-          setSuggestions(results);
+          const api = await searchDeliveryPlaces(value.trim());
+          setSuggestions(
+            api.map((s) => ({
+              placeId: s.placeId,
+              description: s.description || s.fullAddress,
+              fullAddress: s.fullAddress || s.description,
+              lat: s.lat as number,
+              lng: s.lng as number,
+            })),
+          );
         } catch {
           setSuggestions([]);
           setError('Could not search locations. Try again.');
@@ -233,7 +227,7 @@ export function LocationPickerSheet() {
       <input
         value={query}
         onChange={(e) => handleSearch(e.target.value)}
-        placeholder="search delivery location"
+        placeholder={t('location.search')}
         className="h-11 w-full rounded-lg border border-[#dcdcdc] bg-white pl-9 pr-3 text-[13px] text-[#1f1f1f] outline-none placeholder:text-[#999] focus:border-[#bbb]"
         autoFocus
       />
@@ -288,7 +282,7 @@ export function LocationPickerSheet() {
               id="location-picker-title-mobile"
               className="text-[20px] font-extrabold tracking-tight text-[#1f1f1f]"
             >
-              Select your Location
+              {t('location.select')}
             </h2>
             <div className="mt-4">{searchInput}</div>
             <button
@@ -299,7 +293,7 @@ export function LocationPickerSheet() {
             >
               <Crosshair className="h-5 w-5 shrink-0 text-[var(--cart-green)]" strokeWidth={2.25} />
               <span className="text-[14px] font-bold text-[var(--cart-green)]">
-                {loadingGps ? 'Detecting location…' : 'Use current location'}
+                {loadingGps ? 'Detecting location…' : t('location.useCurrent')}
               </span>
             </button>
             {error ? <p className="mt-2 text-[12px] text-red-600">{error}</p> : null}
@@ -337,7 +331,7 @@ export function LocationPickerSheet() {
                   onClick={goAddAddress}
                   className="mt-3 text-[14px] font-bold text-[var(--cart-green)]"
                 >
-                  + Add new address
+                  + {t('location.addNew')}
                 </button>
               </div>
             ) : null}
@@ -347,7 +341,7 @@ export function LocationPickerSheet() {
                 onClick={goAddAddress}
                 className="mt-6 text-[14px] font-bold text-[var(--cart-green)]"
               >
-                + Add new address
+                + {t('location.addNew')}
               </button>
             ) : null}
           </div>
@@ -356,21 +350,39 @@ export function LocationPickerSheet() {
     </div>
   );
 
-  const panelWidth = 520;
+  const panelWidth = Math.min(560, Math.max(480, (locationAnchor?.width ?? 320) + 180));
   const desktopLeft = (() => {
     if (typeof window === 'undefined') return 16;
-    const left = locationAnchor?.left ?? 16;
+    const anchor =
+      locationAnchor ??
+      (() => {
+        const el = document.getElementById('header-location-trigger');
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { top: r.top, left: r.left, bottom: r.bottom, width: r.width, right: r.right };
+      })();
+    const left = anchor?.left ?? 16;
     const maxLeft = Math.max(8, window.innerWidth - panelWidth - 16);
     return Math.min(Math.max(8, left), maxLeft);
   })();
-  const desktopTop = locationAnchor ? locationAnchor.bottom + 6 : 92;
+  const desktopTop = (() => {
+    const anchor =
+      locationAnchor ??
+      (() => {
+        const el = document.getElementById('header-location-trigger');
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { bottom: r.bottom };
+      })();
+    return (anchor?.bottom ?? 86) + 4;
+  })();
 
   /* —— Desktop: dropdown under “Delivery in N minutes” (Blinkit) —— */
   const desktopModal = (
-    <div className="pointer-events-none absolute inset-0 hidden lg:block">
+    <div className="pointer-events-none fixed inset-0 z-[110] hidden lg:block">
       <button
         type="button"
-        className="pointer-events-auto absolute inset-x-0 bottom-0 top-[86px] bg-black/40 animate-fade-in"
+        className="pointer-events-auto fixed inset-x-0 bottom-0 top-[86px] bg-black/40 animate-fade-in"
         aria-label="Dismiss"
         onClick={dismiss}
       />
@@ -379,14 +391,14 @@ export function LocationPickerSheet() {
         aria-modal="true"
         aria-labelledby="location-picker-title-desktop"
         style={{ top: desktopTop, left: desktopLeft, width: panelWidth }}
-        className="pointer-events-auto absolute z-10 flex max-h-[min(70vh,520px)] flex-col overflow-hidden rounded-xl border border-[#e8e8e8] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-modal-in"
+        className="pointer-events-auto fixed z-[120] flex max-h-[min(65vh,480px)] flex-col overflow-hidden rounded-xl border border-[#e8e8e8] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-modal-in"
       >
         <div className="flex items-center justify-between px-5 pb-3 pt-5">
           <h2
             id="location-picker-title-desktop"
             className="text-[18px] font-extrabold text-[#1f1f1f]"
           >
-            Change Location
+            {t('location.change')}
           </h2>
           <button
             type="button"
@@ -398,19 +410,21 @@ export function LocationPickerSheet() {
           </button>
         </div>
 
-        <div className="flex items-center gap-3 px-5">
+        <div className="flex flex-col gap-3 px-5 xl:flex-row xl:items-center">
           <button
             type="button"
             onClick={useCurrentLocation}
             disabled={loadingGps}
-            className="h-11 shrink-0 rounded-md bg-[var(--cart-green)] px-4 text-[13px] font-bold text-white hover:bg-[#097019] disabled:opacity-70"
+            className="h-11 shrink-0 rounded-md bg-[var(--cart-green)] px-4 text-[13px] font-bold text-white hover:bg-[#097019] disabled:opacity-70 xl:w-auto"
           >
-            {loadingGps ? 'Detecting…' : 'Detect my location'}
+            {loadingGps ? 'Detecting…' : t('location.detect')}
           </button>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ddd] text-[11px] font-semibold text-[#888]">
-            OR
-          </span>
-          {searchInput}
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ddd] text-[11px] font-semibold text-[#888] xl:flex">
+              OR
+            </span>
+            {searchInput}
+          </div>
         </div>
 
         {error ? <p className="mt-2 px-5 text-[12px] text-red-600">{error}</p> : null}
@@ -420,7 +434,7 @@ export function LocationPickerSheet() {
             suggestionList
           ) : (
             <>
-              <p className="mb-3 text-[13px] font-semibold text-[#1f1f1f]">Your saved addresses</p>
+              <p className="mb-3 text-[13px] font-semibold text-[#1f1f1f]">{t('location.saved')}</p>
               {user && saved.length > 0 ? (
                 <ul className="space-y-2.5">
                   {saved.map((addr) => (
@@ -465,7 +479,7 @@ export function LocationPickerSheet() {
                 </ul>
               ) : (
                 <p className="py-6 text-center text-[13px] text-[#999]">
-                  {user ? 'No saved addresses yet.' : 'Log in to see saved addresses.'}
+                  {user ? t('addresses.empty') : t('location.loginSaved')}
                 </p>
               )}
               <button
@@ -473,7 +487,7 @@ export function LocationPickerSheet() {
                 onClick={goAddAddress}
                 className="mt-4 text-[14px] font-bold text-[var(--cart-green)]"
               >
-                + Add new address
+                + {t('location.addNew')}
               </button>
             </>
           )}

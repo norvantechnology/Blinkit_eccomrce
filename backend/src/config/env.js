@@ -39,6 +39,10 @@ module.exports = {
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID || '',
   },
+  apple: {
+    /** Services ID (e.g. com.tapigrocery.web) — audience for Apple identity tokens */
+    clientId: process.env.APPLE_CLIENT_ID || '',
+  },
   apiBaseUrl: process.env.API_BASE_URL || '',
   adminPanelUrl: process.env.ADMIN_PANEL_URL || 'http://localhost:3000',
 };

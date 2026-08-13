@@ -185,6 +185,18 @@ const revokeUserRefreshToken = async (userId, deviceId = 'default') => {
   await clearUserRefreshHash(userId, deviceId);
 };
 
+const revokeAllUserRefreshTokens = async (userId) => {
+  const devices = await prisma.userDevice.findMany({
+    where: { userId },
+    select: { deviceId: true },
+  });
+  await Promise.all(devices.map((d) => clearUserRefreshHash(userId, d.deviceId)));
+  // Also clear legacy default key if no device row existed yet
+  if (!devices.some((d) => d.deviceId === 'default')) {
+    await clearUserRefreshHash(userId, 'default');
+  }
+};
+
 const revokeAdminRefreshToken = async (adminId) => {
   await clearAdminRefreshHash(adminId);
 };
@@ -237,6 +249,7 @@ module.exports = {
   verifyAccessToken,
   rotateRefreshToken,
   revokeUserRefreshToken,
+  revokeAllUserRefreshTokens,
   revokeAdminRefreshToken,
   issueAdminPasswordResetToken,
   verifyAdminPasswordResetToken,

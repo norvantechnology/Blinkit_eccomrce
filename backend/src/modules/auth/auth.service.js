@@ -3,6 +3,7 @@ const authRepository = require('./auth.repository');
 const tokenService = require('./token.service');
 const smsProvider = require('../../integrations/sms-provider');
 const googleAuth = require('../../integrations/google-auth');
+const appleAuth = require('../../integrations/apple-auth');
 const { AppError } = require('../../utils/errors');
 const { AUTH_PROVIDER, OTP_PURPOSE } = require('../../config/constants');
 
@@ -125,6 +126,41 @@ const loginWithGoogle = async ({ idToken, deviceId = 'default', fcmToken, platfo
   return issueTokensForUser(user, { deviceId, fcmToken, platform });
 };
 
+const loginWithApple = async ({
+  idToken,
+  email,
+  name,
+  deviceId = 'default',
+  fcmToken,
+  platform = 'web',
+}) => {
+  const profile = await appleAuth.verifyAppleIdToken(idToken, { email, name });
+
+  let user = await authRepository.findUserByProvider(AUTH_PROVIDER.APPLE, profile.providerId);
+
+  if (!user && profile.email) {
+    user = await authRepository.findUserByEmail(profile.email);
+    if (user) {
+      user = await authRepository.updateUser(user.id, {
+        authProvider: AUTH_PROVIDER.APPLE,
+        providerId: profile.providerId,
+        name: user.name || profile.name,
+      });
+    }
+  }
+
+  if (!user) {
+    user = await authRepository.createUser({
+      email: profile.email || undefined,
+      name: profile.name,
+      authProvider: AUTH_PROVIDER.APPLE,
+      providerId: profile.providerId,
+    });
+  }
+
+  return issueTokensForUser(user, { deviceId, fcmToken, platform });
+};
+
 const register = async (userId, { name, phone, email }) => {
   const user = await authRepository.findUserById(userId);
 
@@ -200,7 +236,7 @@ const deleteAccount = async (userId) => {
   }
 
   await authRepository.revokeAllUserDevices(userId);
-  await tokenService.revokeUserRefreshToken(userId, 'default');
+  await tokenService.revokeAllUserRefreshTokens(userId);
   await authRepository.softDeleteUser(userId);
 
   return { message: 'Account deleted successfully' };
@@ -208,13 +244,15 @@ const deleteAccount = async (userId) => {
 
 const setPassword = async (userId, password) => {
   const passwordHash = await bcrypt.hash(password, 12);
-  return authRepository.updateUser(userId, { passwordHash });
+  const user = await authRepository.updateUser(userId, { passwordHash });
+  return formatUserProfile(user);
 };
 
 module.exports = {
   sendOtp,
   verifyOtp,
   loginWithGoogle,
+  loginWithApple,
   register,
   loginWithEmail,
   refreshToken,

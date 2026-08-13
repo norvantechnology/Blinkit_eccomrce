@@ -1,0 +1,138 @@
+export type Locale = 'en' | 'hi';
+
+export const LOCALES: { code: Locale; label: string; nativeLabel: string }[] = [
+  { code: 'en', label: 'English', nativeLabel: 'English' },
+  { code: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी' },
+];
+
+const en = {
+  'login.title': "India's last minute app",
+  'login.subtitle': 'Log in or Sign up',
+  'login.continue': 'Continue',
+  'login.email': 'Continue with Email',
+  'login.google': 'Google',
+  'login.apple': 'Apple',
+  'login.otpTitle': 'OTP Verification',
+  'login.otpSent': 'We have sent a verification code to',
+  'login.resend': 'Resend Code',
+  'login.resendIn': 'Resend Code (in {n} secs)',
+  'login.profileTitle': 'Complete your profile',
+  'login.staticOtp': 'Use OTP {code} (static / free mode)',
+  'settings.title': 'Account privacy',
+  'settings.subtitle': 'Manage your profile and preferences.',
+  'settings.photo': 'Profile photo',
+  'settings.name': 'Name',
+  'settings.email': 'Email',
+  'settings.language': 'Language',
+  'settings.password': 'Set password (email login)',
+  'settings.passwordHint': 'Optional. Lets you sign in with email + password.',
+  'settings.save': 'Save',
+  'settings.saving': 'Saving…',
+  'settings.saved': 'Saved',
+  'settings.delete': 'Delete account',
+  'settings.deleteConfirm': 'Delete your account permanently? This cannot be undone.',
+  'account.title': 'My account',
+  'account.hub': 'Your Information',
+  'account.addresses': 'My addresses',
+  'account.addressBook': 'Address Book',
+  'account.privacy': 'Account privacy',
+  'account.settings': 'Account privacy',
+  'account.logout': 'Log out',
+  'addresses.title': 'My addresses',
+  'addresses.add': 'Add new address',
+  'addresses.empty': 'No saved addresses yet.',
+  'addresses.edit': 'Edit',
+  'addresses.default': 'Set as default',
+  'addresses.delete': 'Delete',
+  'location.select': 'Select your Location',
+  'location.change': 'Change Location',
+  'location.search': 'Search delivery location',
+  'location.detect': 'Detect my location',
+  'location.useCurrent': 'Use current location',
+  'location.saved': 'Your saved addresses',
+  'location.loginSaved': 'Log in to see saved addresses.',
+  'location.addNew': 'Add new address',
+  'address.formTitle': 'Enter complete address',
+  'address.save': 'Save Address',
+  'address.saving': 'Saving…',
+  'address.searchArea': 'Search for area, street name…',
+  'address.gps': 'Go to current location',
+  'address.delivering': 'Delivering your order to',
+} as const;
+
+const hi: Record<keyof typeof en, string> = {
+  'login.title': 'भारत का लास्ट मिनट ऐप',
+  'login.subtitle': 'लॉग इन या साइन अप करें',
+  'login.continue': 'जारी रखें',
+  'login.email': 'ईमेल से जारी रखें',
+  'login.google': 'Google',
+  'login.apple': 'Apple',
+  'login.otpTitle': 'OTP सत्यापन',
+  'login.otpSent': 'हमने सत्यापन कोड भेजा है',
+  'login.resend': 'कोड फिर से भेजें',
+  'login.resendIn': 'कोड फिर से भेजें ({n} सेकंड में)',
+  'login.profileTitle': 'अपनी प्रोफ़ाइल पूरी करें',
+  'login.staticOtp': 'OTP {code} उपयोग करें (static / free mode)',
+  'settings.title': 'खाता गोपनीयता',
+  'settings.subtitle': 'अपनी प्रोफ़ाइल और प्राथमिकताएँ प्रबंधित करें।',
+  'settings.photo': 'प्रोफ़ाइल फ़ोटो',
+  'settings.name': 'नाम',
+  'settings.email': 'ईमेल',
+  'settings.language': 'भाषा',
+  'settings.password': 'पासवर्ड सेट करें (ईमेल लॉगिन)',
+  'settings.passwordHint': 'वैकल्पिक। ईमेल + पासवर्ड से साइन इन करें।',
+  'settings.save': 'सेव करें',
+  'settings.saving': 'सेव हो रहा है…',
+  'settings.saved': 'सेव हो गया',
+  'settings.delete': 'खाता हटाएँ',
+  'settings.deleteConfirm': 'क्या आप अपना खाता स्थायी रूप से हटाना चाहते हैं? यह वापस नहीं लिया जा सकता।',
+  'account.title': 'मेरा खाता',
+  'account.hub': 'आपकी जानकारी',
+  'account.addresses': 'मेरे पते',
+  'account.addressBook': 'पता पुस्तिका',
+  'account.privacy': 'खाता गोपनीयता',
+  'account.settings': 'खाता गोपनीयता',
+  'account.logout': 'लॉग आउट',
+  'addresses.title': 'मेरे पते',
+  'addresses.add': 'नया पता जोड़ें',
+  'addresses.empty': 'अभी कोई पता सहेजा नहीं गया।',
+  'addresses.edit': 'संपादित करें',
+  'addresses.default': 'डिफ़ॉल्ट बनाएँ',
+  'addresses.delete': 'हटाएँ',
+  'location.select': 'अपना स्थान चुनें',
+  'location.change': 'स्थान बदलें',
+  'location.search': 'डिलीवरी स्थान खोजें',
+  'location.detect': 'मेरा स्थान पता करें',
+  'location.useCurrent': 'वर्तमान स्थान उपयोग करें',
+  'location.saved': 'आपके सहेजे पते',
+  'location.loginSaved': 'सहेजे पते देखने के लिए लॉग इन करें।',
+  'location.addNew': 'नया पता जोड़ें',
+  'address.formTitle': 'पूरा पता दर्ज करें',
+  'address.save': 'पता सेव करें',
+  'address.saving': 'सेव हो रहा है…',
+  'address.searchArea': 'इलाका, सड़क का नाम खोजें…',
+  'address.gps': 'वर्तमान स्थान पर जाएँ',
+  'address.delivering': 'आपका ऑर्डर यहाँ डिलीवर होगा',
+};
+
+export type MessageKey = keyof typeof en;
+
+const catalogs: Record<Locale, Record<MessageKey, string>> = { en, hi };
+
+export function normalizeLocale(value?: string | null): Locale {
+  return value === 'hi' ? 'hi' : 'en';
+}
+
+export function translate(
+  locale: Locale,
+  key: MessageKey,
+  vars?: Record<string, string | number>,
+): string {
+  let text = catalogs[locale][key] || catalogs.en[key] || key;
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      text = text.replace(`{${k}}`, String(v));
+    }
+  }
+  return text;
+}

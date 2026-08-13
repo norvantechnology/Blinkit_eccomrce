@@ -36,6 +36,21 @@ export const authService = {
     return data.data as AuthResult;
   },
 
+  loginApple: async (payload: {
+    idToken: string;
+    email?: string;
+    name?: string;
+  }): Promise<AuthResult> => {
+    const { data } = await apiClient.post('/auth/oauth/apple', {
+      idToken: payload.idToken,
+      email: payload.email,
+      name: payload.name,
+      deviceId: getDeviceId(),
+      platform: 'web',
+    });
+    return data.data as AuthResult;
+  },
+
   register: async (payload: { name: string; email?: string; phone?: string }) => {
     const { data } = await apiClient.post('/auth/register', payload);
     return data.data.user as UserProfile;
@@ -45,4 +60,9 @@ export const authService = {
     apiClient.post('/auth/logout', { deviceId: getDeviceId() }).catch(() => undefined),
 
   deleteAccount: () => apiClient.delete('/auth/account'),
+
+  setPassword: async (password: string) => {
+    const { data } = await apiClient.post('/auth/password', { password });
+    return data.data.user as UserProfile;
+  },
 };
