@@ -81,7 +81,7 @@ export function ProfileButton({ className }: { className?: string }) {
               { href: '/account', label: 'My Prescriptions', soon: true },
               { href: '/account', label: 'E-Gift Cards', soon: true },
               { href: '/account', label: "FAQ's", soon: true },
-              { href: '/account/settings', label: 'Account Privacy' },
+              { href: '/account/settings', label: 'Account privacy' },
             ].map((item) => (
               <Link
                 key={item.label}

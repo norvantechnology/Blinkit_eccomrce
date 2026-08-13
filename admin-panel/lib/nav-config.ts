@@ -85,6 +85,7 @@ export const NAV_ITEMS: NavItem[] = [
     permissions: ['store.manage', 'roles.manage'],
     children: [
       { label: 'Store Details', href: '/settings/store-details', permissions: ['store.manage'] },
+      { label: 'Account Privacy', href: '/settings/account-privacy', permissions: ['store.manage'] },
       { label: 'Roles & Permissions', href: '/settings/roles-permissions', permissions: ['roles.manage'] },
       { label: 'Languages', href: '/settings/languages', permissions: ['store.manage'] },
     ],

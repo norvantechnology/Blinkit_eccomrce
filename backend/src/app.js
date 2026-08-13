@@ -12,6 +12,8 @@ const { authRouter, adminRouter } = require('./modules/admin-users/admin-users.r
 const usersRoutes = require('./modules/users/users.routes');
 const addressesRoutes = require('./modules/addresses/addresses.routes');
 const placesRoutes = require('./modules/places/places.routes');
+const { publicRouter: contentRoutes } = require('./modules/store-settings/store-settings.routes');
+const { adminRouter: storeSettingsAdminRoutes } = require('./modules/store-settings/store-settings.routes');
 const {
   userUploadsRouter,
   adminUploadsRouter,
@@ -53,12 +55,15 @@ apiRouter.use('/auth', authRoutes);
 // §8.2 Admin Auth + admin routes (RBAC-protected)
 apiRouter.use('/admin/auth', authRouter);
 apiRouter.use('/admin/uploads', adminUploadsRouter);
+apiRouter.use('/admin/store-settings', storeSettingsAdminRoutes);
 apiRouter.use('/admin', adminRouter);
 
 // §8.3 User Profile & Addresses
 apiRouter.use('/users', usersRoutes);
 /** Public Google Places search (no auth) — used by location picker before login */
 apiRouter.use('/places', placesRoutes);
+/** Public CMS content (privacy policy, etc.) */
+apiRouter.use('/content', contentRoutes);
 apiRouter.use('/addresses', addressesRoutes);
 
 // Uploads (S3) — user + admin mirrors

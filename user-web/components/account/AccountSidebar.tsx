@@ -7,7 +7,7 @@ import {
   ClipboardList,
   FileText,
   Gift,
-  Shield,
+  Lock,
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -40,7 +40,7 @@ export function AccountSidebar() {
     { href: '/account', label: 'My Orders', icon: ClipboardList, soon: true },
     { href: '/account', label: 'My Prescriptions', icon: FileText, soon: true },
     { href: '/account', label: 'E-Gift Cards', icon: Gift, soon: true },
-    { href: '/account/settings', label: t('account.settings'), icon: Shield },
+    { href: '/account/settings', label: t('account.settings'), icon: Lock },
   ];
 
   return (
