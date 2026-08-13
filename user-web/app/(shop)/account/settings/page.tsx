@@ -59,7 +59,7 @@ export default function SettingsPage() {
     try {
       await authService.deleteAccount();
       logout();
-      router.push('/');
+      router.replace('/');
     } catch (err) {
       setError(getApiErrorMessage(err, 'Could not delete account'));
     }

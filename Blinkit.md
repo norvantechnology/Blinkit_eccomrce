@@ -1678,7 +1678,7 @@ backend/src/
 |---|---|
 | `/` | Home shell |
 | `/login` | Auth (phone OTP + email + Google/Apple entry) |
-| `/account` | Redirects → `/account/addresses` (§19A.2) |
+| `/account` | Mobile: Your Information hub; Desktop → `/account/addresses` |
 | `/account/addresses` | Address list + modal |
 | `/account/settings` | Account privacy |
 

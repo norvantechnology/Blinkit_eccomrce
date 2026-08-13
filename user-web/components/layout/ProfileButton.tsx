@@ -53,7 +53,7 @@ export function ProfileButton({ className }: { className?: string }) {
     setOpen(false);
     await authService.logout();
     logout();
-    router.push('/');
+    router.replace('/');
     router.refresh();
   };
 

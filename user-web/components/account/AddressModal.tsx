@@ -26,6 +26,7 @@ import {
   type PlaceSuggestion,
 } from '@/services/addresses.service';
 import { usersService } from '@/services/users.service';
+import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
 
 export type UiAddressTag = 'home' | 'work' | 'hotel' | 'other';
 
@@ -69,6 +70,7 @@ type Props = {
 export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const user = useAuthStore((s) => s.user);
   const headerLocation = useLocationStore((s) => s.location);
+  const dismiss = useCloseOnPopstate(open, onClose);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   /** Mobile: map confirm first, then form sheet */
@@ -140,7 +142,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') dismiss();
     };
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
@@ -149,7 +151,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [open, onClose]);
+  }, [open, dismiss]);
 
   const delivery = useMemo(() => splitAreaCity(area || query), [area, query]);
 
@@ -236,7 +238,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       }
 
       onSaved(saved);
-      onClose();
+      dismiss();
     } catch (err) {
       setError(
         getApiErrorMessage(err, editing ? 'Could not update address' : 'Could not save address'),
@@ -363,7 +365,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
             <div className="flex h-12 shrink-0 items-center border-b border-[#eee] px-2">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={dismiss}
                 className="flex h-10 w-10 items-center justify-center"
                 aria-label="Back"
               >
@@ -414,14 +416,22 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
               type="button"
               aria-label="Close"
               className="absolute inset-0 bg-black/45"
-              onClick={onClose}
+              onClick={() => (step === 'form' ? setStep('map') : dismiss())}
             />
             <div className="absolute inset-x-0 bottom-0 z-10 flex max-h-[92vh] flex-col rounded-t-2xl bg-white shadow-2xl animate-modal-in">
               <div className="flex items-center justify-between px-4 pb-1 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep('map')}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-[#666]"
+                  aria-label="Back"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
                 <h2 className="text-[18px] font-extrabold text-[#1f1f1f]">Enter complete address</h2>
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={dismiss}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-[#666]"
                 >
                   <X className="h-5 w-5" />
@@ -457,7 +467,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
         type="button"
         aria-label="Close overlay"
         className="absolute inset-0 bg-black/50"
-        onClick={onClose}
+        onClick={dismiss}
       />
       <div className="relative z-10 flex h-[min(90vh,680px)] w-full max-w-[980px] overflow-hidden rounded-2xl bg-white shadow-[0_16px_48px_rgba(0,0,0,0.28)]">
         <div className="flex h-full w-[46%] flex-col border-r border-[#eee]">
@@ -501,7 +511,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
             <h2 className="text-[18px] font-extrabold text-[#1f1f1f]">Enter complete address</h2>
             <button
               type="button"
-              onClick={onClose}
+              onClick={dismiss}
               className="flex h-8 w-8 items-center justify-center rounded-full text-[#666] hover:bg-[#f5f5f5]"
             >
               <X className="h-5 w-5" />

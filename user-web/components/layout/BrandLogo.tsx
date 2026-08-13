@@ -26,6 +26,7 @@ export function BrandLogo({
   return (
     <Link
       href="/"
+      replace
       className={cn(
         'flex h-[86px] shrink-0 items-center pr-2',
         'hover:bg-[var(--header-hover)]',

@@ -12,7 +12,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     if (hydrated && !user) {
-      router.replace('/login?redirect=/account/addresses');
+      router.replace('/login?redirect=/account');
     }
   }, [hydrated, user, router]);
 

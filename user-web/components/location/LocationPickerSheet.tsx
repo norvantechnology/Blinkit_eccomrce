@@ -19,6 +19,7 @@ import { reverseGeocode, searchPlaces, type GeoSuggestion } from '@/lib/geocode'
 import { useAuthStore } from '@/store/authStore';
 import { useLocationStore } from '@/store/locationStore';
 import { useUiStore } from '@/store/uiStore';
+import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
 import { addressesService, type Address } from '@/services/addresses.service';
 
 function LabelIcon({ label, compact = false }: { label: Address['label']; compact?: boolean }) {
@@ -76,6 +77,8 @@ export function LocationPickerSheet() {
     setError('');
   }, [setOpen]);
 
+  const dismiss = useCloseOnPopstate(open, close);
+
   const reloadSaved = useCallback(async () => {
     if (!user) {
       setSaved([]);
@@ -91,7 +94,7 @@ export function LocationPickerSheet() {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close();
+      if (e.key === 'Escape') dismiss();
     };
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
@@ -100,7 +103,7 @@ export function LocationPickerSheet() {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [open, close]);
+  }, [open, dismiss]);
 
   useEffect(() => {
     if (!open) return;
@@ -115,7 +118,7 @@ export function LocationPickerSheet() {
       lng,
       etaMinutes: blinkitTokens.defaultStore.etaMinutes,
     });
-    close();
+    dismiss();
   };
 
   const handleSearch = (value: string) => {
@@ -201,7 +204,7 @@ export function LocationPickerSheet() {
 
   const goAddAddress = () => {
     close();
-    router.push(user ? '/account/addresses' : '/login?redirect=/account/addresses');
+    router.replace(user ? '/account/addresses' : '/login?redirect=/account/addresses');
   };
 
   const deleteAddress = async (e: MouseEvent, id: string) => {
@@ -218,7 +221,7 @@ export function LocationPickerSheet() {
   const editAddress = (e: MouseEvent) => {
     e.stopPropagation();
     close();
-    router.push('/account/addresses');
+    router.replace('/account/addresses');
   };
 
   if (!open || !mounted) return null;
@@ -262,12 +265,12 @@ export function LocationPickerSheet() {
         type="button"
         className="absolute inset-0 bg-black/55 animate-fade-in"
         aria-label="Dismiss"
-        onClick={close}
+        onClick={dismiss}
       />
       <div className="relative z-10 flex w-full flex-col items-center">
         <button
           type="button"
-          onClick={close}
+          onClick={dismiss}
           className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#1f1f1f] text-white shadow-lg"
           aria-label="Close"
         >
@@ -359,7 +362,7 @@ export function LocationPickerSheet() {
         type="button"
         className="absolute inset-0 bg-black/50 animate-fade-in"
         aria-label="Dismiss"
-        onClick={close}
+        onClick={dismiss}
       />
       <div
         role="dialog"
@@ -376,7 +379,7 @@ export function LocationPickerSheet() {
           </h2>
           <button
             type="button"
-            onClick={close}
+            onClick={dismiss}
             className="flex h-8 w-8 items-center justify-center rounded-full text-[#666] hover:bg-[#f5f5f5]"
             aria-label="Close"
           >

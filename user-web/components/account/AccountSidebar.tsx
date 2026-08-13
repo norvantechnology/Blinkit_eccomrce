@@ -37,7 +37,7 @@ export function AccountSidebar() {
   const handleLogout = async () => {
     await authService.logout();
     logout();
-    router.push('/');
+    router.replace('/');
     router.refresh();
   };
 

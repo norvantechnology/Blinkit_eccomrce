@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 import { setSession, getApiErrorMessage, type UserProfile, type AuthTokens } from '@/lib/auth';
@@ -86,8 +85,24 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
       setStep('profile');
       return;
     }
-    router.push(redirectTo);
-    router.refresh();
+    const next =
+      redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/';
+    router.replace(next);
+  };
+
+  const dismissLogin = () => {
+    const next =
+      onCloseHref.startsWith('/') && !onCloseHref.startsWith('//') ? onCloseHref : '/';
+    router.replace(next);
+  };
+
+  const handleChromeBack = () => {
+    if (step !== 'phone') {
+      setStep('phone');
+      setError('');
+      return;
+    }
+    dismissLogin();
   };
 
   const sendOtp = async () => {
@@ -193,8 +208,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
         accessToken: localStorage.getItem('accessToken') || '',
         refreshToken: localStorage.getItem('refreshToken') || '',
       });
-      router.push(redirectTo);
-      router.refresh();
+      router.replace(redirectTo.startsWith('/') ? redirectTo : '/');
     } catch (err) {
       setError(getApiErrorMessage(err, 'Could not save profile'));
     } finally {
@@ -454,15 +468,16 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
           </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white via-white/90 to-transparent" />
 
-          <Link
-            href={onCloseHref}
+          <button
+            type="button"
+            onClick={handleChromeBack}
             className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
             aria-label="Back"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M15 18l-6-6 6-6" stroke="#1f1f1f" strokeWidth="2.25" strokeLinecap="round" />
             </svg>
-          </Link>
+          </button>
         </div>
 
         <div className="relative z-10 -mt-6 flex flex-col items-center bg-white px-5 pb-8 pt-2">
@@ -484,8 +499,9 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
 
       {/* —— Desktop / tablet: centered card —— */}
       <div className="relative hidden h-full items-center justify-center sm:flex">
-        <Link
-          href={onCloseHref}
+        <button
+          type="button"
+          onClick={dismissLogin}
           className="absolute inset-0 bg-black/50 animate-fade-in"
           aria-label="Close login"
         />
@@ -497,15 +513,16 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
           {step === 'phone' && (
             <div className="flex flex-col items-center">
               <div className="mb-2 flex w-full justify-start">
-                <Link
-                  href={onCloseHref}
+                <button
+                  type="button"
+                  onClick={handleChromeBack}
                   className="flex h-9 w-9 items-center justify-center rounded-full text-[#1f1f1f] hover:bg-[#f5f5f5]"
                   aria-label="Back"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </svg>
-                </Link>
+                </button>
               </div>
               <LoginMark />
               <h1 className="mt-4 text-center text-[22px] font-extrabold text-[#1f1f1f]">

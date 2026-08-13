@@ -65,10 +65,10 @@ function MobileAccountHeader() {
 
   const back = () => {
     if (pathname === '/account' || pathname === '/account/') {
-      router.push('/');
-    } else {
-      router.push('/account');
+      router.replace('/');
+      return;
     }
+    router.replace('/account');
   };
 
   return (
@@ -85,7 +85,8 @@ function MobileAccountHeader() {
       <Link
         href="/"
         className="flex h-10 w-10 shrink-0 items-center justify-center text-[#1f1f1f]"
-        aria-label="Search"
+        aria-label="Home"
+        replace
       >
         <Search className="h-5 w-5" />
       </Link>
