@@ -76,6 +76,10 @@ function MobileAccountHeader() {
       router.replace('/');
       return;
     }
+    if (pathname.startsWith('/account/profile')) {
+      router.replace('/account/settings');
+      return;
+    }
     router.replace('/account');
   };
 

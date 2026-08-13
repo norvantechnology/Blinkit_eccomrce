@@ -134,6 +134,23 @@ async function main() {
 
   console.log('  ✓ Store settings created');
 
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const privacyFile = path.join(__dirname, '../../../content/account-privacy-policy.default.md');
+    const privacyMd = fs.existsSync(privacyFile)
+      ? fs.readFileSync(privacyFile, 'utf8').trim()
+      : 'We are committed to protecting the privacy and security of your personal information.';
+    await prisma.storeSetting.upsert({
+      where: { storeId_key: { storeId, key: 'account_privacy_policy_md_en' } },
+      update: {},
+      create: { storeId, key: 'account_privacy_policy_md_en', value: privacyMd },
+    });
+    console.log('  ✓ Account privacy policy seeded (EN markdown)');
+  } catch (err) {
+    console.warn('  ⚠ Privacy policy seed skipped:', err.message);
+  }
+
   // Permissions
   const permissionMap = {};
   for (const perm of ALL_PERMISSIONS) {

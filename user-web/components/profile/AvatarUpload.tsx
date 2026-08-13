@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ImagePlus, Loader2, X } from 'lucide-react';
 import {
   uploadFileDirect,
@@ -25,6 +25,10 @@ export function AvatarUpload({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(value ?? null);
+
+  useEffect(() => {
+    setPreview(value ?? null);
+  }, [value]);
 
   const onPick = async (file: File | undefined) => {
     if (!file) return;

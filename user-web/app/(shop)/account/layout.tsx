@@ -1,20 +1,21 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { AccountSidebar } from '@/components/account/AccountSidebar';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const hydrated = useAuthStore((s) => s.hydrated);
 
   useEffect(() => {
     if (hydrated && !user) {
-      router.replace('/login?redirect=/account');
+      router.replace(`/login?redirect=${encodeURIComponent(pathname || '/account')}`);
     }
-  }, [hydrated, user, router]);
+  }, [hydrated, user, router, pathname]);
 
   if (!hydrated || !user) {
     return (
@@ -23,21 +24,15 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <>
-      {/* Mobile: full-bleed white, no sidebar card */}
-      <div className="min-h-[60vh] bg-white px-4 pb-10 pt-3 lg:hidden">{children}</div>
-
-      {/* Desktop: Blinkit account shell */}
-      <div className="hidden min-h-[70vh] bg-[#f4f6fb] lg:block">
-        <div className="mx-auto max-w-[1100px] px-4 py-8">
-          <div className="flex overflow-hidden rounded-xl border border-[#e8e8e8] bg-white">
-            <div className="w-[260px] shrink-0 border-r border-[#eee]">
-              <AccountSidebar />
-            </div>
-            <div className="min-w-0 flex-1 p-8">{children}</div>
+    <div className="min-h-[60vh] bg-white lg:min-h-[70vh] lg:bg-[#f4f6fb]">
+      <div className="lg:mx-auto lg:max-w-[1100px] lg:px-4 lg:py-8">
+        <div className="lg:flex lg:overflow-hidden lg:rounded-xl lg:border lg:border-[#e8e8e8] lg:bg-white">
+          <div className="hidden w-[260px] shrink-0 border-r border-[#eee] lg:block">
+            <AccountSidebar />
           </div>
+          <div className="min-w-0 flex-1 px-4 pb-10 pt-3 lg:p-8">{children}</div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

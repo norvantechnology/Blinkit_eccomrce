@@ -6,10 +6,11 @@ const updateMeSchema = Joi.object({
   email: email().optional(),
   /** Public S3 URL from POST /uploads or /uploads/presign */
   avatarUrl: Joi.string().uri({ scheme: ['http', 'https'] }).max(1000).allow(null).optional(),
+  languagePref: Joi.string().valid('en', 'hi').optional(),
 }).min(1);
 
 const updateLanguageSchema = Joi.object({
-  languagePref: Joi.string().min(2).max(10).required(),
+  languagePref: Joi.string().valid('en', 'hi').required(),
 });
 
 module.exports = { updateMeSchema, updateLanguageSchema };

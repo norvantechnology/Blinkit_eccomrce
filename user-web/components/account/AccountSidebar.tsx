@@ -52,7 +52,8 @@ export function AccountSidebar() {
         {nav.map(({ href, label, icon: Icon, soon }) => {
           const isActive =
             (href === '/account/addresses' && pathname.startsWith('/account/addresses')) ||
-            (href === '/account/settings' && pathname.startsWith('/account/settings'));
+            (href === '/account/settings' &&
+              (pathname.startsWith('/account/settings') || pathname.startsWith('/account/profile')));
 
           return (
             <Link

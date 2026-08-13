@@ -19,6 +19,7 @@ const updateMe = async (userId, data) => {
   if (data.name !== undefined) allowed.name = data.name;
   if (data.email !== undefined) allowed.email = data.email;
   if (data.avatarUrl !== undefined) allowed.avatarUrl = data.avatarUrl;
+  if (data.languagePref !== undefined) allowed.languagePref = data.languagePref;
 
   if (Object.keys(allowed).length === 0) {
     return user;

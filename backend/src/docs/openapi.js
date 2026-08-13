@@ -49,6 +49,8 @@ function buildOpenApiSpec(req) {
       { name: 'Addresses', description: 'User addresses' },
       { name: 'Uploads', description: 'S3 image/file uploads (user)' },
       { name: 'Admin Uploads', description: 'S3 image/file uploads (admin)' },
+      { name: 'Places', description: 'Address search' },
+      { name: 'Content', description: 'Public CMS content' },
     ],
     components: {
       securitySchemes: {
@@ -297,6 +299,26 @@ function buildOpenApiSpec(req) {
           responses: { 200: { description: 'Account deleted' } },
         },
       },
+      '/auth/password': {
+        post: {
+          tags: ['Auth'],
+          summary: 'Set or update email-login password',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['password'],
+                  properties: { password: { type: 'string', minLength: 6 } },
+                },
+              },
+            },
+          },
+          responses: { 200: { description: 'Password updated' } },
+        },
+      },
       '/admin/auth/login': {
         post: {
           tags: ['Admin Auth'],
@@ -421,6 +443,7 @@ function buildOpenApiSpec(req) {
                       nullable: true,
                       description: 'Public URL returned by /uploads',
                     },
+                    languagePref: { type: 'string', enum: ['en', 'hi'] },
                   },
                 },
               },
@@ -625,6 +648,49 @@ function buildOpenApiSpec(req) {
           security: [{ bearerAuth: [] }],
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           responses: { 200: { description: 'Default updated' } },
+        },
+      },
+      '/content/privacy-policy': {
+        get: {
+          tags: ['Content'],
+          summary: 'Public account privacy policy (markdown)',
+          parameters: [
+            {
+              name: 'locale',
+              in: 'query',
+              schema: { type: 'string', enum: ['en', 'hi'], default: 'en' },
+            },
+          ],
+          responses: { 200: { description: 'title, markdown, excerpt' } },
+        },
+      },
+      '/admin/store-settings/privacy-policy': {
+        get: {
+          tags: ['Admin'],
+          summary: 'Get EN + HI privacy policy for CMS',
+          security: [{ bearerAuth: [] }],
+          responses: { 200: { description: 'en + hi policy objects' }, 403: { description: 'Forbidden' } },
+        },
+        patch: {
+          tags: ['Admin'],
+          summary: 'Update privacy policy markdown',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['markdown'],
+                  properties: {
+                    locale: { type: 'string', enum: ['en', 'hi'] },
+                    markdown: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: { 200: { description: 'Updated policy' }, 403: { description: 'Forbidden' } },
         },
       },
     },
