@@ -25,7 +25,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   return (
     <>
       {/* Mobile: full-bleed white, no sidebar card */}
-      <div className="min-h-[60vh] bg-white px-4 pb-8 pt-2 lg:hidden">{children}</div>
+      <div className="min-h-[60vh] bg-white px-4 pb-10 pt-3 lg:hidden">{children}</div>
 
       {/* Desktop: Blinkit account shell */}
       <div className="hidden min-h-[70vh] bg-[#f4f6fb] lg:block">

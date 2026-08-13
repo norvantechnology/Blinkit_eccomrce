@@ -7,6 +7,7 @@ import { setSession, getApiErrorMessage, type UserProfile, type AuthTokens } fro
 import { useAuthStore } from '@/store/authStore';
 import { formatPhoneForApi, cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n/useI18n';
+import { OtpInput } from '@/components/auth/OtpInput';
 
 type Step = 'phone' | 'email' | 'otp' | 'profile';
 
@@ -51,7 +52,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
 
   const [step, setStep] = useState<Step>('phone');
   const [phoneDigits, setPhoneDigits] = useState('');
-  const [otpDigits, setOtpDigits] = useState<string[]>(Array(6).fill(''));
+  const [otpCode, setOtpCode] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -59,8 +60,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
   const [error, setError] = useState('');
   const [staticOtpHint, setStaticOtpHint] = useState<string | null>(null);
   const [resendIn, setResendIn] = useState(0);
-  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [otpFocusIndex, setOtpFocusIndex] = useState(0);
+  const verifyingRef = useRef(false);
 
   const formattedPhone = useMemo(
     () => formatPhoneForApi(phoneDigits),
@@ -104,6 +104,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
     if (step !== 'phone') {
       setStep('phone');
       setError('');
+      setOtpCode('');
       return;
     }
     dismissLogin();
@@ -117,10 +118,8 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
       const payload = data?.data as { staticOtp?: boolean; otp?: string } | undefined;
       setStaticOtpHint(payload?.staticOtp && payload?.otp ? payload.otp : null);
       setStep('otp');
-      setOtpDigits(Array(6).fill(''));
-      setOtpFocusIndex(0);
+      setOtpCode('');
       setResendIn(30);
-      setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Could not send OTP'));
     } finally {
@@ -220,80 +219,28 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
   };
 
   const verifyOtp = async (code: string) => {
-    if (code.length !== 6 || loading) return;
+    const normalized = code.replace(/\D/g, '').slice(0, 6);
+    if (normalized.length !== 6 || loading || verifyingRef.current) return;
+    verifyingRef.current = true;
     setError('');
     setLoading(true);
     try {
-      const result = await authService.verifyOtp(formattedPhone, code);
+      const result = await authService.verifyOtp(formattedPhone, normalized);
       finishAuth(result.user, result.tokens);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Invalid OTP'));
-      setOtpDigits(Array(6).fill(''));
-      setOtpFocusIndex(0);
-      setTimeout(() => otpInputRefs.current[0]?.focus(), 50);
+      setOtpCode('');
     } finally {
+      verifyingRef.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (step !== 'otp') return;
-    setOtpFocusIndex(0);
-    const t = window.setTimeout(() => otpInputRefs.current[0]?.focus(), 150);
-    return () => window.clearTimeout(t);
-  }, [step]);
-
-  const applyOtpDigits = (digits: string) => {
-    const normalized = digits.replace(/\D/g, '').slice(0, 6);
-    const next = Array(6)
-      .fill('')
-      .map((_, i) => normalized[i] || '');
-    setOtpDigits(next);
-    if (normalized.length === 6) {
-      void verifyOtp(normalized);
-      return normalized.length - 1;
-    }
-    return normalized.length;
-  };
-
-  const handleOtpInput = (raw: string) => {
-    const focusAt = applyOtpDigits(raw);
-    setOtpFocusIndex(Math.min(focusAt, 5));
-    otpInputRefs.current[Math.min(focusAt, 5)]?.focus();
-  };
-
-  const handleOtpDigitChange = (index: number, raw: string) => {
-    const digits = raw.replace(/\D/g, '');
-    if (digits.length > 1) {
-      handleOtpInput(digits);
-      return;
-    }
-    const next = [...otpDigits];
-    next[index] = digits.slice(-1);
-    setOtpDigits(next);
-    if (digits && index < 5) {
-      setOtpFocusIndex(index + 1);
-      otpInputRefs.current[index + 1]?.focus();
-    }
-    const code = next.join('');
-    if (code.length === 6 && next.every(Boolean)) {
-      void verifyOtp(code);
-    }
-  };
-
-  const handleOtpDigitKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
-    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
-      e.preventDefault();
-      const next = [...otpDigits];
-      next[index - 1] = '';
-      setOtpDigits(next);
-      setOtpFocusIndex(index - 1);
-      otpInputRefs.current[index - 1]?.focus();
-    }
-  };
+    if (step !== 'otp' || otpCode.length !== 6) return;
+    void verifyOtp(otpCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-submit once 6 digits are entered
+  }, [otpCode, step]);
 
   const handleProfile = async (e: FormEvent) => {
     e.preventDefault();
@@ -405,7 +352,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
             setStep('phone');
             setError('');
           }}
-          className="absolute left-0 flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5f5f5]"
+          className="absolute left-0 hidden h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5f5f5] sm:flex"
           aria-label="Back"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -462,8 +409,9 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
           onClick={() => {
             setStep('phone');
             setError('');
+            setOtpCode('');
           }}
-          className="absolute left-0 flex h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5f5f5]"
+          className="absolute left-0 hidden h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5f5f5] sm:flex"
           aria-label="Back"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -473,62 +421,56 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
         <h2 className="text-base font-extrabold text-[#1f1f1f]">{t('login.otpTitle')}</h2>
       </div>
 
-      <p className="mt-6 text-center text-sm text-[#666]">
+      <p className="mt-6 text-center text-sm leading-relaxed text-[#666]">
         {t('login.otpSent')}{' '}
-        <span className="font-semibold text-[#1f1f1f]">+91-{phoneDigits}</span>
+        <span className="font-semibold text-[#1f1f1f]">+91 {phoneDigits}</span>
       </p>
-
-      <div
-        className="relative mt-6 flex h-12 justify-center gap-2 sm:h-14"
-        role="group"
-        aria-label="Enter 6-digit OTP"
+      <button
+        type="button"
+        onClick={() => {
+          setStep('phone');
+          setError('');
+          setOtpCode('');
+        }}
+        className="mx-auto mt-1 block text-[13px] font-semibold text-[#0C831F]"
       >
-        {/* Hidden field for iOS/Android SMS autofill */}
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          tabIndex={-1}
-          aria-hidden
-          className="pointer-events-none absolute h-0 w-0 opacity-0"
-          onChange={(e) => handleOtpInput(e.target.value)}
+        {t('login.changeNumber')}
+      </button>
+
+      <div className="mt-7">
+        <OtpInput
+          value={otpCode}
+          onChange={(digits) => {
+            setError('');
+            setOtpCode(digits);
+          }}
+          disabled={loading}
+          error={Boolean(error)}
         />
-        {otpDigits.map((d, i) => (
-          <input
-            key={i}
-            ref={(el) => {
-              otpInputRefs.current[i] = el;
-            }}
-            type="text"
-            inputMode="numeric"
-            autoComplete={i === 0 ? 'one-time-code' : 'off'}
-            maxLength={i === 0 ? 6 : 1}
-            value={d}
-            disabled={loading}
-            onChange={(e) => handleOtpDigitChange(i, e.target.value)}
-            onKeyDown={(e) => handleOtpDigitKeyDown(i, e)}
-            onFocus={() => setOtpFocusIndex(i)}
-            className={cn(
-              'h-12 w-10 rounded-lg border bg-white text-center text-lg font-bold text-[#1f1f1f] outline-none sm:h-14 sm:w-11',
-              'focus:border-[var(--cart-green)] focus:ring-1 focus:ring-[var(--cart-green)]',
-              otpFocusIndex === i || d
-                ? 'border-[var(--cart-green)]'
-                : 'border-[#d0d0d0]',
-            )}
-            style={{ fontSize: 16 }}
-            aria-label={`Digit ${i + 1} of 6`}
-          />
-        ))}
       </div>
 
       {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
       {staticOtpHint && (
-        <p className="mt-2 text-center text-xs text-[#999]">
+        <p className="mt-3 text-center text-xs text-[#888]">
           {t('login.staticOtp', { code: staticOtpHint })}
         </p>
       )}
 
-      <p className="mt-6 text-center text-sm text-[#999]">
+      <button
+        type="button"
+        disabled={otpCode.length !== 6 || loading}
+        onClick={() => void verifyOtp(otpCode)}
+        className={cn(
+          'mt-6 flex h-12 w-full items-center justify-center rounded-xl text-[15px] font-bold text-white',
+          otpCode.length === 6 && !loading
+            ? 'bg-[var(--cart-green)] hover:bg-[#097019]'
+            : 'cursor-not-allowed bg-[#b0b0b0]',
+        )}
+      >
+        {loading ? t('login.verifying') : t('login.verify')}
+      </button>
+
+      <p className="mt-5 text-center text-sm text-[#999]">
         {resendIn > 0 ? (
           <>{t('login.resendIn', { n: resendIn })}</>
         ) : (
@@ -570,53 +512,68 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
 
   return (
     <div className="fixed inset-0 z-[100] bg-white">
-      {/* —— Mobile: Blinkit full-screen with product mosaic —— */}
+      {/* —— Mobile —— */}
       <div className="flex h-dvh flex-col sm:hidden">
-        <div className="relative min-h-[42%] flex-1 overflow-hidden bg-[#E8F4FC]">
-          <div className="absolute inset-0 grid grid-cols-4 gap-2.5 p-3 pt-14 opacity-95">
-            {LOGIN_PRODUCTS.map((src, i) => (
-              <div
-                key={src + i}
-                className={cn(
-                  'overflow-hidden rounded-2xl bg-white/70 shadow-sm',
-                  i % 5 === 0 && 'translate-y-2',
-                  i % 3 === 1 && '-translate-y-1',
-                )}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" className="h-full w-full object-cover" />
+        {step === 'phone' ? (
+          <>
+            <div className="relative min-h-[38%] flex-1 overflow-hidden bg-[#E8F4FC]">
+              <div className="absolute inset-0 grid grid-cols-4 gap-2.5 p-3 pt-14 opacity-95">
+                {LOGIN_PRODUCTS.map((src, i) => (
+                  <div
+                    key={src + i}
+                    className={cn(
+                      'overflow-hidden rounded-2xl bg-white/70 shadow-sm',
+                      i % 5 === 0 && 'translate-y-2',
+                      i % 3 === 1 && '-translate-y-1',
+                    )}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt="" className="h-full w-full object-cover" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white via-white/90 to-transparent" />
-
-          <button
-            type="button"
-            onClick={handleChromeBack}
-            className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
-            aria-label="Back"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18l-6-6 6-6" stroke="#1f1f1f" strokeWidth="2.25" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="relative z-10 -mt-6 flex flex-col items-center bg-white px-5 pb-8 pt-2">
-          {step === 'phone' && (
-            <>
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white via-white/90 to-transparent" />
+              <button
+                type="button"
+                onClick={handleChromeBack}
+                className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
+                aria-label="Back"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="#1f1f1f" strokeWidth="2.25" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+            <div className="relative z-10 -mt-6 flex flex-col items-center bg-white px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2">
               <LoginMark />
               <h1 className="mt-4 text-center text-[22px] font-extrabold leading-tight text-[#1f1f1f]">
                 {t('login.title')}
               </h1>
               <p className="mt-1.5 text-center text-[14px] text-[#666]">{t('login.subtitle')}</p>
               {phoneForm}
-            </>
-          )}
-          {step === 'email' && emailForm}
-          {step === 'otp' && otpForm}
-          {step === 'profile' && profileForm}
-        </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col bg-white">
+            <div className="flex items-center px-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
+              <button
+                type="button"
+                onClick={handleChromeBack}
+                className="flex h-11 w-11 items-center justify-center rounded-full"
+                aria-label="Back"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="#1f1f1f" strokeWidth="2.25" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex flex-1 flex-col items-center overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+              {step === 'email' && emailForm}
+              {step === 'otp' && otpForm}
+              {step === 'profile' && profileForm}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* —— Desktop / tablet: centered card —— */}

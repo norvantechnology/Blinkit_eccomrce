@@ -80,24 +80,27 @@ function MobileAccountHeader() {
   };
 
   return (
-    <div className="flex items-center gap-1 px-3 py-2.5">
-      <button
-        type="button"
-        onClick={back}
-        className="flex h-10 w-10 shrink-0 items-center justify-center text-[#1f1f1f]"
-        aria-label="Back"
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </button>
-      <LocationBar compact className="min-w-0 flex-1 py-0" />
-      <Link
-        href="/"
-        className="flex h-10 w-10 shrink-0 items-center justify-center text-[#1f1f1f]"
-        aria-label="Home"
-        replace
-      >
-        <Search className="h-5 w-5" />
-      </Link>
+    <div className="px-3 pb-3 pt-2">
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={back}
+          className="flex h-10 w-10 shrink-0 items-center justify-center text-[#1f1f1f]"
+          aria-label="Back"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <LocationBar compact className="min-w-0 flex-1 py-0" />
+        <Link
+          href="/"
+          className="flex h-10 w-10 shrink-0 items-center justify-center text-[#1f1f1f]"
+          aria-label="Search"
+          replace
+        >
+          <Search className="h-5 w-5" />
+        </Link>
+      </div>
+      <SearchBar className="mt-2 w-full" />
     </div>
   );
 }
