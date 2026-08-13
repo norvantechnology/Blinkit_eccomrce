@@ -356,83 +356,78 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     </>
   );
 
-  /* ——— MOBILE: map confirm → bottom sheet ——— */
+  /* ——— MOBILE: map stays visible; form slides up over map (Blinkit) ——— */
   if (isMobile) {
     return createPortal(
-      <div className="fixed inset-0 z-[200] flex flex-col bg-white">
-        {step === 'map' ? (
-          <>
-            <div className="flex h-12 shrink-0 items-center border-b border-[#eee] px-2">
-              <button
-                type="button"
-                onClick={dismiss}
-                className="flex h-10 w-10 items-center justify-center"
-                aria-label="Back"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </button>
-              <h2 className="flex-1 pr-10 text-center text-[16px] font-extrabold text-[#1f1f1f]">
-                Confirm map pin location
-              </h2>
-            </div>
+      <div className="fixed inset-0 z-[200] flex flex-col bg-[#dfe7ef]">
+        {/* Map layer — always mounted so form sheet shows map behind */}
+        <div className="flex h-12 shrink-0 items-center border-b border-[#eee] bg-white px-2">
+          <button
+            type="button"
+            onClick={() => (step === 'form' ? setStep('map') : dismiss())}
+            className="flex h-10 w-10 items-center justify-center"
+            aria-label="Back"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <h2 className="flex-1 pr-10 text-center text-[16px] font-extrabold text-[#1f1f1f]">
+            Confirm map pin location
+          </h2>
+        </div>
 
-            <div className="relative min-h-0 flex-1 bg-[#dfe7ef]">
-              <iframe title="Map" src={mapSrc} className="absolute inset-0 h-full w-full border-0" />
-              <div className="absolute left-3 right-3 top-3 z-20">{searchBox}</div>
-              <button
-                type="button"
-                onClick={useGps}
-                className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-[#0C831F] bg-white px-4 py-2 text-[12px] font-semibold text-[#0C831F] shadow-md"
-              >
-                <Crosshair className="h-3.5 w-3.5" />
-                Go to current location
-              </button>
-            </div>
-
-            <div className="shrink-0 border-t border-[#eee] bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
-              <p className="text-[15px] font-bold text-[#1f1f1f]">Delivering your order to</p>
-              <div className="mt-2 flex items-start gap-3 rounded-xl bg-[#f0f4f8] px-3 py-3">
-                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#318CE7]" fill="#318CE7" />
-                <div className="min-w-0">
-                  <p className="text-[15px] font-bold text-[#1f1f1f]">{delivery.area}</p>
-                  {delivery.city ? (
-                    <p className="text-[13px] text-[#666]">{delivery.city}</p>
-                  ) : null}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setStep('form')}
-                className="mt-4 flex h-12 w-full items-center justify-center gap-1 rounded-xl bg-[#0C831F] text-[15px] font-bold text-white"
-              >
-                Confirm location & proceed
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
+        <div className="relative min-h-0 flex-1 bg-[#dfe7ef]">
+          <iframe title="Map" src={mapSrc} className="absolute inset-0 h-full w-full border-0" />
+          <div className="absolute left-3 right-3 top-3 z-20">{searchBox}</div>
+          {step === 'map' ? (
             <button
               type="button"
-              aria-label="Close"
-              className="absolute inset-0 bg-black/45"
-              onClick={() => (step === 'form' ? setStep('map') : dismiss())}
+              onClick={useGps}
+              className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-[#0C831F] bg-white px-4 py-2 text-[12px] font-semibold text-[#0C831F] shadow-md"
+            >
+              <Crosshair className="h-3.5 w-3.5" />
+              Go to current location
+            </button>
+          ) : null}
+        </div>
+
+        {step === 'map' ? (
+          <div className="shrink-0 border-t border-[#eee] bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+            <p className="text-[15px] font-bold text-[#1f1f1f]">Delivering your order to</p>
+            <div className="mt-2 flex items-start gap-3 rounded-xl bg-[#f0f4f8] px-3 py-3">
+              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#318CE7]" fill="#318CE7" />
+              <div className="min-w-0">
+                <p className="text-[15px] font-bold text-[#1f1f1f]">{delivery.area}</p>
+                {delivery.city ? (
+                  <p className="text-[13px] text-[#666]">{delivery.city}</p>
+                ) : null}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStep('form')}
+              className="mt-4 flex h-12 w-full items-center justify-center gap-1 rounded-xl bg-[#0C831F] text-[15px] font-bold text-white"
+            >
+              Confirm location & proceed
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Dim map; keep it visible above the sheet */}
+            <button
+              type="button"
+              aria-label="Back to map"
+              className="absolute inset-0 z-[5] bg-black/35"
+              onClick={() => setStep('map')}
             />
-            <div className="absolute inset-x-0 bottom-0 z-10 flex max-h-[92vh] flex-col rounded-t-2xl bg-white shadow-2xl animate-modal-in">
+            <div className="absolute inset-x-0 bottom-0 z-10 flex max-h-[min(78vh,640px)] flex-col rounded-t-2xl bg-white shadow-[0_-8px_32px_rgba(0,0,0,0.18)] animate-sheet-up">
               <div className="flex items-center justify-between px-4 pb-1 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setStep('map')}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-[#666]"
-                  aria-label="Back"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
                 <h2 className="text-[18px] font-extrabold text-[#1f1f1f]">Enter complete address</h2>
                 <button
                   type="button"
                   onClick={dismiss}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-[#666]"
+                  aria-label="Close"
                 >
                   <X className="h-5 w-5" />
                 </button>

@@ -9,6 +9,8 @@ import { SearchBar } from '@/components/layout/SearchBar';
 import { ProfileButton } from '@/components/layout/ProfileButton';
 import { CartButton } from '@/components/layout/CartButton';
 import { useAuthStore } from '@/store/authStore';
+import { useUiStore } from '@/store/uiStore';
+import { cn } from '@/lib/utils';
 
 /**
  * Blinkit desktop: header row is FULL viewport width (logo near left edge, cart near right).
@@ -18,9 +20,15 @@ import { useAuthStore } from '@/store/authStore';
 export function Header() {
   const pathname = usePathname();
   const isAccount = pathname.startsWith('/account');
+  const locationPickerOpen = useUiStore((s) => s.locationPickerOpen);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#eee] bg-white">
+    <header
+      className={cn(
+        'sticky top-0 w-full border-b border-[#eee] bg-white',
+        locationPickerOpen ? 'z-[120]' : 'z-40',
+      )}
+    >
       <div className="lg:hidden">
         {isAccount ? <MobileAccountHeader /> : <MobileHomeHeader />}
       </div>

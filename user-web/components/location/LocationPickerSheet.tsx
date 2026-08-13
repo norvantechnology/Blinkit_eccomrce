@@ -55,6 +55,7 @@ function labelTitle(label: Address['label']) {
 export function LocationPickerSheet() {
   const router = useRouter();
   const open = useUiStore((s) => s.locationPickerOpen);
+  const locationAnchor = useUiStore((s) => s.locationAnchor);
   const setOpen = useUiStore((s) => s.setLocationPickerOpen);
   const user = useAuthStore((s) => s.user);
   const setLocation = useLocationStore((s) => s.setLocation);
@@ -258,9 +259,9 @@ export function LocationPickerSheet() {
     </ul>
   ) : null;
 
-  /* —— Mobile: bottom sheet (unchanged pattern) —— */
+  /* —— Mobile: bottom sheet —— */
   const mobileSheet = (
-    <div className="flex h-full w-full flex-col justify-end sm:hidden">
+    <div className="flex h-full w-full flex-col justify-end lg:hidden">
       <button
         type="button"
         className="absolute inset-0 bg-black/55 animate-fade-in"
@@ -355,12 +356,21 @@ export function LocationPickerSheet() {
     </div>
   );
 
-  /* —— Desktop: Blinkit centered “Change Location” modal —— */
+  const panelWidth = 520;
+  const desktopLeft = (() => {
+    if (typeof window === 'undefined') return 16;
+    const left = locationAnchor?.left ?? 16;
+    const maxLeft = Math.max(8, window.innerWidth - panelWidth - 16);
+    return Math.min(Math.max(8, left), maxLeft);
+  })();
+  const desktopTop = locationAnchor ? locationAnchor.bottom + 6 : 92;
+
+  /* —— Desktop: dropdown under “Delivery in N minutes” (Blinkit) —— */
   const desktopModal = (
-    <div className="hidden h-full w-full items-center justify-center p-6 sm:flex">
+    <div className="pointer-events-none absolute inset-0 hidden lg:block">
       <button
         type="button"
-        className="absolute inset-0 bg-black/50 animate-fade-in"
+        className="pointer-events-auto absolute inset-x-0 bottom-0 top-[86px] bg-black/40 animate-fade-in"
         aria-label="Dismiss"
         onClick={dismiss}
       />
@@ -368,7 +378,8 @@ export function LocationPickerSheet() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="location-picker-title-desktop"
-        className="relative z-10 flex max-h-[min(80vh,560px)] w-full max-w-[520px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl animate-modal-in"
+        style={{ top: desktopTop, left: desktopLeft, width: panelWidth }}
+        className="pointer-events-auto absolute z-10 flex max-h-[min(70vh,520px)] flex-col overflow-hidden rounded-xl border border-[#e8e8e8] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-modal-in"
       >
         <div className="flex items-center justify-between px-5 pb-3 pt-5">
           <h2

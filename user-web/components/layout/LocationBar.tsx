@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import { useLocationStore } from '@/store/locationStore';
@@ -16,6 +16,7 @@ export function LocationBar({
   /** Mobile Blinkit: tighter type, address only (no label prefix) */
   compact?: boolean;
 }) {
+  const btnRef = useRef<HTMLButtonElement>(null);
   const user = useAuthStore((s) => s.user);
   const hydrated = useAuthStore((s) => s.hydrated);
   const location = useLocationStore((s) => s.location);
@@ -23,6 +24,7 @@ export function LocationBar({
   const setLocation = useLocationStore((s) => s.setLocation);
   const setLoading = useLocationStore((s) => s.setLoading);
   const setDefaultStoreLocation = useLocationStore((s) => s.setDefaultStoreLocation);
+  const locationPickerOpen = useUiStore((s) => s.locationPickerOpen);
   const setLocationPickerOpen = useUiStore((s) => s.setLocationPickerOpen);
 
   useEffect(() => {
@@ -63,10 +65,34 @@ export function LocationBar({
 
   const addressLine = location?.fullAddress || 'Select location';
 
+  const openPicker = () => {
+    if (locationPickerOpen) {
+      setLocationPickerOpen(false);
+      return;
+    }
+    const el = btnRef.current;
+    if (!el) {
+      setLocationPickerOpen(true);
+      return;
+    }
+    const r = el.getBoundingClientRect();
+    setLocationPickerOpen(true, {
+      top: r.top,
+      left: r.left,
+      bottom: r.bottom,
+      width: r.width,
+      right: r.right,
+    });
+  };
+
   return (
     <button
+      ref={btnRef}
       type="button"
-      onClick={() => setLocationPickerOpen(true)}
+      id="header-location-trigger"
+      aria-expanded={locationPickerOpen}
+      aria-haspopup="dialog"
+      onClick={openPicker}
       className={cn(
         'flex w-full min-w-0 flex-col justify-center text-left',
         !compact && 'h-[86px] shrink-0 hover:bg-[var(--header-hover)]',

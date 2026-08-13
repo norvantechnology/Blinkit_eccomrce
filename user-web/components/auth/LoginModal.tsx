@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 import { setSession, getApiErrorMessage, type UserProfile, type AuthTokens } from '@/lib/auth';
@@ -181,20 +181,114 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
     }
   };
 
-  const onOtpChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1);
-    const next = [...otpDigits];
-    next[index] = digit;
-    setOtpDigits(next);
-    if (digit && index < 5) otpRefs.current[index + 1]?.focus();
-    const code = next.join('');
-    if (code.length === 6) void verifyOtp(code);
+  const focusOtpBox = (index: number) => {
+    window.setTimeout(() => {
+      const el = otpRefs.current[index];
+      if (!el) return;
+      el.focus();
+      el.select?.();
+    }, 0);
   };
 
-  const onOtpKeyDown = (index: number, key: string) => {
-    if (key === 'Backspace' && !otpDigits[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
+  const applyOtpDigits = (next: string[]) => {
+    setOtpDigits(next);
+    const code = next.join('');
+    if (code.length === 6 && next.every(Boolean)) {
+      void verifyOtp(code);
     }
+  };
+
+  const onOtpChange = (index: number, value: string) => {
+    // SMS autofill / paste can dump the full code into one box
+    const digits = value.replace(/\D/g, '');
+    if (digits.length > 1) {
+      const next = Array(6)
+        .fill('')
+        .map((_, i) => digits[i] || '');
+      applyOtpDigits(next);
+      focusOtpBox(Math.min(digits.length, 5));
+      return;
+    }
+
+    const digit = digits.slice(-1);
+    setOtpDigits((prev) => {
+      const next = [...prev];
+      next[index] = digit;
+      const code = next.join('');
+      if (code.length === 6 && next.every(Boolean)) {
+        window.setTimeout(() => void verifyOtp(code), 0);
+      }
+      return next;
+    });
+
+    if (digit && index < 5) {
+      focusOtpBox(index + 1);
+    }
+  };
+
+  const onOtpKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (otpDigits[index]) {
+        setOtpDigits((prev) => {
+          const next = [...prev];
+          next[index] = '';
+          return next;
+        });
+        return;
+      }
+      if (index > 0) {
+        e.preventDefault();
+        setOtpDigits((prev) => {
+          const next = [...prev];
+          next[index - 1] = '';
+          return next;
+        });
+        focusOtpBox(index - 1);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowLeft' && index > 0) {
+      e.preventDefault();
+      focusOtpBox(index - 1);
+      return;
+    }
+    if (e.key === 'ArrowRight' && index < 5) {
+      e.preventDefault();
+      focusOtpBox(index + 1);
+      return;
+    }
+
+    // Digit keys: write + advance even when onChange is flaky on some mobile browsers
+    if (/^\d$/.test(e.key)) {
+      e.preventDefault();
+      setOtpDigits((prev) => {
+        const next = [...prev];
+        next[index] = e.key;
+        const code = next.join('');
+        if (code.length === 6 && next.every(Boolean)) {
+          window.setTimeout(() => void verifyOtp(code), 0);
+        }
+        return next;
+      });
+      if (index < 5) focusOtpBox(index + 1);
+    }
+  };
+
+  const onOtpPaste = (index: number, e: ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const digits = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!digits) return;
+    const next = Array(6).fill('');
+    if (digits.length === 6) {
+      for (let i = 0; i < 6; i += 1) next[i] = digits[i];
+    } else {
+      for (let i = 0; i < digits.length; i += 1) {
+        next[Math.min(index + i, 5)] = digits[i];
+      }
+    }
+    applyOtpDigits(next);
+    focusOtpBox(Math.min((digits.length === 6 ? digits.length : index + digits.length) - 1, 5));
   };
 
   const handleProfile = async (e: FormEvent) => {
@@ -389,10 +483,14 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
             }}
             type="text"
             inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete={i === 0 ? 'one-time-code' : 'off'}
             maxLength={1}
             value={d}
             onChange={(e) => onOtpChange(i, e.target.value)}
-            onKeyDown={(e) => onOtpKeyDown(i, e.key)}
+            onKeyDown={(e) => onOtpKeyDown(i, e)}
+            onPaste={(e) => onOtpPaste(i, e)}
+            onFocus={(e) => e.target.select()}
             className="h-12 w-10 rounded-lg border border-[#d0d0d0] text-center text-lg font-bold text-[#1f1f1f] outline-none focus:border-[var(--cart-green)] sm:h-14 sm:w-11"
             aria-label={`Digit ${i + 1}`}
           />
