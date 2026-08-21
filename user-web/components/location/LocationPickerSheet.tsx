@@ -3,17 +3,6 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import {
-  Briefcase,
-  Crosshair,
-  Home,
-  MapPin,
-  Pencil,
-  Search,
-  Trash2,
-  X,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { blinkitTokens } from '@/lib/design-tokens';
 import { reverseGeocode, type GeoSuggestion } from '@/lib/geocode';
 import { searchDeliveryPlaces } from '@/lib/places-search';
@@ -21,32 +10,16 @@ import { useAuthStore } from '@/store/authStore';
 import { useLocationStore } from '@/store/locationStore';
 import { useUiStore } from '@/store/uiStore';
 import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
-import { useI18n } from '@/lib/i18n/useI18n';
 import { addressesService, type Address } from '@/services/addresses.service';
+import '@/styles/blinkit-location-popup.css';
+import '@/styles/blinkit-iconfont.css';
 
-function LabelIcon({ label, compact = false }: { label: Address['label']; compact?: boolean }) {
-  const box = compact ? 'h-9 w-9 rounded-lg' : 'h-10 w-10 rounded-xl';
-  const icon = compact ? 'h-4 w-4' : 'h-[18px] w-[18px]';
-  if (label === 'home') {
-    return (
-      <div className={cn('flex shrink-0 items-center justify-center bg-[#f5f5f5]', box)}>
-        <Home className={cn(icon, 'text-[#E8A800]')} strokeWidth={2.25} />
-      </div>
-    );
-  }
-  if (label === 'work') {
-    return (
-      <div className={cn('flex shrink-0 items-center justify-center bg-[#f5f5f5]', box)}>
-        <Briefcase className={cn(icon, 'text-[#8B6914]')} strokeWidth={2.25} />
-      </div>
-    );
-  }
-  return (
-    <div className={cn('flex shrink-0 items-center justify-center bg-[#f5f5f5]', box)}>
-      <MapPin className={cn(icon, 'text-[#E8A800]')} strokeWidth={2.25} />
-    </div>
-  );
-}
+const ICON = {
+  home: 'https://cdn.grofers.com/layout-engine/v2/2025-02/address_home_icon_v5/address_home_icon_v5_light.png',
+  work: 'https://cdn.grofers.com/layout-engine/v2/2025-02/address_work_icon_v5/address_work_icon_v5_light.png',
+  other:
+    'https://cdn.grofers.com/layout-engine/v2/2025-02/address_home_icon_v5/address_home_icon_v5_light.png',
+} as const;
 
 function labelTitle(label: Address['label']) {
   if (label === 'home') return 'Home';
@@ -54,6 +27,13 @@ function labelTitle(label: Address['label']) {
   return 'Other';
 }
 
+function iconSrc(label: Address['label']) {
+  if (label === 'home') return ICON.home;
+  if (label === 'work') return ICON.work;
+  return ICON.other;
+}
+
+/** Blinkit Change Location popup — same DOM/CSS as live desktop HTML. */
 export function LocationPickerSheet() {
   const router = useRouter();
   const open = useUiStore((s) => s.locationPickerOpen);
@@ -81,7 +61,6 @@ export function LocationPickerSheet() {
   }, [setOpen]);
 
   const dismiss = useCloseOnPopstate(open, close);
-  const { t } = useI18n();
 
   const reloadSaved = useCallback(async () => {
     if (!user) {
@@ -198,8 +177,13 @@ export function LocationPickerSheet() {
   };
 
   const goAddAddress = () => {
-    close();
-    router.replace(user ? '/account/addresses' : '/login?redirect=/account/addresses');
+    if (!user) {
+      close();
+      router.replace('/login?redirect=/account/addresses?add=1');
+      return;
+    }
+    // Keep Change Location open behind (Blinkit); open form on account page
+    router.push('/account/addresses?add=1');
   };
 
   const deleteAddress = async (e: MouseEvent, id: string) => {
@@ -213,294 +197,367 @@ export function LocationPickerSheet() {
     }
   };
 
-  const editAddress = (e: MouseEvent) => {
+  /** Edit → account addresses + Enter complete address modal (location popup stays behind). */
+  const editAddress = (e: MouseEvent, addr: Address) => {
     e.stopPropagation();
-    close();
-    router.replace('/account/addresses');
+    if (!user) {
+      close();
+      router.replace(`/login?redirect=/account/addresses?edit=${encodeURIComponent(addr.id)}`);
+      return;
+    }
+    router.push(`/account/addresses?edit=${encodeURIComponent(addr.id)}`);
   };
 
   if (!open || !mounted) return null;
 
-  const searchInput = (
-    <div className="relative min-w-0 flex-1">
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#999]" />
-      <input
-        value={query}
-        onChange={(e) => handleSearch(e.target.value)}
-        placeholder={t('location.search')}
-        className="h-11 w-full rounded-lg border border-[#dcdcdc] bg-white pl-9 pr-3 text-[13px] text-[#1f1f1f] outline-none placeholder:text-[#999] focus:border-[#bbb]"
-        autoFocus
-      />
-    </div>
-  );
+  const PANEL_W = 500;
 
-  const suggestionList = searching ? (
-    <p className="py-4 text-[13px] text-[#999]">Searching…</p>
-  ) : suggestions.length > 0 ? (
-    <ul className="mt-1 divide-y divide-[#f0f0f0]">
-      {suggestions.map((s) => (
-        <li key={s.placeId}>
-          <button
-            type="button"
-            onClick={() => applyLocation(s.fullAddress, s.lat, s.lng)}
-            className="flex w-full items-start gap-3 py-3.5 text-left hover:bg-[#fafafa]"
-          >
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#999]" />
-            <span className="text-[13px] leading-snug text-[#1f1f1f]">{s.fullAddress}</span>
-          </button>
-        </li>
-      ))}
-    </ul>
-  ) : null;
+  const resolveAnchor = () => {
+    if (locationAnchor) return locationAnchor;
+    const el = document.getElementById('header-location-trigger');
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return {
+      top: r.top,
+      left: r.left,
+      bottom: r.bottom,
+      width: r.width,
+      right: r.right,
+    };
+  };
 
-  /* —— Mobile: bottom sheet —— */
-  const mobileSheet = (
-    <div className="flex h-full w-full flex-col justify-end lg:hidden">
+  /**
+   * Blinkit: center the 500px popup under the “Delivery in …” location block
+   * so that header text sits in the middle of the panel (not left-aligned).
+   */
+  const desktopLeft = (() => {
+    if (typeof window === 'undefined') return 16;
+    const anchor = resolveAnchor();
+    const width = anchor?.width ?? 320;
+    const leftEdge = anchor?.left ?? 16;
+    const centerX = leftEdge + width / 2;
+    const left = centerX - PANEL_W / 2;
+    const maxLeft = Math.max(8, window.innerWidth - PANEL_W - 8);
+    return Math.min(Math.max(8, left), maxLeft);
+  })();
+
+  const desktopTop = (() => {
+    const anchor = resolveAnchor();
+    // Small gap under header location row (Blinkit ~0–4px under header edge)
+    return (anchor?.bottom ?? 86) + 0;
+  })();
+
+  const searchRow = (
+    <div style={{ display: 'flex', height: '100%' }}>
       <button
         type="button"
-        className="absolute inset-0 bg-black/55 animate-fade-in"
-        aria-label="Dismiss"
-        onClick={dismiss}
-      />
-      <div className="relative z-10 flex w-full flex-col items-center">
-        <button
-          type="button"
-          onClick={dismiss}
-          className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#1f1f1f] text-white shadow-lg"
-          aria-label="Close"
-        >
-          <X className="h-4 w-4" strokeWidth={2.5} />
-        </button>
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="location-picker-title-mobile"
-          className="flex h-[min(78vh,640px)] w-full flex-col overflow-hidden rounded-t-[22px] bg-white shadow-2xl animate-sheet-up"
-        >
-          <div className="px-4 pb-2 pt-5">
-            <h2
-              id="location-picker-title-mobile"
-              className="text-[20px] font-extrabold tracking-tight text-[#1f1f1f]"
-            >
-              {t('location.select')}
-            </h2>
-            <div className="mt-4">{searchInput}</div>
-            <button
-              type="button"
-              onClick={useCurrentLocation}
-              disabled={loadingGps}
-              className="mt-3 flex w-full items-center gap-3 rounded-xl border border-[#eee] bg-white px-3.5 py-3.5 text-left transition hover:bg-[#fafafa]"
-            >
-              <Crosshair className="h-5 w-5 shrink-0 text-[var(--cart-green)]" strokeWidth={2.25} />
-              <span className="text-[14px] font-bold text-[var(--cart-green)]">
-                {loadingGps ? 'Detecting location…' : t('location.useCurrent')}
-              </span>
-            </button>
-            {error ? <p className="mt-2 text-[12px] text-red-600">{error}</p> : null}
-          </div>
-          <div className="flex-1 overflow-y-auto px-4 pb-6">
-            {suggestionList}
-            {!query.trim() && user && saved.length > 0 ? (
-              <div className="mt-4">
-                <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-[#999]">
-                  Saved addresses
-                </p>
-                <ul className="space-y-1">
-                  {saved.map((addr) => (
-                    <li key={addr.id}>
-                      <button
-                        type="button"
-                        onClick={() => pickSaved(addr)}
-                        className="flex w-full items-center gap-3 rounded-xl px-1 py-3 text-left hover:bg-[#fafafa]"
-                      >
-                        <LabelIcon label={addr.label} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-[15px] font-bold text-[#1f1f1f]">
-                            {labelTitle(addr.label)}
-                          </span>
-                          <span className="mt-0.5 block truncate text-[13px] text-[#666]">
-                            {addr.fullAddress}
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  type="button"
-                  onClick={goAddAddress}
-                  className="mt-3 text-[14px] font-bold text-[var(--cart-green)]"
-                >
-                  + {t('location.addNew')}
-                </button>
-              </div>
-            ) : null}
-            {!query.trim() && (!user || saved.length === 0) ? (
-              <button
-                type="button"
-                onClick={goAddAddress}
-                className="mt-6 text-[14px] font-bold text-[var(--cart-green)]"
-              >
-                + {t('location.addNew')}
-              </button>
-            ) : null}
+        className="btn location-box mask-button"
+        style={{ width: 130, justifyContent: 'center', alignItems: 'center', padding: 0 }}
+        onClick={useCurrentLocation}
+        disabled={loadingGps}
+      >
+        {loadingGps ? 'Detecting…' : 'Detect my location'}
+      </button>
+      <div className="oval-container">
+        <div className="oval">
+          <span className="separator-text">
+            <div className="or">OR</div>
+          </span>
+        </div>
+      </div>
+      <div style={{ width: 220, flex: 1, minWidth: 0 }}>
+        <div className="modal-right__input-wrapper">
+          <div className="display--table full-width">
+            <div className="display--table-cell full-width">
+              <div id="map-canvas" />
+              <input
+                type="text"
+                name="select-locality"
+                placeholder="search delivery location"
+                autoComplete="off"
+                className="LocationSearchBox__InputSelect-sc-1k8u6a6-0 fZCGlI location-search-input-v1-native"
+                value={query}
+                onChange={(e) => handleSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 
-  const panelWidth = Math.min(560, Math.max(480, (locationAnchor?.width ?? 320) + 180));
-  const desktopLeft = (() => {
-    if (typeof window === 'undefined') return 16;
-    const anchor =
-      locationAnchor ??
-      (() => {
-        const el = document.getElementById('header-location-trigger');
-        if (!el) return null;
-        const r = el.getBoundingClientRect();
-        return { top: r.top, left: r.left, bottom: r.bottom, width: r.width, right: r.right };
-      })();
-    const left = anchor?.left ?? 16;
-    const maxLeft = Math.max(8, window.innerWidth - panelWidth - 16);
-    return Math.min(Math.max(8, left), maxLeft);
-  })();
-  const desktopTop = (() => {
-    const anchor =
-      locationAnchor ??
-      (() => {
-        const el = document.getElementById('header-location-trigger');
-        if (!el) return null;
-        const r = el.getBoundingClientRect();
-        return { bottom: r.bottom };
-      })();
-    return (anchor?.bottom ?? 86) + 4;
-  })();
+  const savedList =
+    user && saved.length > 0 ? (
+      <div className="address-container-v1">
+        {saved.map((addr) => (
+          <div
+            key={addr.id}
+            className="AddressListItem__AddressItemWrapperItem-sc-wi2msz-0 gdmljZ"
+          >
+            <div
+              className="AddressListItem__AddressItemWrapper-sc-wi2msz-1 OLFGk"
+              role="button"
+              tabIndex={0}
+              onClick={() => pickSaved(addr)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  pickSaved(addr);
+                }
+              }}
+            >
+              <div className="AddressListItem__AddressIcon-sc-wi2msz-2 hGpNML">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  title={labelTitle(addr.label).toUpperCase()}
+                  src={iconSrc(addr.label)}
+                  className="AddressListItem__IconImage-sc-wi2msz-6 fyxEWH"
+                  alt={labelTitle(addr.label)}
+                />
+              </div>
+              <div className="AddressListItem__AddressDetails-sc-wi2msz-3 hppBoz">
+                <div className="AddressListItem__AddressLabel-sc-wi2msz-4 kmfNid">
+                  {labelTitle(addr.label)}
+                </div>
+                <div className="AddressListItem__AddressDetails-sc-wi2msz-3 hppBoz">
+                  {addr.fullAddress}
+                </div>
+                <div className="AddressListItem__AddressEditIcon-sc-wi2msz-5 fcWpCe">
+                  <div
+                    className="AddressListItem__EditIcon-sc-wi2msz-7 eiUMmD"
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Edit address"
+                    onClick={(e) => editAddress(e as unknown as MouseEvent, addr)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') editAddress(e as unknown as MouseEvent, addr);
+                    }}
+                  />
+                  <div
+                    className="AddressListItem__EditIcon-sc-wi2msz-7 AddressListItem__DeleteIcon-sc-wi2msz-9 eiUMmD fxKGaj"
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Delete address"
+                    onClick={(e) => void deleteAddress(e as unknown as MouseEvent, addr.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') void deleteAddress(e as unknown as MouseEvent, addr.id);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p style={{ padding: '16px 0', fontSize: 13, color: '#999' }}>
+        {user ? 'No saved addresses yet.' : 'Log in to see saved addresses.'}
+        <button
+          type="button"
+          onClick={goAddAddress}
+          style={{
+            display: 'block',
+            marginTop: 8,
+            border: 0,
+            background: 'transparent',
+            color: '#0c831f',
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: 'pointer',
+            padding: 0,
+            fontFamily: 'Okra, Helvetica, sans-serif',
+          }}
+        >
+          + Add new address
+        </button>
+      </p>
+    );
 
-  /* —— Desktop: dropdown under “Delivery in N minutes” (Blinkit) —— */
-  const desktopModal = (
-    <div className="pointer-events-none fixed inset-0 z-[110] hidden lg:block">
+  const suggestionBlock =
+    query.trim().length >= 2 ? (
+      <div className="bk-loc-suggestions">
+        {searching ? (
+          <p style={{ padding: 16, fontSize: 13, color: '#999' }}>Searching…</p>
+        ) : suggestions.length === 0 ? (
+          <p style={{ padding: 16, fontSize: 13, color: '#999' }}>No locations found</p>
+        ) : (
+          suggestions.map((s) => (
+            <button
+              key={s.placeId}
+              type="button"
+              className="LocationSearchList__LocationListContainer"
+              onClick={() => applyLocation(s.fullAddress, s.lat, s.lng)}
+            >
+              <div>
+                <div className="LocationSearchList__LocationLabel">
+                  {s.description.split(',')[0] || s.fullAddress}
+                </div>
+                <div className="LocationSearchList__LocationDetails">{s.fullAddress}</div>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+    ) : null;
+
+  const desktopPanel = (
+    <div className="bk-loc-desktop" style={{ position: 'fixed', inset: 0, zIndex: 2002 }}>
       <button
         type="button"
-        className="pointer-events-auto fixed inset-x-0 bottom-0 top-[86px] bg-black/40 animate-fade-in"
+        className="LocationDropDown__LocationOverlay-sc-bx29pc-1 bk-loc-overlay"
         aria-label="Dismiss"
         onClick={dismiss}
       />
       <div
+        className="containers__DesktopContainer-sc-95cgcs-0 hAbKnj"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="location-picker-title-desktop"
-        style={{ top: desktopTop, left: desktopLeft, width: panelWidth }}
-        className="pointer-events-auto fixed z-[120] flex max-h-[min(65vh,480px)] flex-col overflow-hidden rounded-xl border border-[#e8e8e8] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-modal-in"
+        aria-labelledby="bk-change-location-title"
+        style={{
+          position: 'fixed',
+          top: desktopTop,
+          left: desktopLeft,
+          width: PANEL_W,
+          zIndex: 2003,
+        }}
       >
-        <div className="flex items-center justify-between px-5 pb-3 pt-5">
-          <h2
-            id="location-picker-title-desktop"
-            className="text-[18px] font-extrabold text-[#1f1f1f]"
-          >
-            {t('location.change')}
-          </h2>
-          <button
-            type="button"
-            onClick={dismiss}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#666] hover:bg-[#f5f5f5]"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" strokeWidth={2} />
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-3 px-5 xl:flex-row xl:items-center">
-          <button
-            type="button"
-            onClick={useCurrentLocation}
-            disabled={loadingGps}
-            className="h-11 shrink-0 rounded-md bg-[var(--cart-green)] px-4 text-[13px] font-bold text-white hover:bg-[#097019] disabled:opacity-70 xl:w-auto"
-          >
-            {loadingGps ? 'Detecting…' : t('location.detect')}
-          </button>
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ddd] text-[11px] font-semibold text-[#888] xl:flex">
-              OR
-            </span>
-            {searchInput}
+        <div className="ChangeLocationV1__LocationContainer-sc-1sww6op-1 COygo">
+          <div>
+            <div className="LocationSelectorDesktopV1__DetectLocationContainer-sc-19zschz-2 dQvgyY">
+              <div className="LocationSelectorDesktopV1__LocationBodyContainer-sc-19zschz-3 hQrfMz">
+                <div className="LocationSelectorDesktopV1__LoginContainer-sc-19zschz-1 iLixdh">
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: 15,
+                    }}
+                  >
+                    <div
+                      id="bk-change-location-title"
+                      className="welcome-to-grofers weight--semibold"
+                      style={{ color: 'rgb(51, 51, 51)' }}
+                    >
+                      Change Location
+                    </div>
+                    <button
+                      type="button"
+                      onClick={dismiss}
+                      style={{
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        marginTop: -20,
+                        marginRight: -10,
+                      }}
+                      aria-label="Close"
+                    >
+                      <span className="icon-cross" />
+                    </button>
+                  </div>
+                  {searchRow}
+                  {error ? <div className="bk-loc-error">{error}</div> : null}
+                </div>
+              </div>
+            </div>
           </div>
+
+          {suggestionBlock}
+
+          {!query.trim() ? (
+            <div className="ChangeLocationV1__LocationBottom-sc-1sww6op-2 iklVqv">
+              <div className="ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4 fXRPjX">
+                <div className="ChangeLocationV1__LocationListTitle-sc-1sww6op-5 iHPeDK">
+                  Your saved addresses
+                </div>
+                {savedList}
+              </div>
+            </div>
+          ) : null}
         </div>
+      </div>
+    </div>
+  );
 
-        {error ? <p className="mt-2 px-5 text-[12px] text-red-600">{error}</p> : null}
-
-        <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-          {query.trim() ? (
-            suggestionList
-          ) : (
-            <>
-              <p className="mb-3 text-[13px] font-semibold text-[#1f1f1f]">{t('location.saved')}</p>
-              {user && saved.length > 0 ? (
-                <ul className="space-y-2.5">
-                  {saved.map((addr) => (
-                    <li key={addr.id}>
-                      <div className="rounded-lg border border-[#e8e8e8] bg-white p-3.5 transition hover:border-[#d0d0d0]">
-                        <button
-                          type="button"
-                          onClick={() => pickSaved(addr)}
-                          className="flex w-full items-start gap-3 text-left"
-                        >
-                          <LabelIcon label={addr.label} compact />
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-[14px] font-bold text-[#1f1f1f]">
-                              {labelTitle(addr.label)}
-                            </span>
-                            <span className="mt-0.5 line-clamp-2 block text-[12px] leading-snug text-[#666]">
-                              {addr.fullAddress}
-                            </span>
-                          </span>
-                        </button>
-                        <div className="mt-2.5 flex items-center gap-3 pl-12">
-                          <button
-                            type="button"
-                            onClick={editAddress}
-                            className="text-[var(--cart-green)] hover:opacity-80"
-                            aria-label="Edit address"
-                          >
-                            <Pencil className="h-3.5 w-3.5" strokeWidth={2.25} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => void deleteAddress(e, addr.id)}
-                            className="text-[#e53935] hover:opacity-80"
-                            aria-label="Delete address"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-                          </button>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="py-6 text-center text-[13px] text-[#999]">
-                  {user ? t('addresses.empty') : t('location.loginSaved')}
-                </p>
-              )}
+  /* Mobile — same structure, full-width sheet */
+  const mobilePanel = (
+    <div className="bk-loc-mobile-sheet fixed inset-0 z-[2002] flex flex-col justify-end">
+      <button
+        type="button"
+        className="LocationDropDown__LocationOverlay-sc-bx29pc-1 bk-loc-overlay absolute inset-0"
+        aria-label="Dismiss"
+        onClick={dismiss}
+      />
+      <div
+        className="containers__DesktopContainer-sc-95cgcs-0 hAbKnj relative z-[2003]"
+        style={{ width: '100%', maxHeight: '78vh', borderRadius: '16px 16px 0 0' }}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="ChangeLocationV1__LocationContainer-sc-1sww6op-1 COygo">
+          <div className="LocationSelectorDesktopV1__DetectLocationContainer-sc-19zschz-2 dQvgyY">
+            <div className="LocationSelectorDesktopV1__LocationBodyContainer-sc-19zschz-3 hQrfMz">
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15 }}
+              >
+                <div className="welcome-to-grofers weight--semibold" style={{ color: '#333' }}>
+                  Change Location
+                </div>
+                <button
+                  type="button"
+                  onClick={dismiss}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  <span className="icon-cross" />
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={goAddAddress}
-                className="mt-4 text-[14px] font-bold text-[var(--cart-green)]"
+                className="btn location-box mask-button"
+                style={{ width: '100%', marginBottom: 12 }}
+                onClick={useCurrentLocation}
+                disabled={loadingGps}
               >
-                + {t('location.addNew')}
+                {loadingGps ? 'Detecting…' : 'Detect my location'}
               </button>
-            </>
-          )}
+              <input
+                type="text"
+                placeholder="search delivery location"
+                className="LocationSearchBox__InputSelect-sc-1k8u6a6-0 fZCGlI"
+                value={query}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+              {error ? <div className="bk-loc-error">{error}</div> : null}
+            </div>
+          </div>
+          {suggestionBlock}
+          {!query.trim() ? (
+            <div className="ChangeLocationV1__LocationBottom-sc-1sww6op-2 iklVqv">
+              <div className="ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4 fXRPjX">
+                <div className="ChangeLocationV1__LocationListTitle-sc-1sww6op-5 iHPeDK">
+                  Your saved addresses
+                </div>
+                {savedList}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
   );
 
   return createPortal(
-    <div className="fixed inset-0 z-[110]">
-      {mobileSheet}
-      {desktopModal}
-    </div>,
+    <>
+      {desktopPanel}
+      {mobilePanel}
+    </>,
     document.body,
   );
 }

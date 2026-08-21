@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { getStoredUser, isAuthenticated, setStoredUser } from '@/lib/auth';
+import { getStoredUser, isAuthenticated, clearSession, setStoredUser } from '@/lib/auth';
 import { ensureValidAccessToken } from '@/lib/token-refresh';
 import { useAuthStore } from '@/store/authStore';
 import { usersService } from '@/services/users.service';
@@ -16,29 +16,34 @@ export function AuthHydration({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     (async () => {
-      const stored = getStoredUser();
-      if (stored) {
-        setUser(stored);
-        setStoredLocale(normalizeLocale(stored.languagePref));
-      }
+      try {
+        const stored = getStoredUser();
+        if (stored) {
+          setUser(stored);
+          setStoredLocale(normalizeLocale(stored.languagePref));
+        }
 
-      if (isAuthenticated()) {
-        const ok = await ensureValidAccessToken();
-        if (ok && !cancelled) {
-          try {
-            const me = await usersService.getMe();
-            if (!cancelled) {
-              setUser(me);
-              setStoredUser(me);
-              setStoredLocale(normalizeLocale(me.languagePref));
+        if (isAuthenticated()) {
+          const ok = await ensureValidAccessToken();
+          if (!ok) {
+            clearSession();
+            if (!cancelled) setUser(null);
+          } else if (!cancelled) {
+            try {
+              const me = await usersService.getMe();
+              if (!cancelled) {
+                setUser(me);
+                setStoredUser(me);
+                setStoredLocale(normalizeLocale(me.languagePref));
+              }
+            } catch {
+              /* keep stored user if offline / getMe fail */
             }
-          } catch {
-            /* keep stored user if offline / getMe fail */
           }
         }
+      } finally {
+        if (!cancelled) setHydrated(true);
       }
-
-      if (!cancelled) setHydrated(true);
     })();
 
     return () => {

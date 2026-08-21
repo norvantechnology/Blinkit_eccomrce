@@ -1,33 +1,56 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
+import { useUiStore } from '@/store/uiStore';
 import { authService } from '@/services/auth.service';
+
+const NAV_ITEMS = [
+  { href: '/account/orders', label: 'My Orders' },
+  { href: '/account/addresses', label: 'Saved Addresses' },
+  { href: '/account/prescriptions', label: 'My Prescriptions' },
+  { href: '/account/gifts', label: 'E-Gift Cards' },
+  { href: '/faq', label: "FAQ's" },
+  { href: '/account/privacy', label: 'Account Privacy' },
+] as const;
 
 export function ProfileButton({ className }: { className?: string }) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const hydrated = useAuthStore((s) => s.hydrated);
   const logout = useAuthStore((s) => s.logout);
-  const [open, setOpen] = useState(false);
+  const open = useUiStore((s) => s.accountDropdownOpen);
+  const setAccountDropdownOpen = useUiStore((s) => s.setAccountDropdownOpen);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    return () => setAccountDropdownOpen(false);
+  }, [setAccountDropdownOpen]);
 
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as HTMLElement | null;
+      if (target?.closest?.('.header__overlay')) return;
+      if (!ref.current?.contains(e.target as Node)) setAccountDropdownOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAccountDropdownOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open, setAccountDropdownOpen]);
 
   if (!hydrated) {
     return (
-      <div className={cn('flex h-[86px] w-[100px] items-center justify-center', className)}>
+      <div className={cn('bk-profile', className)}>
         <div className="blinkit-shimmer h-4 w-16 rounded" />
       </div>
     );
@@ -35,14 +58,8 @@ export function ProfileButton({ className }: { className?: string }) {
 
   if (!user) {
     return (
-      <Link
-        href="/login"
-        className={cn(
-          'flex h-[86px] items-center justify-center px-3 text-[16px] text-[#1f1f1f] hover:bg-[var(--header-hover)]',
-          className,
-        )}
-      >
-        Login
+      <Link href="/login" className={cn('bk-profile', className)}>
+        <span className="bk-profile__label">Login</span>
       </Link>
     );
   }
@@ -50,7 +67,7 @@ export function ProfileButton({ className }: { className?: string }) {
   const phoneDisplay = user.phone?.replace(/^\+91/, '') || user.email || '';
 
   const handleLogout = async () => {
-    setOpen(false);
+    setAccountDropdownOpen(false);
     await authService.logout();
     logout();
     router.replace('/');
@@ -58,63 +75,81 @@ export function ProfileButton({ className }: { className?: string }) {
   };
 
   return (
-    <div ref={ref} className={cn('relative flex h-[86px] items-center', className)}>
+    <div ref={ref} className={cn('bk-profile-anchor', className)}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-full items-center gap-1 px-3 text-[16px] text-[#1f1f1f] hover:bg-[var(--header-hover)]"
+        onClick={() => setAccountDropdownOpen(!open)}
+        className={cn('bk-profile', open && 'is-open')}
+        aria-expanded={open}
       >
-        Account
-        <ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} />
+        <span className="bk-profile__label">Account</span>
+        <span className={cn('bk-profile__arrow', open && 'is-open')} aria-hidden />
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-[calc(100%-8px)] z-50 w-[280px] overflow-hidden rounded-xl border border-[#eee] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] animate-fade-in">
-          <div className="border-b border-[#f0f0f0] px-4 py-3">
-            <p className="text-[15px] font-extrabold text-[#1f1f1f]">My Account</p>
-            <p className="mt-0.5 text-[13px] text-[#666]">{phoneDisplay}</p>
+      {open ? (
+        <div className="account-dropdown--container">
+          <div className="account-dropdown__account-info">
+            <div className="account-dropdown__account-info--heading">My Account</div>
+            <div className="account-dropdown__account-info--phone">{phoneDisplay}</div>
           </div>
-          <nav className="py-1">
-            {[
-              { href: '/account', label: 'My Orders', soon: true },
-              { href: '/account/addresses', label: 'Saved Addresses' },
-              { href: '/account', label: 'My Prescriptions', soon: true },
-              { href: '/account', label: 'E-Gift Cards', soon: true },
-              { href: '/account', label: "FAQ's", soon: true },
-              { href: '/account/settings', label: 'Account privacy' },
-            ].map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="block px-4 py-2.5 text-[14px] text-[#1f1f1f] hover:bg-[#f7f7f7]"
-              >
-                {item.label}
-                {item.soon && (
-                  <span className="ml-2 text-[10px] font-semibold uppercase text-[#999]">Soon</span>
-                )}
-              </Link>
+          <ul className="account-dropdown--list">
+            {NAV_ITEMS.map((item) => (
+              <li key={item.label}>
+                <div className="account-dropdown--nav_item full-width">
+                  <Link
+                    className="full-width"
+                    href={item.href}
+                    {...(item.label === "FAQ's"
+                      ? { rel: 'noopener noreferrer nofollow' }
+                      : {})}
+                    onClick={() => setAccountDropdownOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                </div>
+              </li>
             ))}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="block w-full px-4 py-2.5 text-left text-[14px] text-[#1f1f1f] hover:bg-[#f7f7f7]"
-            >
-              Log Out
-            </button>
-          </nav>
-          <div className="flex items-center gap-3 border-t border-[#f0f0f0] bg-[#fafafa] px-4 py-3">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-[#e5e5e5] bg-white text-[9px] font-bold text-[#999]">
-              QR
+            <li>
+              <div
+                className="account-dropdown--nav_item account-dropdown__logout-btn full-width"
+                role="button"
+                tabIndex={0}
+                onClick={handleLogout}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    void handleLogout();
+                  }
+                }}
+              >
+                Log Out
+              </div>
+            </li>
+          </ul>
+          <div className="account-dropdown__qrcode">
+            <div className="AccountDropDown__QRCodeContainer-sc-1ngrhbv-0 dyvfcc">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/blinkit-parity/icons/app-download-qr.png"
+                alt="Scan to download app"
+                width={77}
+                height={77}
+                decoding="async"
+              />
             </div>
-            <p className="text-[11px] leading-snug text-[#555]">
-              Simple way to get groceries{' '}
-              <span className="font-semibold text-[#2563eb]">at your doorstep</span>. Scan & download
-              the Tapi Grocery app.
-            </p>
+            <div className="account-dropdown__qrcode--copy">
+              <div className="account-dropdown__qrcode--heading">
+                Simple way to
+                <br /> get groceries
+                <br /> <span>at your doorstep</span>
+              </div>
+              <div className="account-dropdown__qrcode--hint">
+                Scan the QR code and download blinkit app
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

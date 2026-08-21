@@ -1,20 +1,8 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState, type InputHTMLAttributes } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  Briefcase,
-  Building2,
-  ChevronLeft,
-  ChevronRight,
-  Crosshair,
-  Home,
-  MapPin,
-  Maximize2,
-  Search,
-  X,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChevronLeft } from 'lucide-react';
 import { blinkitTokens } from '@/lib/design-tokens';
 import { getApiErrorMessage } from '@/lib/auth';
 import { useAuthStore } from '@/store/authStore';
@@ -26,18 +14,32 @@ import {
   type PlaceSuggestion,
 } from '@/services/addresses.service';
 import { usersService } from '@/services/users.service';
-import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
 import { reverseGeocode } from '@/lib/geocode';
 import { searchDeliveryPlaces } from '@/lib/places-search';
+import '@/styles/blinkit-address-form-modal.css';
+import '@/styles/blinkit-iconfont.css';
+import '@/styles/blinkit-location-popup.css';
 
 export type UiAddressTag = 'home' | 'work' | 'hotel' | 'other';
 
-const TAGS: { id: UiAddressTag; label: string; Icon: typeof Home; tone: string }[] = [
-  { id: 'home', label: 'Home', Icon: Home, tone: 'text-[#E8A800]' },
-  { id: 'work', label: 'Work', Icon: Briefcase, tone: 'text-[#8B6914]' },
-  { id: 'hotel', label: 'Hotel', Icon: Building2, tone: 'text-[#E8A800]' },
-  { id: 'other', label: 'Other', Icon: MapPin, tone: 'text-[#E8A800]' },
+const TAG_ICONS: Record<UiAddressTag, string> = {
+  home: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=45/layout-engine/v2/2024-12/address_home_location_v4/light.png',
+  work: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=45/layout-engine/v2/2024-12/address_work_location_v4/light.png',
+  hotel:
+    'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=45/layout-engine/v2/2024-12/address_hotel_location_v4/light.png',
+  other:
+    'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=45/layout-engine/v2/2024-12/address_other_location_v4/light.png',
+};
+
+const TAGS: { id: UiAddressTag; label: string }[] = [
+  { id: 'home', label: 'Home' },
+  { id: 'work', label: 'Work' },
+  { id: 'hotel', label: 'Hotel' },
+  { id: 'other', label: 'Other' },
 ];
+
+const LOCATION_PIN =
+  'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=225/layout-engine/2024-01/image.png';
 
 function toApiLabel(tag: UiAddressTag): AddressLabel {
   return tag === 'hotel' ? 'other' : tag;
@@ -69,13 +71,88 @@ type Props = {
   onSaved: (address: Address) => void;
 };
 
+function FloatingField({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  required,
+  disabled,
+  inputMode,
+  type = 'text',
+  multiline,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+  disabled?: boolean;
+  inputMode?: InputHTMLAttributes<HTMLInputElement>['inputMode'];
+  type?: string;
+  multiline?: boolean;
+}) {
+  const clear = () => onChange('');
+  return (
+    <div className="TextInput__StyledTextInput-sc-abdg41-0 cNThDN">
+      {multiline ? (
+        <textarea
+          rows={1}
+          data-min-rows={1}
+          autoComplete="off"
+          name={name}
+          id={id}
+          required={required}
+          disabled={disabled}
+          placeholder=" "
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <input
+          autoComplete="off"
+          type={type}
+          inputMode={inputMode}
+          name={name}
+          id={id}
+          required={required}
+          disabled={disabled}
+          placeholder=" "
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+      <label htmlFor={id} className="TextInput__Label-sc-abdg41-1 ioloWN">
+        {label}
+      </label>
+      {!disabled ? (
+        <button
+          type="button"
+          id="input-cross"
+          className={`TextInput__CrossIconWrapper-sc-abdg41-2 edUfUb${value ? ' is-visible' : ''}`}
+          aria-label="Clear"
+          onClick={clear}
+        >
+          <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true">
+            <path d="M1 1l6 6M7 1L1 7" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const user = useAuthStore((s) => s.user);
   const headerLocation = useLocationStore((s) => s.location);
-  const dismiss = useCloseOnPopstate(open, onClose);
+  /** Do not use history.back() — opening via ?edit= would reopen the modal. */
+  const dismiss = useCallback(() => {
+    onClose();
+  }, [onClose]);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  /** Mobile: map confirm first, then form sheet */
   const [step, setStep] = useState<'map' | 'form'>('map');
 
   const [tag, setTag] = useState<UiAddressTag>('home');
@@ -89,14 +166,14 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const [lng, setLng] = useState<number>(blinkitTokens.defaultStore.lng);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
-  const [searchHint, setSearchHint] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 1023px)');
+    const mq = window.matchMedia('(max-width: 1020px)');
     const apply = () => setIsMobile(mq.matches);
     apply();
     mq.addEventListener('change', apply);
@@ -107,7 +184,6 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     if (!open) return;
     setError('');
     setSuggestions([]);
-    setSearchHint('');
     setStep('map');
 
     const fallbackArea =
@@ -117,14 +193,14 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
 
     if (editing) {
       const parsed = parseAddress(editing.fullAddress);
-      setTag(editing.label);
+      setTag(editing.label === 'home' || editing.label === 'work' ? editing.label : 'other');
       setFlat(parsed.flat);
       setFloor('');
       setArea(parsed.area || fallbackArea);
       setLandmark(editing.landmark || '');
       setLat(editing.lat ?? fallbackLat);
       setLng(editing.lng ?? fallbackLng);
-      setQuery(parsed.area || editing.fullAddress);
+      setQuery(editing.fullAddress || parsed.area || fallbackArea);
       setStep(isMobile ? 'map' : 'form');
     } else {
       setTag('home');
@@ -158,14 +234,14 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const delivery = useMemo(() => splitAreaCity(area || query), [area, query]);
 
   const mapSrc = useMemo(() => {
-    const delta = 0.01;
+    const delta = 0.008;
     const bbox = `${lng - delta}%2C${lat - delta}%2C${lng + delta}%2C${lat + delta}`;
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}`;
+    // No OSM marker — Blinkit uses fixed .center-marker over the map
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik`;
   }, [lat, lng]);
 
   const handleSearch = async (value: string) => {
     setQuery(value);
-    setSearchHint('');
     if (value.trim().length < 2) {
       setSuggestions([]);
       return;
@@ -173,12 +249,8 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     try {
       const results = await searchDeliveryPlaces(value.trim());
       setSuggestions(results);
-      if (results.length === 0) {
-        setSearchHint('No places found — enter area manually.');
-      }
     } catch {
       setSuggestions([]);
-      setSearchHint('Maps search unavailable — enter area manually.');
     }
   };
 
@@ -191,6 +263,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       setLng(s.lng);
     }
     setSuggestions([]);
+    setSearchFocused(false);
   };
 
   const useGps = () => {
@@ -198,7 +271,6 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       setError('Geolocation is not supported in this browser');
       return;
     }
-    setSearchHint('Detecting location…');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const nextLat = pos.coords.latitude;
@@ -210,22 +282,20 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
             const address = await reverseGeocode(nextLat, nextLng);
             setQuery(address);
             setArea(address);
-            setSearchHint('Moved pin to your current location');
           } catch {
-            setSearchHint('Moved pin to your current location');
+            /* keep coords */
           }
         })();
       },
       () => {
-        setSearchHint('');
         setError('Could not get current location. Allow location access or search manually.');
       },
       { enableHighAccuracy: true, timeout: 12000 },
     );
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (!flat.trim() || !area.trim() || !name.trim()) {
       setError('Please fill all required fields');
       return;
@@ -245,14 +315,13 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
         ? await addressesService.update(editing.id, payload)
         : await addressesService.create(payload);
 
-      // §19A.2 — name/phone in modal mirror Blinkit UX; persist name via profile PATCH
       const trimmedName = name.trim();
       if (trimmedName && trimmedName !== (user?.name || '')) {
         try {
           const updated = await usersService.updateMe({ name: trimmedName });
           useAuthStore.getState().setUser(updated);
         } catch {
-          // Address save succeeded; profile sync is best-effort
+          /* best-effort */
         }
       }
 
@@ -269,323 +338,386 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
 
   if (!open || !mounted) return null;
 
-  const searchBox = (
-    <div className="relative">
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0C831F]" />
-      <input
-        value={query}
-        onChange={(e) => handleSearch(e.target.value)}
-        placeholder="Search for area, street name…"
-        className="h-11 w-full rounded-lg border border-[#e0e0e0] bg-white pl-9 pr-9 text-[13px] shadow-md outline-none focus:border-[#0C831F]"
-      />
-      {query ? (
-        <button
-          type="button"
-          onClick={() => {
-            setQuery('');
-            setSuggestions([]);
-          }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-[#999]"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      ) : null}
-      {suggestions.length > 0 && (
-        <ul className="absolute left-0 right-0 top-[calc(100%+6px)] z-30 max-h-48 overflow-auto rounded-lg border border-[#e5e5e5] bg-white shadow-lg">
-          {suggestions.map((s) => (
-            <li key={s.placeId}>
+  const showValueLabel = Boolean(query) && !searchFocused;
+
+  const locationSelect = (
+    <div className="styles__LocationSelectorWrapper-sc-cc1wzf-14 dkBIpa">
+      <div
+        className={`Select styles__LocationSelect-sc-cc1wzf-15 jRqnbc is-clearable is-searchable Select--single${
+          query ? ' has-value' : ''
+        }`}
+      >
+        <span className="bk-addr-search-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="7" stroke="#318616" strokeWidth="2.2" />
+            <path d="M16.5 16.5L21 21" stroke="#318616" strokeWidth="2.2" strokeLinecap="round" />
+          </svg>
+        </span>
+        <div className="Select-control">
+          <div className="Select-multi-value-wrapper" id="react-select-address--value">
+            {showValueLabel ? (
+              <div className="Select-value">
+                <span className="Select-value-label" role="option" aria-selected="true">
+                  {query}
+                </span>
+              </div>
+            ) : null}
+            <div className="Select-input">
+              <input
+                role="combobox"
+                aria-expanded={suggestions.length > 0}
+                aria-autocomplete="list"
+                value={searchFocused || !query ? query : ''}
+                placeholder={query ? '' : 'Search delivery location'}
+                onChange={(e) => handleSearch(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => {
+                  window.setTimeout(() => setSearchFocused(false), 150);
+                }}
+              />
+            </div>
+          </div>
+          {query ? (
+            <span
+              aria-label="Clear value"
+              className="Select-clear-zone"
+              title="Clear value"
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                setQuery('');
+                setSuggestions([]);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setQuery('');
+                  setSuggestions([]);
+                }
+              }}
+            >
+              <span className="Select-clear">×</span>
+            </span>
+          ) : null}
+          <span className="Select-arrow-zone">
+            <span className="Select-arrow" />
+          </span>
+        </div>
+        {suggestions.length > 0 ? (
+          <div className="bk-addr-suggestions" role="listbox">
+            {suggestions.map((s) => (
               <button
+                key={s.placeId}
                 type="button"
-                className="w-full px-3 py-2.5 text-left text-[13px] hover:bg-[#f7f7f7]"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => applySuggestion(s)}
               >
-                <span className="font-semibold text-[#1f1f1f]">{s.mainText}</span>
-                <span className="mt-0.5 block text-[11px] text-[#888]">
+                <div className="bk-addr-suggestions__main">{s.mainText}</div>
+                <div className="bk-addr-suggestions__sub">
                   {s.secondaryText || s.description}
-                </span>
+                </div>
               </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {searchHint ? (
-        <p className="mt-1.5 text-[11px] text-[#666]">{searchHint}</p>
-      ) : null}
+            ))}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 
-  const formFields = (
+  const mapBlock = (
+    <div className="styles__MapContainer-sc-cc1wzf-13 jxdAuJ">
+      <div className="map-container">
+        <iframe title="Map" src={mapSrc} />
+        <div>
+          <div>
+            <div className="center-marker" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const locationInfo = (
+    <div className="styles__LocationInfoWrapper-sc-cc1wzf-17 iQirAt">
+      <div
+        className="styles__DetectLocationButton-sc-cc1wzf-16 hEmjqm"
+        role="button"
+        tabIndex={0}
+        onClick={useGps}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            useGps();
+          }
+        }}
+      >
+        <span className="bk-addr-gps-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="3" stroke="#0c831f" strokeWidth="2" />
+            <path
+              d="M12 2v3M12 19v3M2 12h3M19 12h3"
+              stroke="#0c831f"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <circle cx="12" cy="12" r="8" stroke="#0c831f" strokeWidth="2" />
+          </svg>
+        </span>
+        Go to current location
+      </div>
+      <div className="styles__LocationInfoHeader-sc-cc1wzf-18 eboNFh">
+        Delivering your order to{' '}
+      </div>
+      <div className="styles__LocationInfo-sc-cc1wzf-19 eIqGle">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img width={44} height={44} src={LOCATION_PIN} alt="" />
+        <div className="styles__LocationInfoText-sc-cc1wzf-11 cmbRXV">
+          <div className="styles__LocationInfoHeading-sc-cc1wzf-8 InEAC">{delivery.area}</div>
+          {delivery.city ? (
+            <div className="styles__LocationInfoSubheading-sc-cc1wzf-10 bkMpuG">
+              {delivery.city}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+
+  const formBody = (
     <>
-      <p className="text-[13px] font-semibold text-[#888]">
-        Save address as <span className="text-[#e53935]">*</span>
-      </p>
-      <div className="mt-2 flex gap-2">
-        {TAGS.map(({ id, label, Icon, tone }) => {
-          const selected = tag === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTag(id)}
-              className={cn(
-                'flex h-10 flex-1 items-center justify-center gap-1 rounded-lg border text-[11px] font-semibold sm:text-[12px]',
-                selected
-                  ? 'border-[#0C831F] bg-[#F0F9F1] text-[#0C831F]'
-                  : 'border-[#e0e0e0] bg-white text-[#555]',
-              )}
+      <div className="AddressForm__AddressFormWrapper-sc-12jjkjl-5 tJywa">
+        <div>
+          <div className="AddressForm__LocationTagsWrapper-sc-12jjkjl-0 kfCACP">
+            <div className="AddressForm__FieldLabel-sc-12jjkjl-1 bXIuQM">Save address as *</div>
+            <div className="AddressForm__LocationPillWrapper-sc-12jjkjl-2 yIGGC">
+              {TAGS.map(({ id, label }) => (
+                <div key={id} className="AddressForm__LocationTagWrapper-sc-12jjkjl-3 bZbNBH">
+                  <div
+                    className={`AddressForm__LocationTag-sc-12jjkjl-4 ${
+                      tag === id ? 'gtySpN is-selected' : 'celWih'
+                    }`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setTag(id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setTag(id);
+                      }
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={TAG_ICONS[id]} width={18} height={18} alt="" />
+                    <span>{label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <FloatingField
+            id="address"
+            name="address"
+            label="Flat / House no / Building name *"
+            value={flat}
+            onChange={setFlat}
+            required
+          />
+        </div>
+        <div>
+          <FloatingField id="floor" name="floor" label="Floor (optional)" value={floor} onChange={setFloor} />
+        </div>
+        <div>
+          <FloatingField
+            id="heuristics"
+            name="heuristics"
+            label="Area / Sector / Locality *"
+            value={area}
+            onChange={(v) => {
+              setArea(v);
+              setQuery(v);
+            }}
+            required
+            disabled
+            multiline
+          />
+        </div>
+        <div>
+          <FloatingField
+            id="landmark"
+            name="landmark"
+            label="Nearby landmark (optional)"
+            value={landmark}
+            onChange={setLandmark}
+          />
+        </div>
+        <div>
+          <div className="AddressForm___StyledDiv2-sc-12jjkjl-7 fmJKI">
+            <div
+              className="tw-text-200 tw-font-medium"
+              data-pf="reset"
+              style={{
+                color: 'var(--colors-grey-500, #828282)',
+                background: 'var(--colors-undefined-100, transparent)',
+              }}
             >
-              <Icon className={cn('h-3.5 w-3.5', selected ? tone : 'text-[#888]')} />
-              {label}
-            </button>
-          );
-        })}
+              Enter your details for seamless delivery experience
+            </div>
+          </div>
+        </div>
+        <div>
+          <FloatingField
+            id="name"
+            name="name"
+            label="Your name *"
+            value={name}
+            onChange={setName}
+            required
+          />
+        </div>
+        <div>
+          <FloatingField
+            id="phone"
+            name="phone"
+            label="Your phone number (optional)"
+            value={phone}
+            onChange={setPhone}
+            type="number"
+            inputMode="numeric"
+          />
+        </div>
+        {error ? <div className="bk-addr-form-error">{error}</div> : null}
       </div>
 
-      <div className="mt-4 space-y-3.5">
-        <Field label="Flat / House no / Building name" required value={flat} onChange={setFlat} />
-        <Field label="Floor (optional)" value={floor} onChange={setFloor} />
-        <Field
-          label="Area / Sector / Locality"
-          required
-          value={area}
-          onChange={(v) => {
-            setArea(v);
-            setQuery(v);
-          }}
-          muted
-        />
-        <Field label="Nearby landmark (optional)" value={landmark} onChange={setLandmark} />
+      <div className="StickyFooterComponent__StickyFooter-sc-13bkdgz-0 gzMuRY">
+        <div style={{ margin: '16px 12px 24px' }}>
+          <button
+            type="button"
+            className="StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1 jBTrwA"
+            disabled={saving}
+            onClick={() => void handleSubmit()}
+          >
+            {saving ? 'Saving…' : 'Save Address'}
+          </button>
+        </div>
       </div>
-
-      <p className="mt-5 text-[12px] text-[#888]">
-        Enter your details for seamless delivery experience
-      </p>
-      <div className="mt-3 space-y-3.5">
-        <Field label="Your name" required value={name} onChange={setName} />
-        <Field
-          label="Your phone number (optional)"
-          value={phone}
-          onChange={setPhone}
-          inputMode="tel"
-        />
-      </div>
-      {error ? (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-[12px] text-red-700">{error}</p>
-      ) : null}
     </>
   );
 
-  /* ——— MOBILE: map stays visible; form slides up over map (Blinkit) ——— */
   if (isMobile) {
     return createPortal(
-      <div className="fixed inset-0 z-[200] flex flex-col bg-[#dfe7ef]">
-        {/* Map layer — always mounted so form sheet shows map behind */}
-        <div className="flex h-12 shrink-0 items-center border-b border-[#eee] bg-white px-2">
-          <button
-            type="button"
-            onClick={() => (step === 'form' ? setStep('map') : dismiss())}
-            className="flex h-10 w-10 items-center justify-center"
-            aria-label="Back"
+      <div className="bk-addr-mobile-root" role="dialog" aria-modal="true">
+        <div className="bk-addr-mobile-map">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '18px 12px',
+              background: '#fff',
+              position: 'relative',
+              zIndex: 2,
+            }}
           >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <h2 className="flex-1 pr-10 text-center text-[16px] font-extrabold text-[#1f1f1f]">
-            Confirm map pin location
-          </h2>
-        </div>
-
-        <div className="relative min-h-0 flex-1 bg-[#dfe7ef]">
-          <iframe title="Map" src={mapSrc} className="absolute inset-0 h-full w-full border-0" />
-          <div className="absolute left-3 right-3 top-3 z-20">{searchBox}</div>
-          {step === 'map' ? (
             <button
               type="button"
-              onClick={useGps}
-              className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-[#0C831F] bg-white px-4 py-2 text-[12px] font-semibold text-[#0C831F] shadow-md"
+              onClick={() => (step === 'form' ? setStep('map') : dismiss())}
+              aria-label="Back"
+              style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
             >
-              <Crosshair className="h-3.5 w-3.5" />
-              Go to current location
+              <ChevronLeft className="h-7 w-7 text-[#1c1c1c]" />
             </button>
+            <div
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                color: '#1c1c1c',
+                fontSize: 15,
+                fontWeight: 600,
+                paddingRight: 28,
+              }}
+            >
+              {step === 'form' ? 'Enter complete address' : 'Confirm map pin location'}
+            </div>
+          </div>
+          {locationSelect}
+          {mapBlock}
+          {step === 'map' ? locationInfo : null}
+          {step === 'map' ? (
+            <div style={{ position: 'absolute', left: 12, right: 12, bottom: 24, zIndex: 10000 }}>
+              <button
+                type="button"
+                className="StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1 jBTrwA"
+                onClick={() => setStep('form')}
+              >
+                Confirm location
+              </button>
+            </div>
           ) : null}
         </div>
-
-        {step === 'map' ? (
-          <div className="shrink-0 border-t border-[#eee] bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
-            <p className="text-[15px] font-bold text-[#1f1f1f]">Delivering your order to</p>
-            <div className="mt-2 flex items-start gap-3 rounded-xl bg-[#f0f4f8] px-3 py-3">
-              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#318CE7]" fill="#318CE7" />
-              <div className="min-w-0">
-                <p className="text-[15px] font-bold text-[#1f1f1f]">{delivery.area}</p>
-                {delivery.city ? (
-                  <p className="text-[13px] text-[#666]">{delivery.city}</p>
-                ) : null}
-              </div>
+        {step === 'form' ? (
+          <div className="bk-addr-mobile-sheet" style={{ position: 'relative', height: '80svh' }}>
+            <div className="AddressFormModal__ModalHeader-sc-i6hou3-1 gSXqqS">
+              <span>Enter complete address</span>
+              <button type="button" className="bk-addr-close" aria-label="Close" onClick={dismiss}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path
+                    d="M1 1l12 12M13 1L1 13"
+                    stroke="#696969"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setStep('form')}
-              className="mt-4 flex h-12 w-full items-center justify-center gap-1 rounded-xl bg-[#0C831F] text-[15px] font-bold text-white"
-            >
-              Confirm location & proceed
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              {formBody}
+            </div>
           </div>
-        ) : (
-          <>
-            {/* Dim map; keep it visible above the sheet */}
-            <button
-              type="button"
-              aria-label="Back to map"
-              className="absolute inset-0 z-[5] bg-black/35"
-              onClick={() => setStep('map')}
-            />
-            <div className="absolute inset-x-0 bottom-0 z-10 flex max-h-[min(78vh,640px)] flex-col rounded-t-2xl bg-white shadow-[0_-8px_32px_rgba(0,0,0,0.18)] animate-sheet-up">
-              <div className="flex items-center justify-between px-4 pb-1 pt-4">
-                <h2 className="text-[18px] font-extrabold text-[#1f1f1f]">Enter complete address</h2>
-                <button
-                  type="button"
-                  onClick={dismiss}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-[#666]"
-                  aria-label="Close"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <form
-                onSubmit={handleSubmit}
-                className="flex min-h-0 flex-1 flex-col overflow-hidden"
-              >
-                <div className="flex-1 overflow-y-auto px-4 pb-3">{formFields}</div>
-                <div className="border-t border-[#f0f0f0] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="h-12 w-full rounded-xl bg-[#0C831F] text-[15px] font-bold text-white disabled:opacity-60"
-                  >
-                    {saving ? 'Saving…' : 'Save Address'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </>
-        )}
+        ) : null}
       </div>,
       document.body,
     );
   }
 
-  /* ——— DESKTOP / laptop: two-column modal ——— */
   return createPortal(
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
-      <button
-        type="button"
-        aria-label="Close overlay"
-        className="absolute inset-0 bg-black/50"
-        onClick={dismiss}
-      />
-      <div className="relative z-10 flex h-[min(90vh,720px)] w-full max-w-[min(980px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_16px_48px_rgba(0,0,0,0.28)] xl:h-[min(85vh,640px)] xl:flex-row">
-        <div className="flex h-[38%] min-h-[220px] shrink-0 flex-col border-b border-[#eee] xl:h-full xl:min-h-0 xl:w-[46%] xl:shrink-0 xl:border-b-0 xl:border-r">
-          <div className="relative min-h-0 flex-1 bg-[#dfe7ef]">
-            <iframe title="Map" src={mapSrc} className="absolute inset-0 h-full w-full border-0" />
-            <div className="absolute left-3 right-3 top-3 z-20">{searchBox}</div>
-            <button
-              type="button"
-              onClick={useGps}
-              className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-[12px] font-semibold text-[#0C831F] shadow-md"
-            >
-              <Crosshair className="h-3.5 w-3.5" />
-              Go to current location
-            </button>
-            <a
-              href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`}
-              target="_blank"
-              rel="noreferrer"
-              className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-md bg-white text-[#555] shadow-md"
-              aria-label="Open full map"
-            >
-              <Maximize2 className="h-4 w-4" />
-            </a>
-          </div>
-          <div className="border-t border-[#eee] bg-[#f7f7f7] px-4 py-3">
-            <p className="text-[12px] text-[#888]">Delivering your order to</p>
-            <div className="mt-1.5 flex items-start gap-2">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#318CE7]" fill="#318CE7" />
-              <div className="min-w-0">
-                <p className="truncate text-[14px] font-bold text-[#1f1f1f]">{delivery.area}</p>
-                {delivery.city ? (
-                  <p className="truncate text-[12px] text-[#666]">{delivery.city}</p>
-                ) : null}
-              </div>
+    <div
+      className="ReactModal__Overlay ReactModal__Overlay--after-open bk-addr-overlay"
+      onClick={dismiss}
+    >
+      <div
+        className="ReactModal__Content ReactModal__Content--after-open styles__ModalContainer-sc-cc1wzf-0 kDsHLL"
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="styles__MapSection-sc-cc1wzf-12 fTrOuF">
+          {locationSelect}
+          {mapBlock}
+          {locationInfo}
+        </div>
+        <div className="styles__FormSection-sc-cc1wzf-20 TQTwd">
+          <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div className="AddressFormModal__ModalHeader-sc-i6hou3-1 gSXqqS">
+              <span>Enter complete address</span>
+              <button type="button" className="bk-addr-close" aria-label="Close" onClick={dismiss}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path
+                    d="M1 1l12 12M13 1L1 13"
+                    stroke="#696969"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
             </div>
+            {formBody}
           </div>
         </div>
-
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden xl:min-w-0 xl:flex-1">
-          <div className="flex items-center justify-between px-5 pb-2 pt-4">
-            <h2 className="text-[18px] font-extrabold text-[#1f1f1f]">Enter complete address</h2>
-            <button
-              type="button"
-              onClick={dismiss}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[#666] hover:bg-[#f5f5f5]"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto px-5 pb-4">{formFields}</div>
-          <div className="border-t border-[#f0f0f0] px-5 py-3">
-            <button
-              type="submit"
-              disabled={saving}
-              className="h-12 w-full rounded-lg bg-[#0C831F] text-[15px] font-bold text-white hover:bg-[#097019] disabled:opacity-60"
-            >
-              {saving ? 'Saving…' : 'Save Address'}
-            </button>
-          </div>
-        </form>
       </div>
     </div>,
     document.body,
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  required,
-  inputMode,
-  muted,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  required?: boolean;
-  inputMode?: 'tel' | 'text' | 'numeric';
-  muted?: boolean;
-}) {
-  const filled = value.length > 0;
-  return (
-    <label className="relative block">
-      <span
-        className={cn(
-          'pointer-events-none absolute left-3 z-[1] px-1 text-[#888] transition-all',
-          muted ? 'bg-[#f5f5f5]' : 'bg-white',
-          filled ? 'top-0 -translate-y-1/2 text-[11px]' : 'top-1/2 -translate-y-1/2 text-[13px]',
-        )}
-      >
-        {label}
-        {required ? <span className="text-[#e53935]"> *</span> : null}
-      </span>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        inputMode={inputMode}
-        className={cn(
-          'h-12 w-full rounded-lg border border-[#d0d0d0] px-3 pt-1 text-[14px] text-[#1f1f1f] outline-none focus:border-[#0C831F]',
-          muted && 'bg-[#f5f5f5]',
-        )}
-      />
-    </label>
   );
 }

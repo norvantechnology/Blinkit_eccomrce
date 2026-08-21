@@ -68,34 +68,29 @@ export default function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-[var(--border-strong)] bg-[var(--surface)] px-3 shadow-sm sm:h-16 sm:gap-3 sm:px-5 safe-top">
-      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-5 sm:px-6 lg:px-8 safe-top">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="shrink-0 border-[var(--border)] lg:hidden"
+          className="shrink-0 lg:hidden"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <div className="min-w-0 rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-1.5 sm:px-4 sm:py-2">
-          <h1 className="truncate text-sm font-semibold text-slate-900 sm:text-base">
-            {getPageTitle(pathname)}
-          </h1>
-          <p className="hidden truncate text-xs text-slate-500 sm:block">
-            Store operations panel
-          </p>
-        </div>
+        <h1 className="truncate text-[15px] font-semibold text-[var(--foreground)]">
+          {getPageTitle(pathname)}
+        </h1>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+      <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
-          className="hidden h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] text-slate-600 transition hover:border-[var(--border-strong)] hover:bg-white sm:flex"
+          className="hidden h-9 w-9 items-center justify-center rounded-md text-[var(--muted)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--foreground)] sm:flex"
           aria-label="Notifications"
         >
-          <Bell className="h-[18px] w-[18px]" strokeWidth={2} />
+          <Bell className="h-4 w-4" strokeWidth={1.85} />
         </button>
 
         <div className="relative" ref={menuRef}>
@@ -103,25 +98,25 @@ export default function Topbar() {
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
             className={cn(
-              'flex max-w-[10rem] items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] py-1 pl-1 pr-2',
-              'transition-colors hover:border-[var(--border-strong)] hover:bg-white sm:max-w-none sm:py-1.5 sm:pr-2.5',
-              menuOpen && 'border-[var(--border-strong)] bg-white shadow-sm',
+              'flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] py-1 pl-1 pr-2 transition-colors',
+              'hover:bg-[var(--surface-muted)] sm:pr-2.5',
+              menuOpen && 'bg-[var(--surface-muted)]',
             )}
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[var(--primary)]/20 bg-[var(--primary-muted)] text-xs font-bold text-[var(--primary)]">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--primary)] text-[10px] font-bold text-white">
               {getInitials(user?.name)}
             </div>
             <div className="hidden min-w-0 text-left sm:block">
-              <p className="max-w-[7rem] truncate text-xs font-semibold text-slate-800 md:max-w-[10rem]">
+              <p className="max-w-[9rem] truncate text-xs font-semibold text-[var(--foreground)] md:max-w-[12rem]">
                 {user?.name || 'Admin'}
               </p>
-              <p className="max-w-[7rem] truncate text-[10px] capitalize text-slate-500 md:max-w-[10rem]">
+              <p className="max-w-[9rem] truncate text-[10px] capitalize text-[var(--muted)] md:max-w-[12rem]">
                 {user?.role?.replace('_', ' ') || 'User'}
               </p>
             </div>
             <ChevronDown
               className={cn(
-                'hidden h-4 w-4 shrink-0 text-slate-400 transition-transform sm:block',
+                'hidden h-3.5 w-3.5 shrink-0 text-[var(--muted)] transition-transform sm:block',
                 menuOpen && 'rotate-180',
               )}
             />
@@ -129,7 +124,7 @@ export default function Topbar() {
 
           <div
             className={cn(
-              'absolute right-0 top-full z-50 mt-1.5 w-52 origin-top-right rounded-lg border border-[var(--border-strong)] bg-white p-1.5 shadow-lg',
+              'absolute right-0 top-full z-50 mt-1.5 w-48 origin-top-right rounded-lg border border-[var(--border)] bg-[var(--surface)] p-1 shadow-md',
               'transition-all duration-150',
               menuOpen
                 ? 'scale-100 opacity-100'
@@ -137,9 +132,9 @@ export default function Topbar() {
             )}
           >
             {user && (
-              <div className="border-b border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2.5 sm:hidden">
-                <p className="truncate text-sm font-semibold text-slate-800">{user.name}</p>
-                <p className="truncate text-xs capitalize text-slate-500">
+              <div className="border-b border-[var(--border)] px-3 py-2 sm:hidden">
+                <p className="truncate text-sm font-semibold">{user.name}</p>
+                <p className="truncate text-xs capitalize text-[var(--muted)]">
                   {user.role?.replace('_', ' ')}
                 </p>
               </div>
@@ -147,7 +142,7 @@ export default function Topbar() {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
             >
               <LogOut className="h-4 w-4" strokeWidth={2} />
               Sign out

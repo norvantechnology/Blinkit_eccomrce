@@ -1,0 +1,206 @@
+{
+  "meta": {
+    "source": "blinkit.com vendor/main CSS + layout.js styled-components",
+    "wayback_ts": "20260814115632"
+  },
+  "colors": {
+    "brandYellow": "#F8CB46",
+    "cartGreen": "#0C831F",
+    "cartGreenHover": "#097019",
+    "text": "#1F1F1F",
+    "textDark": "#333333",
+    "textMuted": "#363636",
+    "textGray": "#666666",
+    "placeholder": "#999999",
+    "divider": "#EEEEEE",
+    "dividerSoft": "#F2F2F2",
+    "searchBg": "#F8F8F8",
+    "searchBorder": "#E8E8E8",
+    "headerHover": "#FCFCFC",
+    "overlayLogin": "rgba(0,0,0,0.7)",
+    "footerBand": "#FBFBFB",
+    "disabledBtn": "#9C9C9C",
+    "inputBorder": "#CCCCCC",
+    "linkMuted": "#696969"
+  },
+  "fonts": {
+    "family": "Okra",
+    "fallback": "Okra, var(--font-okra), 'Plus Jakarta Sans', sans-serif",
+    "weights": {
+      "thin": 200,
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "extrabold": 800
+    },
+    "files": {
+      "200": "Okra-Thin.woff2",
+      "400": "Okra-Regular.woff2",
+      "500": "Okra-Medium.woff2",
+      "600": "Okra-SemiBold-600.woff2",
+      "700": "Okra-Bold.woff2",
+      "800": "Okra-ExtraBold-800.woff2"
+    }
+  },
+  "fontSizes": {
+    "loginTitle": {
+      "size": "24px",
+      "weight": 800,
+      "color": "#333",
+      "selector": ".login-head__text"
+    },
+    "loginSubtitle": {
+      "size": "16px",
+      "weight": 500,
+      "lineHeight": "1.6",
+      "color": "#333",
+      "selector": ".login-help"
+    },
+    "loginInput": {
+      "size": "14px",
+      "weight": 600,
+      "selector": ".login-phone__input"
+    },
+    "loginPlus91": {
+      "size": "14px",
+      "weight": 600,
+      "color": "#333"
+    },
+    "loginButton": {
+      "size": "14px",
+      "weight": 500,
+      "selector": ".PhoneNumberLogin__LoginButton"
+    },
+    "loginTerms": {
+      "size": "12px",
+      "color": "#696969",
+      "selector": ".PhoneNumberLogin__LinksWrapper"
+    },
+    "headerLocationTitle": {
+      "size": "16px",
+      "weight": 800,
+      "desktopSize": "18px"
+    },
+    "headerLocationSubtitle": {
+      "size": "13px",
+      "weight": 400,
+      "color": "#000000",
+      "mobileSize": "12px"
+    },
+    "headerProfile": {
+      "size": "18px",
+      "weight": 400,
+      "color": "#363636",
+      "family": "Okra-Regular"
+    },
+    "headerCartText": {
+      "size": "14px",
+      "weight": 700,
+      "family": "Okra-Bold",
+      "color": "#ffffff"
+    },
+    "headerCartIcon": {
+      "size": "28px",
+      "family": "CustomFont"
+    },
+    "searchPlaceholder": {
+      "size": "14px",
+      "color": "#999999"
+    }
+  },
+  "spacing": {
+    "headerHeightDesktop": "86px",
+    "headerHeightMobile": "68px",
+    "headerBorder": "1px solid #EEEEEE",
+    "logoContainerWidth": "178px",
+    "logoContainerHeight": "86px",
+    "locationBarWidthDesktop": "320px",
+    "locationBarPaddingMobile": "0 0 0 16px",
+    "profileWidthDesktop": "162px",
+    "cartButtonWidth": "112px",
+    "cartButtonHeight": "52px",
+    "cartButtonRadius": "8px",
+    "verticalDivider": "1px solid #F2F2F2",
+    "searchRadius": "12px",
+    "loginModalRadius": "16px",
+    "loginGap": "15px",
+    "loginPaddingTopDesktop": "20px",
+    "loginPaddingTopMobile": "10px",
+    "loginFormMargin": "0 24px",
+    "loginButtonMarginTop": "18px",
+    "loginButtonMinHeight": "50px",
+    "loginButtonWidthDesktop": "300px",
+    "loginInputPadding": "15px 20px 15px 50px",
+    "loginInputWidthDesktop": "220px",
+    "loginBackIconPadding": "8px 10px",
+    "loginBackIconOffset": {
+      "left": "15px",
+      "top": "15px"
+    },
+    "loginLinksPadding": "12px 0",
+    "loginWidthDesktop": "570px",
+    "breakpointMobile": "1020px"
+  },
+  "icons": {
+    "back": {
+      "blinkit": "CustomFont glyph '&'",
+      "wasabiconsGlyph": "back",
+      "codepoint": "U+E923",
+      "file": "icons/back.svg",
+      "size": "20px",
+      "usedOn": [
+        "LoginModal__BackIcon"
+      ]
+    },
+    "chevronDown": {
+      "wasabiconsGlyph": "chevron-down",
+      "file": "icons/chevron-down.svg",
+      "size": "10px",
+      "usedOn": [
+        "LocationBar"
+      ]
+    },
+    "chevronLeft": {
+      "wasabiconsGlyph": "chevron-left",
+      "file": "icons/chevron-left.svg",
+      "size": "20px",
+      "usedOn": [
+        "mobile back"
+      ]
+    },
+    "search": {
+      "wasabiconsGlyph": "Search",
+      "file": "icons/search.svg",
+      "size": "20px",
+      "usedOn": [
+        "SearchBar",
+        "mobile header"
+      ]
+    },
+    "cart": {
+      "wasabiconsGlyph": "grocery-cart",
+      "file": "icons/cart.svg",
+      "size": "28px",
+      "usedOn": [
+        "CartButton"
+      ]
+    },
+    "profile": {
+      "wasabiconsGlyph": "profile-user",
+      "file": "icons/profile.svg",
+      "size": "20px",
+      "usedOn": [
+        "mobile account"
+      ]
+    },
+    "appLogo": {
+      "file": "icons/blinkit-app-logo.svg",
+      "size": "64px",
+      "radius": "16px",
+      "usedOn": [
+        "PhoneNumberLogin logo"
+      ]
+    }
+  }
+}

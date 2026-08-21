@@ -26,9 +26,9 @@ export function BrandLogo({
     <div className={cn('flex items-center gap-2.5', className)}>
       <div
         className={cn(
-          'flex shrink-0 items-center justify-center rounded-lg font-extrabold text-[#1f1f1f]',
+          'flex shrink-0 items-center justify-center rounded-2xl font-extrabold text-[#1f1f1f]',
           s.mark,
-          inverted ? 'bg-[var(--brand-yellow)]' : 'bg-[var(--brand-yellow)]',
+          'bg-[var(--brand-yellow)]',
         )}
       >
         T

@@ -14,6 +14,8 @@ interface UiState {
   locationPickerOpen: boolean;
   locationAnchor: LocationAnchor | null;
   setLocationPickerOpen: (open: boolean, anchor?: LocationAnchor | null) => void;
+  accountDropdownOpen: boolean;
+  setAccountDropdownOpen: (open: boolean) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -26,4 +28,6 @@ export const useUiStore = create<UiState>((set) => ({
       locationPickerOpen,
       locationAnchor: locationPickerOpen ? anchor ?? null : null,
     }),
+  accountDropdownOpen: false,
+  setAccountDropdownOpen: (accountDropdownOpen) => set({ accountDropdownOpen }),
 }));

@@ -8,14 +8,16 @@ import { useUiStore } from '@/store/uiStore';
 import { addressesService } from '@/services/addresses.service';
 import { blinkitTokens } from '@/lib/design-tokens';
 
+/** LocationBar — Blinkit gcLVHe / bdWwbr / fqbcdJ measurements. */
 export function LocationBar({
   className,
   compact = false,
 }: {
   className?: string;
-  /** Mobile Blinkit: tighter type, address only (no label prefix) */
+  /** @deprecated layout handled by CSS breakpoints */
   compact?: boolean;
 }) {
+  void compact;
   const btnRef = useRef<HTMLButtonElement>(null);
   const user = useAuthStore((s) => s.user);
   const hydrated = useAuthStore((s) => s.hydrated);
@@ -63,7 +65,19 @@ export function LocationBar({
     };
   }, [hydrated, user, setDefaultStoreLocation, setLoading, setLocation]);
 
-  const addressLine = location?.fullAddress || 'Select location';
+  const displayLocation =
+    location ??
+    (!hydrated
+      ? {
+          label: 'Home',
+          fullAddress: blinkitTokens.defaultStore.fullAddress,
+          lat: blinkitTokens.defaultStore.lat,
+          lng: blinkitTokens.defaultStore.lng,
+          etaMinutes: blinkitTokens.defaultStore.etaMinutes,
+        }
+      : null);
+
+  const addressLine = displayLocation?.fullAddress || 'Select location';
 
   const openPicker = () => {
     if (locationPickerOpen) {
@@ -75,11 +89,13 @@ export function LocationBar({
       setLocationPickerOpen(true);
       return;
     }
-    const r = el.getBoundingClientRect();
+    // Prefer eta text block so popup centers under “Delivery in …” copy (Blinkit)
+    const eta = el.querySelector('.bk-location__eta') as HTMLElement | null;
+    const r = (eta ?? el).getBoundingClientRect();
     setLocationPickerOpen(true, {
       top: r.top,
       left: r.left,
-      bottom: r.bottom,
+      bottom: el.getBoundingClientRect().bottom,
       width: r.width,
       right: r.right,
     });
@@ -93,40 +109,35 @@ export function LocationBar({
       aria-expanded={locationPickerOpen}
       aria-haspopup="dialog"
       onClick={openPicker}
-      className={cn(
-        'flex w-full min-w-0 flex-col justify-center text-left',
-        !compact && 'h-[86px] shrink-0 hover:bg-[var(--header-hover)]',
-        className,
-      )}
+      className={cn('bk-location', className)}
     >
-      {loading || !location ? (
-        <div className="w-full space-y-1.5">
-          <div className="blinkit-shimmer h-5 w-40 rounded" />
-          <div className="blinkit-shimmer h-3.5 w-52 rounded" />
-        </div>
-      ) : (
-        <>
-          <p
-            className={cn(
-              'font-extrabold leading-tight text-[#1f1f1f]',
-              compact ? 'text-[16px]' : 'text-[16px] lg:text-[18px]',
-            )}
-          >
-            Delivery in {location.etaMinutes} minutes
-          </p>
-          <p
-            className={cn(
-              'mt-0.5 flex max-w-full items-center gap-1 font-medium text-[#666]',
-              compact ? 'text-[12px]' : 'text-[12px] lg:text-[13px]',
-            )}
-          >
-            <span className="truncate">{addressLine}</span>
-            <svg width="10" height="6" viewBox="0 0 10 6" aria-hidden className="shrink-0">
-              <path d="M1 1l4 4 4-4" stroke="#1f1f1f" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-            </svg>
-          </p>
-        </>
-      )}
+      <div className="bk-location__eta">
+        {loading && !displayLocation ? (
+          <>
+            <div className="blinkit-shimmer mb-1.5 h-[21px] w-40 rounded-lg" />
+            <div className="blinkit-shimmer h-3.5 w-52 rounded-lg" />
+          </>
+        ) : (
+          <>
+            <p className="bk-location__title">
+              Delivery in {displayLocation?.etaMinutes ?? blinkitTokens.defaultStore.etaMinutes}{' '}
+              minutes
+            </p>
+            <div className="bk-location__subrow">
+              <span className="bk-location__sub">
+                {displayLocation?.label ? (
+                  <>
+                    <span className="bk-location__label">{displayLocation.label}</span>
+                    <span className="bk-location__sep"> - </span>
+                  </>
+                ) : null}
+                <span className="bk-location__address">{addressLine}</span>
+              </span>
+              <span className="bk-location__arrow" aria-hidden />
+            </div>
+          </>
+        )}
+      </div>
     </button>
   );
 }

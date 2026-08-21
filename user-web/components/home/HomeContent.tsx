@@ -6,9 +6,9 @@ export const HOME_CATEGORIES = [
   { name: 'Dairy, Bread & Eggs', image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=240&h=240&fit=crop&q=80', bg: '#E8F3FC' },
   { name: 'Fruits & Vegetables', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=240&h=240&fit=crop&q=80', bg: '#EAF7EA' },
   { name: 'Cold Drinks & Juices', image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=240&h=240&fit=crop&q=80', bg: '#E6F6FB' },
-  { name: 'Snacks & Munchies', image: 'https://images.unsplash.com/photo-1566478989037-eec17017d0b4?w=240&h=240&fit=crop&q=80', bg: '#FFF6E4' },
+  { name: 'Snacks & Munchies', image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=240&h=240&fit=crop&q=80', bg: '#FFF6E4' },
   { name: 'Breakfast & Instant Food', image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=240&h=240&fit=crop&q=80', bg: '#FDECF1' },
-  { name: 'Sweet Tooth', image: 'https://images.unsplash.com/photo-1548907040-4d42c3e3c1a3?w=240&h=240&fit=crop&q=80', bg: '#F4EAF8' },
+  { name: 'Sweet Tooth', image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=240&h=240&fit=crop&q=80', bg: '#F4EAF8' },
   { name: 'Bakery & Biscuits', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=240&h=240&fit=crop&q=80', bg: '#FFF3E4' },
   { name: 'Tea, Coffee & Milk Drinks', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=240&h=240&fit=crop&q=80', bg: '#F3EEEA' },
   { name: 'Atta, Rice & Dal', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=240&h=240&fit=crop&q=80', bg: '#FBEDE8' },
@@ -50,21 +50,15 @@ const PROMO_BANNERS = [
 
 export function HomeContent() {
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-3 pb-10 pt-3 sm:px-4 lg:px-5 lg:pt-5">
-      {/* Hero */}
-      <section className="overflow-hidden rounded-[20px] bg-[#1A7A3C]">
-        <div className="flex flex-col gap-4 p-4 sm:p-6 lg:flex-row lg:items-center lg:gap-8 lg:p-8 lg:pl-10">
+    <div className="bk-page bk-page--home">
+      <section className="bk-home__hero">
+        <div className="bk-home__hero-inner">
           <div className="min-w-0 flex-1 lg:max-w-[46%]">
-            <h1 className="text-[22px] font-extrabold leading-[1.15] tracking-tight text-white sm:text-[28px] lg:text-[36px]">
-              Stock up on daily essentials
-            </h1>
-            <p className="mt-2 max-w-[36ch] text-[13px] leading-relaxed text-white/90 sm:text-[15px]">
+            <h1 className="bk-home__hero-title">Stock up on daily essentials</h1>
+            <p className="bk-home__hero-sub">
               Get farm-fresh goodness & a range of exotic fruits, vegetables, eggs & more
             </p>
-            <Link
-              href="/#categories"
-              className="mt-4 inline-flex h-9 items-center justify-center rounded-full bg-white px-5 text-[13px] font-bold text-[#1f1f1f] sm:mt-5 sm:h-10 sm:px-6 sm:text-sm"
-            >
+            <Link href="/#categories" className="bk-home__hero-cta">
               Shop Now
             </Link>
           </div>
@@ -79,77 +73,56 @@ export function HomeContent() {
         </div>
       </section>
 
-      {/* Promo banners — snap-scroll on mobile, 3-up on desktop */}
-      <section className="mt-3 sm:mt-4">
-        <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 md:grid md:grid-cols-3 md:overflow-visible md:pb-0">
-          {PROMO_BANNERS.map((banner) => (
-            <article
-              key={banner.title}
-              className="relative h-[148px] w-[86%] shrink-0 snap-start overflow-hidden rounded-[18px] sm:h-[160px] sm:w-[70%] md:h-[168px] md:w-auto"
-              style={{ backgroundColor: banner.bg }}
-            >
-              <div className="relative z-10 flex h-full w-[58%] flex-col justify-center p-4 pr-2 sm:p-5">
-                <h2
-                  className={`text-[15px] font-extrabold leading-snug sm:text-[17px] ${
-                    banner.dark ? 'text-[#1f1f1f]' : 'text-white'
-                  }`}
-                >
-                  {banner.title}
-                </h2>
-                <p
-                  className={`mt-1 line-clamp-2 text-[11px] leading-snug sm:text-[12px] ${
-                    banner.dark ? 'text-[#1f1f1f]/75' : 'text-white/85'
-                  }`}
-                >
-                  {banner.sub}
-                </p>
-                <span
-                  className={`mt-3 inline-flex h-7 w-fit items-center rounded-full px-3 text-[11px] font-bold sm:h-8 sm:px-3.5 sm:text-xs ${
-                    banner.dark ? 'bg-[#1a1a1a] text-white' : 'bg-white text-[#1f1f1f]'
-                  }`}
-                >
-                  Order Now
-                </span>
-              </div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={banner.image}
-                alt=""
-                className="absolute bottom-0 right-0 h-full w-[46%] object-cover object-center"
-              />
-            </article>
-          ))}
-        </div>
+      <section className="bk-home__promos no-scrollbar">
+        {PROMO_BANNERS.map((banner) => (
+          <article
+            key={banner.title}
+            className="bk-home__promo"
+            style={{ backgroundColor: banner.bg }}
+          >
+            <div className="relative z-10 flex h-full w-[58%] flex-col justify-center p-4 pr-2 sm:p-5">
+              <h2
+                className={`text-[15px] font-extrabold leading-snug sm:text-[17px] ${
+                  banner.dark ? 'text-[#1f1f1f]' : 'text-white'
+                }`}
+              >
+                {banner.title}
+              </h2>
+              <p
+                className={`mt-1 line-clamp-2 text-[11px] leading-snug sm:text-[12px] ${
+                  banner.dark ? 'text-[#1f1f1f]/75' : 'text-white/85'
+                }`}
+              >
+                {banner.sub}
+              </p>
+              <span
+                className={`mt-3 inline-flex h-7 w-fit items-center rounded-full px-3 text-[11px] font-bold sm:h-8 sm:px-3.5 sm:text-xs ${
+                  banner.dark ? 'bg-[#1a1a1a] text-white' : 'bg-white text-[#1f1f1f]'
+                }`}
+              >
+                Order Now
+              </span>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={banner.image}
+              alt=""
+              className="absolute bottom-0 right-0 h-full w-[46%] object-cover object-center"
+            />
+          </article>
+        ))}
       </section>
 
-      {/* Category grid */}
-      <section id="categories" className="mt-6 scroll-mt-24 sm:mt-8">
-        <div className="grid grid-cols-4 gap-x-2 gap-y-4 sm:grid-cols-5 sm:gap-x-3 sm:gap-y-5 md:grid-cols-8 lg:grid-cols-10">
-          {HOME_CATEGORIES.map((cat) => (
-            <button
-              key={cat.name}
-              type="button"
-              title="Products open in Milestone 2"
-              className="group flex flex-col items-center text-center"
-            >
-              <span
-                className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-[16px] p-[7%]"
-                style={{ backgroundColor: cat.bg }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="h-full w-full rounded-[12px] object-cover transition duration-200 group-hover:scale-[1.04]"
-                  loading="lazy"
-                />
-              </span>
-              <span className="mt-1.5 line-clamp-2 min-h-[2.5em] text-[10px] font-semibold leading-tight text-[#1f1f1f] sm:mt-2 sm:text-[12px]">
-                {cat.name}
-              </span>
-            </button>
-          ))}
-        </div>
+      <section id="categories" className="bk-home__cats scroll-mt-24">
+        {HOME_CATEGORIES.map((cat) => (
+          <button key={cat.name} type="button" title="Products open in Milestone 2" className="bk-home__cat">
+            <span className="bk-home__cat-tile" style={{ backgroundColor: cat.bg }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cat.image} alt={cat.name} loading="lazy" />
+            </span>
+            <span className="bk-home__cat-label">{cat.name}</span>
+          </button>
+        ))}
       </section>
     </div>
   );

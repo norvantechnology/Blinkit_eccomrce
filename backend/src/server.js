@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { loadSecrets } = require('./config/loadSecrets');
 
 const start = async () => {

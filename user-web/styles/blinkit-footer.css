@@ -1,0 +1,268 @@
+/**
+ * Blinkit footer parity — from styled-components on blinkit.com
+ * (FooterLinks / DownloadAndFollowRow / GrofersDisclaimer / Footer)
+ * Snapshot: tools/blinkit-login-capture/out/extracted/footer-exact-from-blinkit.css
+ */
+
+/* Footer__FooterContainer */
+.bk-footer {
+  max-width: 1280px;
+  margin: 48px auto 0;
+  transition: 0.4s;
+}
+
+@media (max-width: 1020px) {
+  .bk-footer {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 85px;
+  }
+}
+
+/* Footer__Wrapper */
+.bk-footer__inner {
+  width: auto;
+  margin: 20px auto 40px;
+}
+
+@media (max-width: 1280px) {
+  .bk-footer__inner {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 1020px) {
+  .bk-footer__inner {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .bk-footer__inner {
+    padding: 0 16px 16px;
+  }
+}
+
+/* FooterLinks__Grid — Useful Links | Categories */
+.bk-footer__links-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+}
+
+@media (max-width: 1020px) {
+  .bk-footer__links-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* FooterLinks__ListHeading */
+.bk-footer__heading {
+  font-family: Okra, var(--bk-font, sans-serif);
+  font-weight: 600;
+  color: #000000;
+  font-size: 18px;
+  margin: 24px 0;
+  line-height: 1.2;
+}
+
+/* FooterLinks__HeadingContainer */
+.bk-footer__heading-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+/* FooterLinks__SeeAll */
+.bk-footer__see-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 16px;
+  color: #0c831f;
+  font-size: 16px;
+  font-weight: 400;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  font-family: inherit;
+}
+
+.bk-footer__see-all:hover {
+  text-decoration: underline;
+}
+
+/* FooterLinks__List — outer 3 columns */
+.bk-footer__cols {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 12px;
+  column-gap: 24px;
+}
+
+/* FooterLinks__List — single column */
+.bk-footer__col {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: auto;
+  gap: 12px;
+  column-gap: 24px;
+}
+
+/* FooterLinks__ListItem */
+.bk-footer__item {
+  display: inline-block;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+/* FooterLinkshelpers__FooterLink */
+.bk-footer__link {
+  color: #000000;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: Okra, var(--bk-font, sans-serif);
+  cursor: default;
+}
+
+.bk-footer__link:hover {
+  color: #333333;
+}
+
+/* DownloadAndFollowRow__Wrapper */
+.bk-footer__band {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  max-width: 100%;
+  background-color: #fcfcfc;
+}
+
+/* DownloadAndFollowRow__Grid */
+.bk-footer__band-grid {
+  padding: 16px 0;
+  width: auto;
+  max-width: 1280px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+  .bk-footer__band-grid {
+    row-gap: 4px;
+  }
+}
+
+@media (max-width: 1020px) {
+  .bk-footer__band-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+}
+
+/* DownloadAndFollowRow__Item variants */
+.bk-footer__band-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100%;
+  font-family: Okra, var(--bk-font, sans-serif);
+  font-size: 14px;
+  color: #1f1f1f;
+}
+
+.bk-footer__band-item--start {
+  justify-content: flex-start;
+}
+
+.bk-footer__band-item--center {
+  justify-content: center;
+  flex-direction: column;
+}
+
+.bk-footer__band-item--end {
+  justify-content: flex-end;
+}
+
+@media (max-width: 1020px) {
+  .bk-footer__band-item--start,
+  .bk-footer__band-item--center,
+  .bk-footer__band-item--end {
+    justify-content: center;
+  }
+}
+
+/* DownloadAndFollowRow__Font — "Download App" */
+.bk-footer__download-title {
+  font-family: Okra, var(--bk-font, sans-serif);
+  font-weight: 600;
+  font-size: 14px;
+  margin: 24px 16px 16px;
+  color: #1f1f1f;
+}
+
+/* DownloadAndFollowRow__Flex — badges / social row */
+.bk-footer__flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.bk-footer__flex--social {
+  justify-content: flex-end;
+  gap: 0;
+  margin-bottom: 0;
+}
+
+/* Imagestyles / DownloadAppImage — 92×30 badges */
+.bk-footer__badge {
+  display: block;
+  width: 92px;
+  height: 30px;
+  border-radius: 4px;
+  margin: 8px;
+  cursor: pointer;
+  object-fit: contain;
+}
+
+/* DownloadAndFollowRow__SocialIcon */
+.bk-footer__social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 12px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.bk-footer__social img,
+.bk-footer__social svg {
+  width: 40px;
+  height: 40px;
+  display: block;
+  border-radius: 50%;
+}
+
+/* GrofersDisclaimer__Text */
+.bk-footer__disclaimer {
+  font-size: 14px;
+  color: #666666;
+  font-family: Okra, 'OKRA-REGULAR', var(--bk-font, sans-serif);
+  font-weight: 400;
+  line-height: 18px;
+  margin: 12px;
+  max-width: none;
+}

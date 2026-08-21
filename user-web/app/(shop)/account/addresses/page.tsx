@@ -1,34 +1,19 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { Briefcase, Home, MapPin, MoreVertical, Plus } from 'lucide-react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AddressModal } from '@/components/account/AddressModal';
 import { addressesService, type Address } from '@/services/addresses.service';
 import { getApiErrorMessage } from '@/lib/auth';
 import { blinkitTokens } from '@/lib/design-tokens';
 import { useLocationStore } from '@/store/locationStore';
 
-function LabelIcon({ label }: { label: Address['label'] }) {
-  if (label === 'home') {
-    return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f5f5]">
-        <Home className="h-[18px] w-[18px] text-[#E8A800]" strokeWidth={2.25} />
-      </div>
-    );
-  }
-  if (label === 'work') {
-    return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f5f5]">
-        <Briefcase className="h-[18px] w-[18px] text-[#8B6914]" strokeWidth={2.25} />
-      </div>
-    );
-  }
-  return (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f5f5]">
-      <MapPin className="h-[18px] w-[18px] text-[#E8A800]" strokeWidth={2.25} />
-    </div>
-  );
-}
+/** Live Blinkit CDN icons (v5 light) — same URLs as blinkit.com */
+const ICON = {
+  home: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=90/layout-engine/v2/2025-02/address_home_icon_v5/address_home_icon_v5_light.png',
+  work: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=90/layout-engine/v2/2025-02/address_work_icon_v5/address_work_icon_v5_light.png',
+  other: '/blinkit-parity/icons/address/address-other.png',
+} as const;
 
 function labelTitle(label: Address['label']) {
   if (label === 'home') return 'Home';
@@ -36,7 +21,17 @@ function labelTitle(label: Address['label']) {
   return 'Other';
 }
 
-export default function AddressesPage() {
+function iconSrc(label: Address['label']) {
+  if (label === 'home') return ICON.home;
+  if (label === 'work') return ICON.work;
+  return ICON.other;
+}
+
+/** Exact Blinkit /account/addresses DOM (UserAddressesV2 + AddressCard). */
+function AddressesPageContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const setLocation = useLocationStore((s) => s.setLocation);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,14 +40,25 @@ export default function AddressesPage() {
   const [editing, setEditing] = useState<Address | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
 
+  const clearAddressQuery = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!params.has('edit') && !params.has('add')) return;
+    params.delete('edit');
+    params.delete('add');
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const list = await addressesService.list();
       setAddresses(list);
+      return list;
     } catch (err) {
       setError(getApiErrorMessage(err, 'Could not load addresses'));
+      return [] as Address[];
     } finally {
       setLoading(false);
     }
@@ -61,6 +67,47 @@ export default function AddressesPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  /** Deep-link from Change Location edit/add → open Enter complete address modal */
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    const add = searchParams.get('add');
+    if (!editId && add !== '1') return;
+
+    let cancelled = false;
+    void (async () => {
+      let list = addresses;
+      if (list.length === 0) {
+        try {
+          list = await addressesService.list();
+          if (!cancelled) setAddresses(list);
+        } catch {
+          if (!cancelled) clearAddressQuery();
+          return;
+        }
+      }
+      if (cancelled) return;
+
+      if (editId) {
+        const found = list.find((a) => a.id === editId) ?? null;
+        if (found) {
+          setEditing(found);
+          setModalOpen(true);
+        } else {
+          clearAddressQuery();
+        }
+        return;
+      }
+
+      setEditing(null);
+      setModalOpen(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open only when query changes
+  }, [searchParams]);
 
   useEffect(() => {
     if (!menuId) return;
@@ -91,6 +138,12 @@ export default function AddressesPage() {
     setMenuId(null);
   };
 
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditing(null);
+    clearAddressQuery();
+  };
+
   const handleSaved = async (addr: Address) => {
     syncHeaderLocation(addr);
     await load();
@@ -119,87 +172,121 @@ export default function AddressesPage() {
   };
 
   return (
-    <div>
-      <h1 className="text-[22px] font-extrabold leading-tight text-[#1f1f1f] lg:text-[24px]">
-        My addresses
-      </h1>
-      <button
-        type="button"
-        onClick={openAdd}
-        className="mt-3 inline-flex items-center gap-1 text-[14px] font-semibold text-[#0C831F]"
-      >
-        <Plus className="h-4 w-4" strokeWidth={2.5} />
-        Add new address
-      </button>
+    <div className="UserAddressesV2__UserAddressesWrapper-sc-bnlqpe-3 icnSoU">
+      <div className="UserAddressesV2__MyAddresses-sc-bnlqpe-1 ZgErW my-addresses">
+        <div className="UserAddressesV2__MyAddressTitle-sc-bnlqpe-5 bVQOWk">My addresses</div>
 
-      {error ? (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
-          {error}
-        </div>
-      ) : null}
-
-      <div className="mt-4">
-        {loading ? (
-          <div className="space-y-3 py-2">
-            <div className="blinkit-shimmer h-[72px] rounded-lg" />
-            <div className="blinkit-shimmer h-[72px] rounded-lg" />
-          </div>
-        ) : addresses.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-[14px] text-[#888]">No saved addresses yet.</p>
-            <button
-              type="button"
+        <div className="UserAddressesV2__MyAddressLableContainer-sc-bnlqpe-4 fA-DOkf">
+          <div className="UserAddressesV2__AddAddressLinkContainer-sc-bnlqpe-6 gcOdsi">
+            <div
+              data-test-id="add-new-address"
+              className="UserAddressesV2__AddAddressLink-sc-bnlqpe-9 eaZfsM"
+              role="button"
+              tabIndex={0}
               onClick={openAdd}
-              className="mt-3 text-[14px] font-semibold text-[#0C831F]"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openAdd();
+                }
+              }}
             >
-              + Add new address
-            </button>
+              <div className="UserAddressesV2__AddIconContainer-sc-bnlqpe-8 fMgxzu">
+                <span
+                  className="icon-plus tw-inline-flex"
+                  role="img"
+                  data-pf="reset"
+                  style={{ fontSize: 12 }}
+                />
+              </div>
+              Add new address
+            </div>
           </div>
-        ) : (
-          <ul>
-            {addresses.map((addr) => (
-              <li key={addr.id} className="relative flex items-start gap-3 py-4">
-                <LabelIcon label={addr.label} />
-                <div className="min-w-0 flex-1 pr-10">
-                  <p className="text-[15px] font-bold text-[#1f1f1f]">{labelTitle(addr.label)}</p>
-                  <p className="mt-1 text-[13px] leading-snug text-[#888]">{addr.fullAddress}</p>
+        </div>
+
+        {error ? <div className="ua-error">{error}</div> : null}
+
+        <div className="UserAddressesV2__AddressCardsContainer-sc-bnlqpe-0 hQbPyu">
+          {loading ? (
+            <>
+              <div className="AddressCard__CardContainer-sc-1v9p7y9-3 jYQcBy blinkit-shimmer" style={{ height: 52 }} />
+              <div className="AddressCard__CardContainer-sc-1v9p7y9-3 jYQcBy blinkit-shimmer" style={{ height: 52 }} />
+            </>
+          ) : addresses.length === 0 ? (
+            <div className="ua-empty">
+              <p>No saved addresses yet.</p>
+              <div
+                data-test-id="add-new-address"
+                className="UserAddressesV2__AddAddressLink-sc-bnlqpe-9 eaZfsM"
+                role="button"
+                tabIndex={0}
+                onClick={openAdd}
+              >
+                <div className="UserAddressesV2__AddIconContainer-sc-bnlqpe-8 fMgxzu">
+                  <span className="icon-plus tw-inline-flex" role="img" style={{ fontSize: 12 }} />
                 </div>
-                <div className="absolute right-0 top-3">
-                  <button
-                    type="button"
-                    aria-label="Address options"
+                Add new address
+              </div>
+            </div>
+          ) : (
+            addresses.map((addr) => (
+              <div key={addr.id} className="AddressCard__CardContainer-sc-1v9p7y9-3 jYQcBy">
+                <div
+                  className="Imagestyles__ImageContainer-sc-1u3ccmn-0 kGyXMV"
+                  style={{ width: 40, height: 40 }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={iconSrc(addr.label)}
+                    alt={labelTitle(addr.label)}
+                    width={40}
+                    height={40}
+                    loading="lazy"
+                    style={{
+                      borderRadius: 0,
+                      objectFit: 'fill',
+                      cursor: 'default',
+                    }}
+                  />
+                </div>
+                <div className="AddressCard__AddressDetails-sc-1v9p7y9-4 kaAnRm">
+                  <div className="AddressCard__AddressLabel-sc-1v9p7y9-5 fgjWho">
+                    <span className="AddressCard__AddressLabelText-sc-1v9p7y9-6 mxNpW">
+                      {labelTitle(addr.label)}
+                    </span>
+                  </div>
+                  <span className="AddressCard__DisplayAddress-sc-1v9p7y9-8 caIBbB">
+                    {addr.fullAddress}
+                  </span>
+                </div>
+                <div className="AddressCard__TooltipContainer-sc-1v9p7y9-0 hzYeJY">
+                  <a
+                    className="AddressCard__TooltipIcon-sc-1v9p7y9-1 kiZofv"
+                    href="#"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       setMenuId((id) => (id === addr.id ? null : addr.id));
                     }}
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#0C831F]"
                   >
-                    <MoreVertical className="h-5 w-5" />
-                  </button>
+                    Ý
+                  </a>
                   {menuId === addr.id ? (
                     <div
-                      className="absolute right-0 top-10 z-20 min-w-[150px] overflow-hidden rounded-lg border border-[#eee] bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+                      className="AddressCard__AddressItemActions-sc-1v9p7y9-2 ua-card__menu-pop"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button
-                        type="button"
-                        className="block w-full px-3 py-2.5 text-left text-[13px] hover:bg-[#f7f7f7]"
-                        onClick={() => openEdit(addr)}
-                      >
+                      <button type="button" onClick={() => openEdit(addr)}>
                         Edit
                       </button>
                       {!addr.isDefault ? (
-                        <button
-                          type="button"
-                          className="block w-full px-3 py-2.5 text-left text-[13px] hover:bg-[#f7f7f7]"
-                          onClick={() => handleDefault(addr.id)}
-                        >
+                        <button type="button" onClick={() => handleDefault(addr.id)}>
                           Set as default
                         </button>
                       ) : null}
                       <button
                         type="button"
-                        className="block w-full px-3 py-2.5 text-left text-[13px] text-red-600 hover:bg-red-50"
+                        className="is-danger"
                         onClick={() => handleDelete(addr.id)}
                       >
                         Delete
@@ -207,18 +294,40 @@ export default function AddressesPage() {
                     </div>
                   ) : null}
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       <AddressModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={closeModal}
         editing={editing}
         onSaved={handleSaved}
       />
     </div>
+  );
+}
+
+export default function AddressesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="UserAddressesV2__UserAddressesWrapper-sc-bnlqpe-3 icnSoU">
+          <div className="UserAddressesV2__MyAddresses-sc-bnlqpe-1 ZgErW my-addresses">
+            <div className="UserAddressesV2__MyAddressTitle-sc-bnlqpe-5 bVQOWk">My addresses</div>
+            <div className="UserAddressesV2__AddressCardsContainer-sc-bnlqpe-0 hQbPyu">
+              <div
+                className="AddressCard__CardContainer-sc-1v9p7y9-3 jYQcBy blinkit-shimmer"
+                style={{ height: 52 }}
+              />
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <AddressesPageContent />
+    </Suspense>
   );
 }

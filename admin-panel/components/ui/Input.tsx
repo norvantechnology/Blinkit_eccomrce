@@ -48,12 +48,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? errorId : hint ? hintId : undefined}
             className={cn(
-              'block w-full rounded-lg border bg-[var(--surface-muted)] text-sm text-slate-900',
-              'transition-colors duration-150 placeholder:text-slate-400',
-              'focus:bg-white focus:outline-none focus:ring-4',
+              'block w-full rounded-xl border-0 bg-[var(--surface-muted)] text-sm text-[var(--foreground)]',
+              'transition-colors duration-150 placeholder:text-[var(--muted)]',
+              'focus:bg-[var(--surface)] focus:outline-none focus:ring-4',
               error
-                ? 'border-red-500 bg-red-50/40 focus:border-red-500 focus:ring-red-500/15'
-                : 'border-[var(--border)] hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus:ring-[var(--ring)]',
+                ? 'bg-red-50/50 focus:ring-red-500/15'
+                : 'hover:bg-[#e8eee8] focus:ring-[var(--ring)]',
               leftIcon ? 'pl-10 pr-4' : 'px-4',
               isPassword ? 'pr-11' : '',
               'py-3',

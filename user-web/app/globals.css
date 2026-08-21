@@ -1,19 +1,22 @@
 @import "tailwindcss";
+@import "../styles/okra-fonts.css";
+@import "../styles/blinkit-tokens.css";
+@import "../styles/blinkit-pages.css";
 
 :root {
   --background: #ffffff;
-  --foreground: #1f1f1f;
+  --foreground: var(--bk-text, #1f1f1f);
   --surface: #ffffff;
-  --brand-yellow: #f8cb46;
+  --brand-yellow: var(--bk-yellow, #f8cb46);
   --brand-yellow-hover: #f0c033;
-  --cart-green: #0c831f;
+  --cart-green: var(--bk-green, #0c831f);
   --cart-disabled: #e0e0e0;
-  --text-muted: #363636;
-  --placeholder: #999999;
-  --search-bg: #f8f8f8;
-  --search-border: #e8e8e8;
-  --divider: #eeeeee;
-  --header-hover: #fcfcfc;
+  --text-muted: var(--bk-text-muted, #363636);
+  --placeholder: var(--bk-placeholder, #999999);
+  --search-bg: var(--bk-search-bg, #f8f8f8);
+  --search-border: var(--bk-search-border, #e8e8e8);
+  --divider: var(--bk-divider, #eeeeee);
+  --header-hover: var(--bk-header-hover, #fcfcfc);
   --page-bg: #ffffff;
   --ring: rgba(12, 131, 31, 0.28);
 }
@@ -21,7 +24,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-okra);
+  /* Blinkit Okra — same as blinkit.com body */
+  --font-sans: Okra, Helvetica, sans-serif;
 }
 
 * {
@@ -32,20 +36,30 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Blinkit: body, input { color:#666; font-size:12px; font-family:'Okra', Helvetica; } */
 body {
   background: var(--page-bg);
-  color: var(--foreground);
-  font-family: var(--font-okra), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #666666;
+  font-size: 12px;
+  font-family: Okra, Helvetica, sans-serif;
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Blinkit Okra-Bold feel for UI titles */
+button,
+input,
+textarea,
+select {
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+/* Blinkit Okra feel for UI titles */
 h1, h2, h3, .font-extrabold {
   letter-spacing: -0.02em;
+  font-family: Okra, Helvetica, sans-serif;
 }
 
 .font-bold, .font-semibold {
@@ -90,9 +104,24 @@ h1, h2, h3, .font-extrabold {
   animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Blinkit parity: no green focus ring around inputs / modals / menus */
 :focus-visible {
-  outline: 2px solid var(--cart-green);
-  outline-offset: 2px;
+  outline: none;
+}
+
+button:focus,
+button:focus-visible,
+a:focus,
+a:focus-visible,
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+[role='button']:focus,
+[role='button']:focus-visible {
+  outline: none;
 }
 
 .no-scrollbar::-webkit-scrollbar {

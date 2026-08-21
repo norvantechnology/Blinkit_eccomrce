@@ -10,16 +10,16 @@ type Props = {
   error?: boolean;
 };
 
-/** One real input (SMS autofill + paste) drawn as 6 boxes. */
+/**
+ * Blinkit OTP — one autofill input + 6 visual cells.
+ * Cells: .otp__input (42px, pad 16×8, radius 8, gap 10). No group border.
+ */
 export function OtpInput({ value, onChange, disabled, error }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const digits = value.replace(/\D/g, '').slice(0, 6);
 
   return (
-    <div
-      className="relative mx-auto w-full max-w-[300px]"
-      onClick={() => inputRef.current?.focus()}
-    >
+    <div className="otp" onClick={() => inputRef.current?.focus()}>
       <input
         ref={inputRef}
         type="text"
@@ -31,9 +31,9 @@ export function OtpInput({ value, onChange, disabled, error }: Props) {
         disabled={disabled}
         onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
         aria-label="6-digit OTP"
-        className="absolute inset-0 z-10 h-full w-full cursor-text bg-transparent text-[16px] text-transparent caret-transparent outline-none"
+        className="otp__native"
       />
-      <div className="pointer-events-none flex gap-2">
+      <div className="otp-input-container" aria-hidden>
         {Array.from({ length: 6 }, (_, i) => {
           const filled = Boolean(digits[i]);
           const active = digits.length === i;
@@ -41,12 +41,9 @@ export function OtpInput({ value, onChange, disabled, error }: Props) {
             <div
               key={i}
               className={cn(
-                'flex h-12 min-w-0 flex-1 items-center justify-center rounded-xl border-2 bg-white text-[20px] font-bold text-[#1f1f1f]',
-                error
-                  ? 'border-red-400'
-                  : filled || active
-                    ? 'border-[#0C831F]'
-                    : 'border-[#e4e4e4]',
+                'otp__input',
+                error && 'otp__input--error',
+                !error && (filled || active) && 'otp__input--active',
               )}
             >
               {digits[i] ?? ''}

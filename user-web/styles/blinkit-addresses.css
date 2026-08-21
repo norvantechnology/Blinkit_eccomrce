@@ -1,0 +1,286 @@
+/* Auto-extracted from blinkit.com wallet chunk (7882) —
+ * UserAddressesV2 + AddressCard styled-components. Same-to-same. */
+
+.UserAddressesV2__UserAddressesWrapper-sc-bnlqpe-3,
+.icnSoU,
+.UserAddressesV2__UserAddressesWrapper {
+  min-height: 567px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1020px) {
+  .UserAddressesV2__UserAddressesWrapper-sc-bnlqpe-3,
+  .icnSoU,
+  .UserAddressesV2__UserAddressesWrapper {
+    min-height: 100svh;
+  }
+}
+
+.UserAddressesV2__MyAddresses-sc-bnlqpe-1,
+.ZgErW,
+.UserAddressesV2__MyAddresses,
+.my-addresses {
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1019px) {
+  .UserAddressesV2__MyAddresses-sc-bnlqpe-1,
+  .ZgErW,
+  .UserAddressesV2__MyAddresses,
+  .my-addresses {
+    padding: 16px 12px 24px;
+  }
+}
+
+.UserAddressesV2__MyAddressTitle-sc-bnlqpe-5,
+.bVQOWk,
+.UserAddressesV2__MyAddressTitle {
+  font-family: Okra, Okra-SemiBold, Helvetica, sans-serif;
+  font-weight: 600;
+  font-size: 21px;
+  line-height: 28px;
+  color: #1c1c1c;
+  margin: 0 0 4px;
+  padding: 0;
+}
+
+.UserAddressesV2__MyAddressLableContainer-sc-bnlqpe-4,
+.fA-DOkf,
+.UserAddressesV2__MyAddressLableContainer {
+  /* empty in Blinkit */
+}
+
+.UserAddressesV2__AddAddressLinkContainer-sc-bnlqpe-6,
+.gcOdsi,
+.UserAddressesV2__AddAddressLinkContainer {
+  margin-bottom: 12px;
+}
+
+.UserAddressesV2__AddAddressLink-sc-bnlqpe-9,
+.eaZfsM,
+.UserAddressesV2__AddAddressLink {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 12px;
+  background: #fff;
+  color: #267e3e;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: Okra, Helvetica, sans-serif;
+  border: 0;
+  padding: 0;
+  width: auto;
+  text-align: left;
+}
+
+.UserAddressesV2__AddIconContainer-sc-bnlqpe-8,
+.fMgxzu,
+.UserAddressesV2__AddIconContainer {
+  font-size: 20px;
+  color: #318616;
+  font-weight: 500;
+  margin-right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.UserAddressesV2__AddIconContainer .icon-plus,
+.fMgxzu .icon-plus {
+  font-size: 12px;
+  color: #318616;
+  font-family: CustomFont, wasabicons, sans-serif !important;
+  line-height: 1;
+}
+
+.UserAddressesV2__AddIconContainer .icon-plus::before,
+.fMgxzu .icon-plus::before {
+  content: "\e922";
+}
+
+.UserAddressesV2__AddressCardsContainer-sc-bnlqpe-0,
+.hQbPyu,
+.UserAddressesV2__AddressCardsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.AddressCard__CardContainer-sc-1v9p7y9-3,
+.jYQcBy,
+.AddressCard__CardContainer {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 6px;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: flex-start;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.Imagestyles__ImageContainer-sc-1u3ccmn-0.kGyXMV,
+.kGyXMV {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.Imagestyles__ImageContainer-sc-1u3ccmn-0.kGyXMV img,
+.kGyXMV img {
+  width: 40px;
+  height: 40px;
+  display: block;
+  object-fit: fill;
+  border-radius: 0;
+  cursor: default;
+}
+
+.AddressCard__AddressDetails-sc-1v9p7y9-4,
+.kaAnRm,
+.AddressCard__AddressDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.AddressCard__AddressLabel-sc-1v9p7y9-5,
+.fgjWho,
+.AddressCard__AddressLabel {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.AddressCard__AddressLabelText-sc-1v9p7y9-6,
+.mxNpW,
+.AddressCard__AddressLabelText {
+  color: #1c1c1c;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.AddressCard__DisplayAddress-sc-1v9p7y9-8,
+.caIBbB,
+.AddressCard__DisplayAddress {
+  color: #828282;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.AddressCard__TooltipContainer-sc-1v9p7y9-0,
+.hzYeJY,
+.AddressCard__TooltipContainer {
+  position: relative;
+  align-self: center;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.AddressCard__TooltipIcon-sc-1v9p7y9-1,
+.kiZofv,
+.AddressCard__TooltipIcon {
+  font-size: 18px;
+  color: #318616;
+  font-family: CustomFont, wasabicons, sans-serif;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Blinkit glyph "Ý" → wasabi 3-dot-vertical */
+.AddressCard__TooltipIcon-sc-1v9p7y9-1,
+.kiZofv {
+  font-size: 0;
+}
+
+.AddressCard__TooltipIcon-sc-1v9p7y9-1::before,
+.kiZofv::before {
+  content: "\e89f";
+  font-size: 18px;
+  font-family: CustomFont, wasabicons, sans-serif;
+  color: #318616;
+  line-height: 1;
+}
+
+.AddressCard__AddressItemActions-sc-1v9p7y9-2,
+.ua-card__menu-pop {
+  position: absolute;
+  background: #fff;
+  right: 100%;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  min-width: 140px;
+}
+
+.AddressCard__AddressItemActions-sc-1v9p7y9-2 a,
+.AddressCard__AddressItemActions-sc-1v9p7y9-2 button,
+.ua-card__menu-pop a,
+.ua-card__menu-pop button {
+  margin-right: 0;
+  padding: 7px 20px;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #d4dae9;
+  box-sizing: border-box;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  font-family: Okra, Helvetica, sans-serif;
+  color: #1c1c1c;
+  cursor: pointer;
+}
+
+.AddressCard__AddressItemActions-sc-1v9p7y9-2 a:last-child,
+.AddressCard__AddressItemActions-sc-1v9p7y9-2 button:last-child,
+.ua-card__menu-pop a:last-child,
+.ua-card__menu-pop button:last-child {
+  border-bottom: 0;
+}
+
+.ua-card__menu-pop button.is-danger {
+  color: #d23333;
+}
+
+.ua-empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.ua-error {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ffdfdf;
+  background: #fff5f5;
+  color: #d23333;
+  font-size: 13px;
+}

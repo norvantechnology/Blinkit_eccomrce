@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowLeft, Search, UserRound } from 'lucide-react';
 import { BrandLogo } from '@/components/layout/BrandLogo';
+import { BlinkitIcon } from '@/components/layout/BlinkitIcon';
 import { LocationBar } from '@/components/layout/LocationBar';
 import { SearchBar } from '@/components/layout/SearchBar';
 import { ProfileButton } from '@/components/layout/ProfileButton';
@@ -11,63 +11,86 @@ import { CartButton } from '@/components/layout/CartButton';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 import { cn } from '@/lib/utils';
+import '@/styles/blinkit-chrome.css';
 
 /**
- * Blinkit desktop: header row is FULL viewport width (logo near left edge, cart near right).
- * Body banners stay in a narrower centered max-w container — header is intentionally wider.
- * Mobile: location + profile + search with normal page padding.
+ * Blinkit header — CSS media queries own show/hide (do NOT mix Tailwind hidden/flex
+ * with .bk-header__row { display:flex } or both layouts render).
  */
 export function Header() {
   const pathname = usePathname();
   const isAccount = pathname.startsWith('/account');
   const locationPickerOpen = useUiStore((s) => s.locationPickerOpen);
+  const accountDropdownOpen = useUiStore((s) => s.accountDropdownOpen);
+  const setAccountDropdownOpen = useUiStore((s) => s.setAccountDropdownOpen);
 
   return (
     <header
       className={cn(
-        'sticky top-0 w-full border-b border-[#eee] bg-white',
-        locationPickerOpen ? 'z-[120]' : 'z-40',
+        'bk-header',
+        locationPickerOpen && 'bk-header--location-open',
+        !locationPickerOpen && accountDropdownOpen && 'bk-header--dropdown-open',
+        !locationPickerOpen && !accountDropdownOpen && 'z-[1000]',
       )}
     >
-      <div className="lg:hidden">
-        {isAccount ? <MobileAccountHeader /> : <MobileHomeHeader />}
-      </div>
+      {accountDropdownOpen ? (
+        <button
+          type="button"
+          className="header__overlay"
+          aria-label="Close account menu"
+          onClick={() => setAccountDropdownOpen(false)}
+        />
+      ) : null}
 
-      {/* Desktop — edge-to-edge like blinkit.com, comfortable side inset */}
-      <div className="hidden h-[86px] w-full items-center px-8 lg:flex xl:px-10">
-        <BrandLogo />
-        <div className="mx-1 h-10 w-px shrink-0 bg-[#f0f0f0]" aria-hidden />
-        <LocationBar className="w-[280px] shrink-0 px-2 xl:w-[320px]" />
-        <SearchBar className="mx-3 min-w-0 flex-1 xl:mx-4" />
-        <ProfileButton />
-        <CartButton />
+      {/* Mobile account chrome */}
+      {isAccount && (
+        <div className="bk-header__mobile-account">
+          <MobileAccountChrome />
+        </div>
+      )}
+
+      {/* Mobile home — only ≤1020px */}
+      {!isAccount && (
+        <div className="bk-header__row bk-header__row--mobile">
+          <div className="bk-header__mobile-top">
+            <LocationBar />
+            <div className="bk-header__right">
+              <MobileProfileIcon />
+            </div>
+          </div>
+          <SearchBar />
+        </div>
+      )}
+
+      {/* Desktop — only ≥1021px */}
+      <div className="bk-header__row bk-header__row--desktop">
+        <div className="bk-header__left">
+          <BrandLogo />
+          <div className="bk-divider-v" aria-hidden />
+          <LocationBar />
+        </div>
+        <SearchBar />
+        <div className="bk-header__right">
+          <ProfileButton />
+          <div className="bk-divider-v bk-divider-v--right" aria-hidden />
+          <CartButton />
+        </div>
       </div>
     </header>
   );
 }
 
-function MobileHomeHeader() {
+function MobileProfileIcon() {
   const user = useAuthStore((s) => s.user);
-  const accountHref = user ? '/account' : '/login?redirect=/account';
-
+  const href = user ? '/account' : '/login?redirect=/account';
   return (
-    <div className="px-4 pb-3 pt-3">
-      <div className="flex items-start gap-3">
-        <LocationBar compact className="min-w-0 flex-1 py-0" />
-        <Link
-          href={accountHref}
-          className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#ddd] text-[#1f1f1f]"
-          aria-label="Account"
-        >
-          <UserRound className="h-5 w-5" strokeWidth={1.75} />
-        </Link>
-      </div>
-      <SearchBar className="mt-3 w-full" />
-    </div>
+    <Link href={href} className="bk-profile bk-profile--icon" aria-label="Account">
+      <BlinkitIcon name="profile" size={22} />
+    </Link>
   );
 }
 
-function MobileAccountHeader() {
+function MobileAccountChrome() {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -84,27 +107,24 @@ function MobileAccountHeader() {
   };
 
   return (
-    <div className="px-3 pb-3 pt-2">
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={back}
-          className="flex h-10 w-10 shrink-0 items-center justify-center text-[#1f1f1f]"
-          aria-label="Back"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <LocationBar compact className="min-w-0 flex-1 py-0" />
-        <Link
-          href="/"
-          className="flex h-10 w-10 shrink-0 items-center justify-center text-[#1f1f1f]"
-          aria-label="Search"
-          replace
-        >
-          <Search className="h-5 w-5" />
-        </Link>
-      </div>
-      <SearchBar className="mt-2 w-full" />
-    </div>
+    <>
+      <button
+        type="button"
+        onClick={back}
+        className="flex h-[68px] w-11 shrink-0 items-center justify-center"
+        aria-label="Back"
+      >
+        <BlinkitIcon name="back" size={20} />
+      </button>
+      <LocationBar className="bk-location--flush flex-1" />
+      <Link
+        href="/"
+        replace
+        className="flex h-[68px] w-11 shrink-0 items-center justify-center"
+        aria-label="Home search"
+      >
+        <BlinkitIcon name="search" size={20} />
+      </Link>
+    </>
   );
 }

@@ -1,0 +1,75 @@
+/* Blinkit Okra — extracted from vendor.css @font-face (login title uses weight 800) */
+/* Files: tools/blinkit-login-capture/out/fonts/okra/ → user-web/public/blinkit-parity/fonts/okra/ */
+
+@font-face {
+  font-family: "Okra";
+  src: url("/blinkit-parity/fonts/okra/Okra-Thin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Okra";
+  src: url("/blinkit-parity/fonts/okra/Okra-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Okra";
+  src: url("/blinkit-parity/fonts/okra/Okra-Medium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Okra";
+  src: url("/blinkit-parity/fonts/okra/Okra-SemiBold-600.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Okra";
+  src: url("/blinkit-parity/fonts/okra/Okra-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Okra";
+  src: url("/blinkit-parity/fonts/okra/Okra-ExtraBold-800.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+/* Named families also present on Blinkit */
+@font-face {
+  font-family: "Okra-Regular";
+  src: url("/blinkit-parity/fonts/okra/Okra-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Okra-Medium";
+  src: url("/blinkit-parity/fonts/okra/Okra-Medium.woff2") format("woff2");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Okra-Bold";
+  src: url("/blinkit-parity/fonts/okra/Okra-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Okra-SemiBold";
+  src: url("/blinkit-parity/fonts/okra/Okra-SemiBold-600.woff2") format("woff2");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}

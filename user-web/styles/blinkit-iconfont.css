@@ -1,0 +1,98 @@
+/* Blinkit IconFont + wasabicons (CustomFont) — account nav + address actions */
+
+@font-face {
+  font-family: "IconFont";
+  src: url("/blinkit-parity/fonts/iconfont.woff2?v=account-hub-2") format("woff2");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "CustomFont";
+  src: url("/blinkit-parity/fonts/wasabicons.woff2") format("woff2");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "wasabicons";
+  src: url("/blinkit-parity/fonts/wasabicons.woff2") format("woff2");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+
+.tw-inline-flex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tw-text-600 {
+  color: currentColor;
+}
+
+/* —— Nav icons: shared 20×20 column —— */
+.profile-nav__ico.icon-location-on-map,
+.profile-nav__ico.icon-orders,
+.profile-nav__ico.icon-logout {
+  font-family: IconFont, sans-serif !important;
+}
+
+.profile-nav__ico.icon-location-on-map::before {
+  content: "B";
+}
+
+.profile-nav__ico.icon-orders::before {
+  content: "q";
+}
+
+.profile-nav__ico.icon-logout::before {
+  content: "K";
+}
+
+.profile-nav__ico.icon-food-menu-line,
+.profile-nav__ico.icon-new_gift_card,
+.profile-nav__ico.icon-lock-line {
+  font-family: CustomFont, wasabicons, sans-serif !important;
+  font-size: 18px;
+}
+
+.profile-nav__ico.icon-food-menu-line::before {
+  content: "\e8cc";
+}
+
+.profile-nav__ico.icon-new_gift_card::before {
+  content: "\ea66";
+}
+
+.profile-nav__ico.icon-lock-line::before {
+  content: "\e826";
+}
+
+/* Add address + */
+.icon-plus {
+  font-family: CustomFont, wasabicons, sans-serif !important;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  speak: none;
+  -webkit-font-smoothing: antialiased;
+  color: #0c831f;
+}
+
+.icon-plus::before {
+  content: "\e922";
+}
+
+.UserAddressesV2__AddIconContainer .icon-plus,
+.fMgxzu .icon-plus {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

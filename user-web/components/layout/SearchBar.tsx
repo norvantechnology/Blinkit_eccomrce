@@ -14,6 +14,7 @@ const PLACEHOLDERS = [
   'Search "atta"',
 ];
 
+/** SearchBar — Blinkit ZIGuc / fgHDQx (46px, radius 12, gap 8). */
 export function SearchBar({ className }: { className?: string }) {
   const [index, setIndex] = useState(0);
 
@@ -25,20 +26,14 @@ export function SearchBar({ className }: { className?: string }) {
   }, []);
 
   return (
-    <div className={cn('flex min-w-0 flex-1 items-center', className)}>
-      <div
-        className={cn(
-          'flex h-[46px] w-full min-w-0 items-center gap-2.5 rounded-xl border px-3 lg:rounded-xl',
-          'border-[rgba(0,0,0,0.08)] bg-[#f8f8f8] text-[#828282]',
-        )}
-        role="search"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
-          <circle cx="11" cy="11" r="7" stroke="#1f1f1f" strokeWidth="2" />
-          <path d="M20 20l-3.5-3.5" stroke="#1f1f1f" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-        <span className="relative h-[18px] min-w-0 flex-1 overflow-hidden text-left text-sm">
-          <span key={index} className="absolute inset-x-0 top-0 truncate animate-fade-in font-medium text-[#999]">
+    <div className={cn('bk-search', className)}>
+      <div className="bk-search__btn" role="search">
+        <span className="bk-search__icon">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/blinkit-parity/icons/search.svg" alt="" width={20} height={20} aria-hidden />
+        </span>
+        <span className="bk-search__placeholder">
+          <span key={index} className="absolute inset-x-0 top-0 truncate animate-fade-in">
             {PLACEHOLDERS[index]}
           </span>
         </span>

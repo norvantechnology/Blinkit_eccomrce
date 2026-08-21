@@ -1,0 +1,6 @@
+# Large raw dumps — regenerate with: python3 tools/blinkit-login-capture/capture.py
+out/css/
+out/js/
+out/html/
+
+# Keep committed: out/fonts/, out/icons/, out/extracted/, out/manifest.json

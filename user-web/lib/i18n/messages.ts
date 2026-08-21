@@ -77,7 +77,7 @@ const en = {
 } as const;
 
 const hi: Record<keyof typeof en, string> = {
-  'login.title': 'भारत का लास्ट मिनट ऐप',
+  'login.title': "India's last minute app",
   'login.subtitle': 'लॉग इन या साइन अप करें',
   'login.continue': 'जारी रखें',
   'login.email': 'ईमेल से जारी रखें',

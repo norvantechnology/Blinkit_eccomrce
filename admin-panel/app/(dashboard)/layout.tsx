@@ -11,9 +11,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar />
-        <main className="custom-scrollbar flex-1 overflow-y-auto overflow-x-hidden bg-[var(--background)] p-3 sm:p-5 lg:p-6">
-          <div className="mx-auto min-h-full max-w-7xl rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 shadow-inner sm:p-5 lg:p-6">
-            {children}
+        <main className="custom-scrollbar-light flex-1 overflow-y-auto overflow-x-hidden bg-[var(--background)]">
+          {/* Full width — no narrow max-width gutters */}
+          <div className="w-full px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
+            <div className="animate-fade-in">{children}</div>
           </div>
         </main>
       </div>

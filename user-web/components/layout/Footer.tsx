@@ -1,56 +1,71 @@
+import Link from 'next/link';
+import '@/styles/blinkit-footer.css';
+
+/** Blinkit Useful Links — 3 nested columns (FooterLinks__List) */
 const USEFUL_LINKS = [
   ['Blog', 'Privacy', 'Terms', 'FAQs', 'Security', 'Contact'],
   ['Partner', 'Franchise', 'Seller', 'Warehouse', 'Deliver', 'Resources'],
   ['Recipes', 'Bistro', 'District', 'Tapi Support', 'Feeding India'],
 ];
 
+/** Blinkit Categories — 3 nested columns (hydrated footer) */
 const FOOTER_CATEGORIES = [
   [
-    'Bath & Body',
-    'Beauty & Cosmetics',
-    'Health & Pharma',
-    'Atta, Rice & Dal',
-    'Bakery & Biscuits',
-    'Kitchenware & Appliances',
-    'Drinks & Juices',
-    'Sauces & Spreads',
-    'Home & Lifestyle',
-    'Stationery & Games',
-  ],
-  [
-    'Hair',
-    'Feminine Hygiene',
-    'Oil, Ghee & Masala',
-    'Dry Fruits & Cereals',
-    'Chips & Namkeen',
-    'Tea, Coffee & Milk Drinks',
-    'Paan Corner',
-    'Cleaners & Repellents',
-    'Personal Care',
-    'Pet Care',
-  ],
-  [
-    'Skin & Face',
-    'Baby Care',
     'Vegetables & Fruits',
     'Dairy, Bread & Eggs',
+    'Atta, Rice & Dal',
+    'Bakery & Biscuits',
+    'Drinks & Juices',
     'Chicken, Meat & Fish',
+    'Oil, Ghee & Masala',
+    'Dry Fruits & Cereals',
+    'Kitchenware & Appliances',
+    'Tea, Coffee & Milk Drinks',
+  ],
+  [
+    'Snacks & Munchies',
+    'Bath & Body',
     'Sweets & Chocolates',
+    'Beauty & Cosmetics',
+    'Personal Care',
+    'Baby Care',
+    'Home & Lifestyle',
+    'Cleaning Essentials',
+    'Pet Care',
+    'Paan Corner',
+  ],
+  [
+    'Pharma & Wellness',
     'Instant Food',
     'Ice Creams & More',
     'Electronics',
+    'Stationery & Games',
+    'Print Store',
     'E-Gift Cards',
+    'Rakhi Gifts',
   ],
 ];
 
-function LinkColumn({ items }: { items: string[] }) {
+const SOCIAL = [
+  { name: 'Facebook', src: '/blinkit-parity/icons/footer/facebook.svg' },
+  { name: 'X', src: '/blinkit-parity/icons/footer/x.svg' },
+  { name: 'Instagram', src: '/blinkit-parity/icons/footer/instagram.svg' },
+  { name: 'LinkedIn', src: '/blinkit-parity/icons/footer/linkedin.svg' },
+  { name: 'Threads', src: '/blinkit-parity/icons/footer/threads.svg' },
+] as const;
+
+function NestedColumns({ columns }: { columns: string[][] }) {
   return (
-    <ul className="m-0 list-none space-y-2.5 p-0">
-      {items.map((item) => (
-        <li key={item}>
-          <span className="cursor-default text-[13px] leading-snug text-[#666] transition hover:text-[#1f1f1f]">
-            {item}
-          </span>
+    <ul className="bk-footer__cols">
+      {columns.map((col) => (
+        <li key={col[0]} className="bk-footer__item">
+          <ul className="bk-footer__col">
+            {col.map((item) => (
+              <li key={item} className="bk-footer__item">
+                <span className="bk-footer__link">{item}</span>
+              </li>
+            ))}
+          </ul>
         </li>
       ))}
     </ul>
@@ -59,71 +74,69 @@ function LinkColumn({ items }: { items: string[] }) {
 
 export function Footer() {
   return (
-    <footer className="mt-12 bg-white">
-      <div className="mx-auto max-w-[1360px] px-4 pt-10 pb-6 lg:px-4">
-        {/* Useful Links | Categories — Blinkit column alignment */}
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
-          <section>
-            <h3 className="text-[18px] font-extrabold tracking-tight text-[#1f1f1f]">Useful Links</h3>
-            <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-0 sm:grid-cols-3 sm:gap-x-10">
-              {USEFUL_LINKS.map((col) => (
-                <LinkColumn key={col[0]} items={col} />
-              ))}
-            </div>
-          </section>
+    <div className="bk-footer">
+      <footer className="bk-footer__inner">
+        <div className="bk-footer__links-grid">
+          <div>
+            <div className="bk-footer__heading">Useful Links</div>
+            <NestedColumns columns={USEFUL_LINKS} />
+          </div>
 
-          <section>
-            <div className="flex items-baseline gap-2.5">
-              <h3 className="text-[18px] font-extrabold tracking-tight text-[#1f1f1f]">Categories</h3>
-              <button type="button" className="text-[13px] font-semibold text-[var(--cart-green)]">
+          <div>
+            <div className="bk-footer__heading-row">
+              <div className="bk-footer__heading">Categories</div>
+              <Link href="/" className="bk-footer__see-all">
                 see all
-              </button>
+              </Link>
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-0 sm:grid-cols-3 sm:gap-x-8">
-              {FOOTER_CATEGORIES.map((col) => (
-                <LinkColumn key={col[0]} items={col} />
+            <NestedColumns columns={FOOTER_CATEGORIES} />
+          </div>
+        </div>
+      </footer>
+
+      <div className="bk-footer__band">
+        <div className="bk-footer__band-grid">
+          <div className="bk-footer__band-item bk-footer__band-item--start">
+            © Tapi Grocery, 2016-2026
+          </div>
+
+          <div className="bk-footer__band-item bk-footer__band-item--center">
+            <div className="bk-footer__download-title">Download App</div>
+            <div className="bk-footer__flex" style={{ gap: 16 }}>
+              <img
+                className="bk-footer__badge"
+                src="/blinkit-parity/icons/footer/app-store.svg"
+                alt="App Store"
+                width={92}
+                height={30}
+              />
+              <img
+                className="bk-footer__badge"
+                src="/blinkit-parity/icons/footer/google-play.svg"
+                alt="Google Play"
+                width={92}
+                height={30}
+              />
+            </div>
+          </div>
+
+          <div className="bk-footer__band-item bk-footer__band-item--end">
+            <div className="bk-footer__flex bk-footer__flex--social">
+              {SOCIAL.map((s) => (
+                <span key={s.name} className="bk-footer__social" aria-label={s.name}>
+                  <img src={s.src} alt="" width={40} height={40} />
+                </span>
               ))}
             </div>
-          </section>
-        </div>
-      </div>
-
-      {/* Bottom utility bar */}
-      <div className="border-t border-[#eee] bg-[#f8f8f8]">
-        <div className="mx-auto flex max-w-[1360px] flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between lg:px-4">
-          <p className="shrink-0 text-[12px] text-[#666]">© Tapi Grocery, 2016-2026</p>
-
-          <div className="flex flex-wrap items-center gap-2.5 sm:justify-center">
-            <span className="text-[13px] font-bold text-[#1f1f1f]">Download App</span>
-            <span className="inline-flex h-8 items-center rounded-md bg-black px-3 text-[11px] font-medium text-white">
-              App Store
-            </span>
-            <span className="inline-flex h-8 items-center rounded-md bg-black px-3 text-[11px] font-medium text-white">
-              Google Play
-            </span>
-          </div>
-
-          <div className="flex shrink-0 gap-2 sm:justify-end">
-            {['f', 'x', 'ig', 'in', 'th'].map((s) => (
-              <span
-                key={s}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1f1f1f] text-[10px] font-bold uppercase text-white"
-                aria-hidden
-              >
-                {s}
-              </span>
-            ))}
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1360px] px-4 py-5 lg:px-4">
-        <p className="max-w-5xl text-[11px] leading-relaxed text-[#999]">
-          “Tapi Grocery” is owned & managed for this single-store quick-commerce project and is not
-          related, linked or interconnected in whatsoever manner or nature to any third-party grocery
-          brand or marketplace.
-        </p>
-      </div>
-    </footer>
+      <p className="bk-footer__disclaimer">
+        “Tapi Grocery” is owned & managed for this single-store quick-commerce project and is not
+        related, linked or interconnected in whatsoever manner or nature to any third-party grocery
+        brand or marketplace.
+      </p>
+    </div>
   );
 }

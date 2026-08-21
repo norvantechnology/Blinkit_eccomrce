@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-/** Tapi Grocery wordmark — yellow “Tapi” + green “Grocery”. */
+/** BlinkitLogo__LogoContainer — 178×86; wordmark like blinkit (yellow + green). */
 export function BrandLogo({
   className,
   variant = 'header',
@@ -11,32 +11,19 @@ export function BrandLogo({
 }) {
   if (variant === 'modal') {
     return (
-      <div className={cn('flex flex-col items-center gap-1', className)}>
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--brand-yellow)] text-sm font-extrabold text-[#1f1f1f]">
-          T
-        </span>
-        <span className="text-lg font-extrabold tracking-tight">
-          <span className="text-[var(--brand-yellow)]">Tapi</span>{' '}
-          <span className="text-[var(--cart-green)]">Grocery</span>
+      <div className={cn('flex flex-col items-center gap-2', className)}>
+        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#F8CB46] text-[15px] font-extrabold lowercase tracking-[-0.03em] text-[#0C831F]">
+          tapi
         </span>
       </div>
     );
   }
 
   return (
-    <Link
-      href="/"
-      replace
-      className={cn(
-        'flex h-[86px] shrink-0 items-center pr-2',
-        'hover:bg-[var(--header-hover)]',
-        className,
-      )}
-      aria-label="Tapi Grocery home"
-    >
-      <span className="whitespace-nowrap text-[20px] font-extrabold leading-none tracking-tight lg:text-[22px]">
-        <span className="text-[var(--brand-yellow)]">Tapi</span>{' '}
-        <span className="text-[var(--cart-green)]">Grocery</span>
+    <Link href="/" replace className={cn('bk-logo', className)} aria-label="Tapi Grocery home">
+      <span className="bk-logo__text">
+        <span className="bk-logo__tapi">tapi</span>
+        <span className="bk-logo__grocery">grocery</span>
       </span>
     </Link>
   );

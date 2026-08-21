@@ -60,31 +60,22 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-[22px] font-extrabold leading-snug tracking-tight text-[#1f1f1f] lg:text-[26px]">
-        {policy?.title || t('settings.privacyTitle')}
-      </h1>
+      <h1 className="bk-title-page">{policy?.title || t('settings.privacyTitle')}</h1>
 
-      <div className="mt-4 lg:mt-5">
+      <div className="mt-4">
         {!expanded ? (
-          <p className="text-[14px] leading-[1.65] text-[#6b6b6b]">{policy?.excerpt}</p>
+          <p className="text-[14px] leading-[1.65] text-[#666]">{policy?.excerpt}</p>
         ) : (
           <div>{policy ? renderSimpleMarkdown(policy.markdown) : null}</div>
         )}
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-3 inline-flex items-center gap-1 text-[14px] font-bold text-[#0C831F]"
-        >
+        <button type="button" onClick={() => setExpanded((v) => !v)} className="bk-link-green mt-3 inline-flex items-center gap-1">
           {expanded ? t('settings.readLess') : t('settings.readMore')}
           <ChevronDown className={cn('h-4 w-4 transition-transform', expanded && 'rotate-180')} />
         </button>
       </div>
 
-      <div className="mt-8 space-y-3 lg:mt-10">
-        <Link
-          href="/account/profile"
-          className="flex w-full items-center gap-3.5 rounded-xl border border-[#ececec] bg-white px-3.5 py-3.5 text-left active:bg-[#fafafa] lg:px-4 lg:py-4"
-        >
+      <div className="mt-8">
+        <Link href="/account/profile" className="bk-settings-card">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f4f4f4]">
             <Pencil className="h-5 w-5 text-[#333]" strokeWidth={1.75} />
           </span>
@@ -99,11 +90,7 @@ export default function SettingsPage() {
           <ChevronRight className="h-5 w-5 shrink-0 text-[#c2c2c2]" />
         </Link>
 
-        <button
-          type="button"
-          onClick={() => setDeleteOpen(true)}
-          className="flex w-full items-center gap-3.5 rounded-xl border border-[#ececec] bg-white px-3.5 py-3.5 text-left active:bg-[#fafafa] lg:px-4 lg:py-4"
-        >
+        <button type="button" onClick={() => setDeleteOpen(true)} className="bk-settings-card">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f4f4f4]">
             <Trash2 className="h-5 w-5 text-[#333]" strokeWidth={1.75} />
           </span>

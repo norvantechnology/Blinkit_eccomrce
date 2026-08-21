@@ -4,16 +4,18 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   hover?: boolean;
-  padding?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'muted';
+  padding?: 'sm' | 'md' | 'lg' | 'none';
+  variant?: 'default' | 'muted' | 'plain' | 'ghost';
 }
 
 const paddingMap = {
+  none: '',
   sm: 'p-4',
-  md: 'p-5 sm:p-6',
-  lg: 'p-6 sm:p-8',
+  md: 'p-5',
+  lg: 'p-6',
 };
 
+/** Classic surface: white + 1px border. No nested chrome. */
 export function Card({
   children,
   className,
@@ -24,12 +26,13 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-xl border shadow-sm',
-        variant === 'default'
-          ? 'border-[var(--border)] bg-[var(--surface)] shadow-[0_1px_2px_var(--shadow-color),0_4px_12px_rgba(15,23,42,0.06)]'
-          : 'border-[var(--border)] bg-[var(--surface-muted)]',
-        hover &&
-          'transition-all duration-150 hover:border-[var(--border-strong)] hover:shadow-[0_2px_4px_var(--shadow-color),0_8px_16px_rgba(15,23,42,0.08)]',
+        'rounded-lg',
+        variant === 'default' &&
+          'border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]',
+        variant === 'muted' && 'border border-[var(--border)] bg-[var(--surface-muted)]',
+        variant === 'plain' && 'border border-[var(--border)] bg-[var(--surface)]',
+        variant === 'ghost' && 'bg-transparent',
+        hover && 'transition-colors duration-150 hover:border-[var(--border-strong)]',
         paddingMap[padding],
         className,
       )}

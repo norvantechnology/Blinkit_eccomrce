@@ -8,41 +8,13 @@ import { useAuthStore } from '@/store/authStore';
 import { formatPhoneForApi, cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n/useI18n';
 import { OtpInput } from '@/components/auth/OtpInput';
+import '@/styles/blinkit-login.css';
 
-type Step = 'phone' | 'email' | 'otp' | 'profile';
+type Step = 'phone' | 'otp' | 'profile';
 
 interface LoginModalProps {
   redirectTo?: string;
   onCloseHref?: string;
-}
-
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
-const APPLE_CLIENT_ID = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || '';
-
-/** Blinkit-style product mosaic tiles for mobile login hero */
-const LOGIN_PRODUCTS = [
-  'https://images.unsplash.com/photo-1571771894821-ce9b6d11abb9?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1472476443507-c7a5948772fc?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=200&h=200&fit=crop',
-];
-
-function LoginMark() {
-  return (
-    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--brand-yellow)] shadow-sm">
-      <span className="text-[15px] font-extrabold lowercase tracking-tight text-[#1f1f1f]">
-        tapi
-      </span>
-    </div>
-  );
 }
 
 export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: LoginModalProps) {
@@ -53,8 +25,6 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
   const [step, setStep] = useState<Step>('phone');
   const [phoneDigits, setPhoneDigits] = useState('');
   const [otpCode, setOtpCode] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -62,16 +32,13 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
   const [resendIn, setResendIn] = useState(0);
   const verifyingRef = useRef(false);
 
-  const formattedPhone = useMemo(
-    () => formatPhoneForApi(phoneDigits),
-    [phoneDigits],
-  );
+  const formattedPhone = useMemo(() => formatPhoneForApi(phoneDigits), [phoneDigits]);
   const phoneValid = /^[6-9]\d{9}$/.test(phoneDigits.replace(/\D/g, ''));
 
   useEffect(() => {
     if (resendIn <= 0) return;
-    const t = window.setTimeout(() => setResendIn((s) => s - 1), 1000);
-    return () => window.clearTimeout(t);
+    const id = window.setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => window.clearTimeout(id);
   }, [resendIn]);
 
   useEffect(() => {
@@ -133,91 +100,6 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
     await sendOtp();
   };
 
-  const handleEmailLogin = async (e: FormEvent) => {
-    e.preventDefault();
-    if (loading) return;
-    setError('');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Enter a valid email address');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-    setLoading(true);
-    try {
-      const result = await authService.loginEmail(email.trim(), password);
-      finishAuth(result.user, result.tokens);
-    } catch (err) {
-      setError(getApiErrorMessage(err, 'Invalid email or password'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setError('');
-    if (!GOOGLE_CLIENT_ID) {
-      setError('Google sign-in is not configured yet (needs NEXT_PUBLIC_GOOGLE_CLIENT_ID).');
-      return;
-    }
-    setLoading(true);
-    try {
-      const { requestGoogleIdToken } = await import('@/lib/google-auth');
-      const idToken = await requestGoogleIdToken(GOOGLE_CLIENT_ID);
-      const result = await authService.loginGoogle(idToken);
-      finishAuth(result.user, result.tokens);
-    } catch (err) {
-      const msg = getApiErrorMessage(err, 'Google sign-in failed');
-      if (msg.toLowerCase().includes('cancelled')) {
-        setError('');
-      } else {
-        setError(msg);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAppleLogin = async () => {
-    setError('');
-    if (!APPLE_CLIENT_ID) {
-      setError('Apple Sign-In is not configured yet (needs NEXT_PUBLIC_APPLE_CLIENT_ID).');
-      return;
-    }
-    const redirectURI =
-      process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI ||
-      (typeof window !== 'undefined' ? `${window.location.origin}/login` : '');
-    if (!redirectURI) {
-      setError('Apple Sign-In redirect URI is missing (NEXT_PUBLIC_APPLE_REDIRECT_URI).');
-      return;
-    }
-    setLoading(true);
-    try {
-      const { requestAppleIdToken } = await import('@/lib/apple-auth');
-      const apple = await requestAppleIdToken({
-        clientId: APPLE_CLIENT_ID,
-        redirectURI,
-      });
-      const result = await authService.loginApple({
-        idToken: apple.idToken,
-        email: apple.email,
-        name: apple.name,
-      });
-      finishAuth(result.user, result.tokens);
-    } catch (err) {
-      const msg = getApiErrorMessage(err, 'Apple sign-in failed');
-      if (msg.toLowerCase().includes('cancelled')) {
-        setError('');
-      } else {
-        setError(msg);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const verifyOtp = async (code: string) => {
     const normalized = code.replace(/\D/g, '').slice(0, 6);
     if (normalized.length !== 6 || loading || verifyingRef.current) return;
@@ -239,7 +121,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
   useEffect(() => {
     if (step !== 'otp' || otpCode.length !== 6) return;
     void verifyOtp(otpCode);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-submit once 6 digits are entered
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [otpCode, step]);
 
   const handleProfile = async (e: FormEvent) => {
@@ -261,361 +143,184 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
     }
   };
 
-  const phoneForm = (
-    <form onSubmit={handleContinue} className="mt-5 w-full max-w-[340px] space-y-3.5">
-      <label className="flex h-12 items-center overflow-hidden rounded-xl border border-[#e0e0e0] bg-white focus-within:border-[var(--cart-green)]">
-        <span className="border-r border-[#e0e0e0] px-3.5 text-[15px] font-semibold text-[#1f1f1f]">
-          +91
-        </span>
-        <input
-          type="tel"
-          inputMode="numeric"
-          autoComplete="tel-national"
-          maxLength={10}
-          placeholder="Enter mobile number"
-          value={phoneDigits}
-          onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, '').slice(0, 10))}
-          className="h-full flex-1 bg-transparent px-3 text-[15px] text-[#1f1f1f] outline-none placeholder:text-[#999]"
-          autoFocus
-        />
-      </label>
-
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <button
-        type="submit"
-        disabled={!phoneValid || loading}
-        className={cn(
-          'flex h-12 w-full items-center justify-center rounded-xl text-[15px] font-bold text-white transition',
-          phoneValid && !loading
-            ? 'bg-[var(--cart-green)] hover:bg-[#097019]'
-            : 'cursor-not-allowed bg-[#b0b0b0]',
-        )}
-      >
-        {loading ? (
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-        ) : (
-          t('login.continue')
-        )}
-      </button>
-
-      <div className="relative py-1 text-center text-[11px] uppercase tracking-wide text-[#999]">
-        <span className="relative z-10 bg-white px-2">or</span>
-        <span className="absolute inset-x-0 top-1/2 h-px bg-[#eee]" />
-      </div>
-
-      <button
-        type="button"
-        onClick={() => {
-          setStep('email');
-          setError('');
-        }}
-        className="flex h-11 w-full items-center justify-center rounded-xl border border-[#e0e0e0] text-[13px] font-semibold text-[#1f1f1f] hover:bg-[#fafafa]"
-      >
-        {t('login.email')}
-      </button>
-
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={() => void handleGoogleLogin()}
-          disabled={loading}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] text-[12px] font-semibold text-[#1f1f1f] hover:bg-[#fafafa]"
-        >
-          Google
-        </button>
-        <button
-          type="button"
-          onClick={() => void handleAppleLogin()}
-          disabled={loading}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] text-[12px] font-semibold text-[#1f1f1f] hover:bg-[#fafafa]"
-        >
-          Apple
-        </button>
-      </div>
-
-      <p className="pt-1 text-center text-[11px] leading-relaxed text-[#666]">
-        By continuing, you agree to our{' '}
-        <span className="underline decoration-dotted underline-offset-2">Terms of service</span>
-        {' '}&{' '}
-        <span className="underline decoration-dotted underline-offset-2">Privacy policy</span>
-      </p>
-    </form>
-  );
-
-  const emailForm = (
-    <form onSubmit={handleEmailLogin} className="mt-5 w-full max-w-[340px] space-y-3.5">
-      <div className="relative flex items-center justify-center">
-        <button
-          type="button"
-          onClick={() => {
-            setStep('phone');
-            setError('');
-          }}
-          className="absolute left-0 hidden h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5f5f5] sm:flex"
-          aria-label="Back"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
-        <h2 className="text-base font-extrabold text-[#1f1f1f]">Email login</h2>
-      </div>
-
-      <input
-        type="email"
-        autoComplete="email"
-        placeholder="Email address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="h-12 w-full rounded-xl border border-[#e0e0e0] px-3 text-[15px] outline-none focus:border-[var(--cart-green)]"
-        autoFocus
-      />
-      <input
-        type="password"
-        autoComplete="current-password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="h-12 w-full rounded-xl border border-[#e0e0e0] px-3 text-[15px] outline-none focus:border-[var(--cart-green)]"
-      />
-
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <button
-        type="submit"
-        disabled={loading || !email.trim() || !password}
-        className={cn(
-          'flex h-12 w-full items-center justify-center rounded-xl text-[15px] font-bold text-white transition',
-          !loading && email.trim() && password
-            ? 'bg-[var(--cart-green)] hover:bg-[#097019]'
-            : 'cursor-not-allowed bg-[#b0b0b0]',
-        )}
-      >
-        {loading ? 'Signing in…' : 'Sign in'}
-      </button>
-
-      <p className="text-center text-[11px] text-[#999]">
-        Sample: rahul@example.com / Customer@123
-      </p>
-    </form>
-  );
-
-  const otpForm = (
-    <div className="mt-2 w-full max-w-[340px]">
-      <div className="relative flex items-center justify-center">
-        <button
-          type="button"
-          onClick={() => {
-            setStep('phone');
-            setError('');
-            setOtpCode('');
-          }}
-          className="absolute left-0 hidden h-9 w-9 items-center justify-center rounded-full hover:bg-[#f5f5f5] sm:flex"
-          aria-label="Back"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
-        <h2 className="text-base font-extrabold text-[#1f1f1f]">{t('login.otpTitle')}</h2>
-      </div>
-
-      <p className="mt-6 text-center text-sm leading-relaxed text-[#666]">
-        {t('login.otpSent')}{' '}
-        <span className="font-semibold text-[#1f1f1f]">+91 {phoneDigits}</span>
-      </p>
-      <button
-        type="button"
-        onClick={() => {
-          setStep('phone');
-          setError('');
-          setOtpCode('');
-        }}
-        className="mx-auto mt-1 block text-[13px] font-semibold text-[#0C831F]"
-      >
-        {t('login.changeNumber')}
-      </button>
-
-      <div className="mt-7">
-        <OtpInput
-          value={otpCode}
-          onChange={(digits) => {
-            setError('');
-            setOtpCode(digits);
-          }}
-          disabled={loading}
-          error={Boolean(error)}
-        />
-      </div>
-
-      {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
-      {staticOtpHint && (
-        <p className="mt-3 text-center text-xs text-[#888]">
-          {t('login.staticOtp', { code: staticOtpHint })}
-        </p>
-      )}
-
-      <button
-        type="button"
-        disabled={otpCode.length !== 6 || loading}
-        onClick={() => void verifyOtp(otpCode)}
-        className={cn(
-          'mt-6 flex h-12 w-full items-center justify-center rounded-xl text-[15px] font-bold text-white',
-          otpCode.length === 6 && !loading
-            ? 'bg-[var(--cart-green)] hover:bg-[#097019]'
-            : 'cursor-not-allowed bg-[#b0b0b0]',
-        )}
-      >
-        {loading ? t('login.verifying') : t('login.verify')}
-      </button>
-
-      <p className="mt-5 text-center text-sm text-[#999]">
-        {resendIn > 0 ? (
-          <>{t('login.resendIn', { n: resendIn })}</>
-        ) : (
-          <button
-            type="button"
-            className="font-semibold text-[var(--cart-green)]"
-            onClick={() => void sendOtp()}
-            disabled={loading}
-          >
-            {t('login.resend')}
-          </button>
-        )}
-      </p>
-    </div>
-  );
-
-  const profileForm = (
-    <form onSubmit={handleProfile} className="mt-2 w-full max-w-[340px] space-y-4">
-      <h2 className="text-center text-xl font-extrabold text-[#1f1f1f]">{t('login.profileTitle')}</h2>
-      <p className="text-center text-sm text-[#666]">Tell us your name to continue</p>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Full name"
-        required
-        className="h-12 w-full rounded-xl border border-[#e0e0e0] px-3 text-base outline-none focus:border-[var(--cart-green)]"
-        autoFocus
-      />
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading || !name.trim()}
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-[var(--cart-green)] text-sm font-bold text-white disabled:bg-[#b0b0b0]"
-      >
-        {loading ? 'Saving…' : 'Continue'}
-      </button>
-    </form>
-  );
-
   return (
-    <div className="fixed inset-0 z-[100] bg-white">
-      {/* —— Mobile —— */}
-      <div className="flex h-dvh flex-col sm:hidden">
-        {step === 'phone' ? (
-          <>
-            <div className="relative min-h-[38%] flex-1 overflow-hidden bg-[#E8F4FC]">
-              <div className="absolute inset-0 grid grid-cols-4 gap-2.5 p-3 pt-14 opacity-95">
-                {LOGIN_PRODUCTS.map((src, i) => (
-                  <div
-                    key={src + i}
-                    className={cn(
-                      'overflow-hidden rounded-2xl bg-white/70 shadow-sm',
-                      i % 5 === 0 && 'translate-y-2',
-                      i % 3 === 1 && '-translate-y-1',
-                    )}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" className="h-full w-full object-cover" />
-                  </div>
-                ))}
-              </div>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white via-white/90 to-transparent" />
-              <button
-                type="button"
-                onClick={handleChromeBack}
-                className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md"
-                aria-label="Back"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M15 18l-6-6 6-6" stroke="#1f1f1f" strokeWidth="2.25" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-            <div className="relative z-10 -mt-6 flex flex-col items-center bg-white px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-2">
-              <LoginMark />
-              <h1 className="mt-4 text-center text-[22px] font-extrabold leading-tight text-[#1f1f1f]">
-                {t('login.title')}
-              </h1>
-              <p className="mt-1.5 text-center text-[14px] text-[#666]">{t('login.subtitle')}</p>
-              {phoneForm}
-            </div>
-          </>
-        ) : (
-          <div className="flex min-h-0 flex-1 flex-col bg-white">
-            <div className="flex items-center px-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
-              <button
-                type="button"
-                onClick={handleChromeBack}
-                className="flex h-11 w-11 items-center justify-center rounded-full"
-                aria-label="Back"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M15 18l-6-6 6-6" stroke="#1f1f1f" strokeWidth="2.25" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-            <div className="flex flex-1 flex-col items-center overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-              {step === 'email' && emailForm}
-              {step === 'otp' && otpForm}
-              {step === 'profile' && profileForm}
-            </div>
-          </div>
-        )}
-      </div>
+    <div
+      className="modal-overlay--login ReactModal__Overlay ReactModal__Overlay--after-open"
+      onClick={dismissLogin}
+      role="presentation"
+    >
+      <div
+        className="ReactModal__Content ReactModal__Content--after-open modal-content--login"
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Blinkit: CustomFont + "&". We use wasabicons glyph "back" path (same icon set). */}
+        <button type="button" className="LoginModal__BackIcon" onClick={handleChromeBack} aria-label="Back">
+          <svg viewBox="0 0 999 800" width="20" height="16" aria-hidden="true">
+            <g transform="translate(0 729) scale(1 -1)">
+              <path
+                fill="currentColor"
+                d="M949 379H169L434 644Q449 659 449 679Q449 699 434 714Q419 729 399 729Q379 729 364 714L14 364Q4 354 4 349Q0 338 0 329Q0 320 4 309Q7 307 9.5 302Q12 297 14 294L364-56Q379-71 399-71Q419-71 434-56Q449-41 449-21Q449-1 434 14L169 279H949Q972 279 985.5 293Q999 307 999 329.5Q999 352 985.5 365.5Q972 379 949 379Z"
+              />
+            </g>
+          </svg>
+        </button>
 
-      {/* —— Desktop / tablet: centered card —— */}
-      <div className="relative hidden h-full items-center justify-center sm:flex">
-        <button
-          type="button"
-          onClick={dismissLogin}
-          className="absolute inset-0 bg-black/50 animate-fade-in"
-          aria-label="Close login"
-        />
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="relative z-10 w-full max-w-[400px] rounded-2xl bg-white p-7 shadow-xl animate-modal-in"
-        >
-          {step === 'phone' && (
-            <div className="flex flex-col items-center">
-              <div className="mb-2 flex w-full justify-start">
+        <div className="LoginSteps__LoginWrapper login center-aligned">
+          <div className="login__body">
+            {step === 'phone' && (
+              <div className="PhoneNumberLogin__LoginContainer">
+                <div className="PhoneNumberLogin__ImageContainer">
+                  <div className="ZImage__Container" style={{ height: 64, width: 64 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt="Tapi Grocery"
+                      src="/tapi-app-logo.svg"
+                      loading="lazy"
+                      className="ZImage__img"
+                      width={64}
+                      height={64}
+                    />
+                  </div>
+                </div>
+
+                <div className="login-help weight--semibold">
+                  <div>
+                    <div className="login-head__text">{t('login.title')}</div>
+                    <div className="login-help weight--semibold">{t('login.subtitle')}</div>
+                  </div>
+                </div>
+
+                <form className="login-form" onSubmit={handleContinue}>
+                  <div className="login-phone">
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      className="login-phone__input input"
+                      data-test-id="phone-no-text-box"
+                      placeholder="Enter mobile number"
+                      inputMode="numeric"
+                      autoComplete="tel-national"
+                      value={phoneDigits}
+                      onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      autoFocus
+                    />
+                  </div>
+
+                  {error && <p className="login-form__error">{error}</p>}
+
+                  <button
+                    type="submit"
+                    className={cn(
+                      'PhoneNumberLogin__LoginButton',
+                      phoneValid && !loading && 'is-enabled',
+                    )}
+                    disabled={!phoneValid || loading}
+                  >
+                    {loading ? '…' : t('login.continue')}
+                  </button>
+                </form>
+
+                <div className="PhoneNumberLogin__LinksWrapper">
+                  <span>By continuing, you agree to our&nbsp;</span>
+                  <a target="_blank" href="/terms" className="PhoneNumberLogin__Links">
+                    Terms of service
+                  </a>
+                  <span>&nbsp;&amp;&nbsp;</span>
+                  <a target="_blank" href="/privacy" className="PhoneNumberLogin__Links">
+                    Privacy policy
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {step === 'otp' && (
+              <div className="login-step-secondary">
+                <h2 className="login-head__text">{t('login.otpTitle')}</h2>
+                <p className="login-help weight--semibold">
+                  {t('login.otpSent')}{' '}
+                  <span className="login-help__phone">+91 {phoneDigits}</span>
+                </p>
                 <button
                   type="button"
-                  onClick={handleChromeBack}
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-[#1f1f1f] hover:bg-[#f5f5f5]"
-                  aria-label="Back"
+                  className="login-change-number"
+                  onClick={() => {
+                    setStep('phone');
+                    setError('');
+                    setOtpCode('');
+                  }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
+                  {t('login.changeNumber')}
                 </button>
+                <OtpInput
+                  value={otpCode}
+                  onChange={(digits) => {
+                    setError('');
+                    setOtpCode(digits);
+                  }}
+                  disabled={loading}
+                  error={Boolean(error)}
+                />
+                {error && <p className="login-form__error" style={{ textAlign: 'center' }}>{error}</p>}
+                {staticOtpHint && (
+                  <p className="otp-hint">{t('login.staticOtp', { code: staticOtpHint })}</p>
+                )}
+                <button
+                  type="button"
+                  className={cn(
+                    'PhoneNumberLogin__LoginButton',
+                    otpCode.length === 6 && !loading && 'is-enabled',
+                  )}
+                  disabled={otpCode.length !== 6 || loading}
+                  onClick={() => void verifyOtp(otpCode)}
+                >
+                  {loading ? t('login.verifying') : t('login.verify')}
+                </button>
+                {resendIn > 0 ? (
+                  <p className="otp-resend otp-resend--disabled">
+                    {t('login.resendIn', { n: resendIn })}
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    className="otp-resend is-ready"
+                    onClick={() => void sendOtp()}
+                    disabled={loading}
+                  >
+                    {t('login.resend')}
+                  </button>
+                )}
               </div>
-              <LoginMark />
-              <h1 className="mt-4 text-center text-[22px] font-extrabold text-[#1f1f1f]">
-                {t('login.title')}
-              </h1>
-              <p className="mt-1 text-center text-sm text-[#666]">{t('login.subtitle')}</p>
-              {phoneForm}
-            </div>
-          )}
-          {step === 'email' && (
-            <div className="flex flex-col items-center">{emailForm}</div>
-          )}
-          {step === 'otp' && otpForm}
-          {step === 'profile' && profileForm}
+            )}
+
+            {step === 'profile' && (
+              <form className="login-step-secondary w-full max-w-[320px]" onSubmit={handleProfile}>
+                <h2 className="login-head__text">{t('login.profileTitle')}</h2>
+                <p className="login-help weight--semibold mt-2">Tell us your name to continue</p>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Full name"
+                  required
+                  className="login-phone__input input mt-5 h-12 w-full rounded-xl border border-[#e0e0e0] px-3"
+                  autoFocus
+                />
+                {error && <p className="login-form__error">{error}</p>}
+                <button
+                  type="submit"
+                  className={cn(
+                    'PhoneNumberLogin__LoginButton',
+                    name.trim() && !loading && 'is-enabled',
+                  )}
+                  disabled={loading || !name.trim()}
+                >
+                  {loading ? 'Saving…' : 'Continue'}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </div>

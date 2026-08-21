@@ -1,0 +1,6 @@
+<!-- wasabicons:chevron-left -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 612 617" width="20" height="20" aria-hidden="true">
+  <g transform="translate(0 617) scale(1 -1)">
+    <path fill="#1F1F1F" d="M600 605Q611 594 611.0 577.5Q611 561 600 550L375 325L600 100Q611 89 611.0 72.5Q611 56 600.0 45.0Q589 34 572.5 34.0Q556 34 545 45L295 295Q284 306 284.0 322.5Q284 339 295 350L545 600Q560 615 574.0 616.0Q588 617 600 605Z"/>
+  </g>
+</svg>

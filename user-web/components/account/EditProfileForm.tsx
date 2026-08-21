@@ -98,34 +98,30 @@ export function EditProfileForm({ onSaved }: Props) {
 
       <section className="space-y-4 border-b border-[#f0f0f0] py-6">
         <div>
-          <label className="mb-1.5 block text-[13px] font-semibold text-[#1f1f1f]">
-            {t('settings.name')}
-          </label>
+          <label className="bk-form-label">{t('settings.name')}</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             autoComplete="name"
-            className="h-12 w-full rounded-xl border border-[#e4e4e4] px-3.5 text-[15px] outline-none focus:border-[#0C831F]"
+            className="bk-form-input"
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-[13px] font-semibold text-[#1f1f1f]">
-            {t('settings.email')}
-          </label>
+          <label className="bk-form-label">{t('settings.email')}</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             placeholder="name@example.com"
-            className="h-12 w-full rounded-xl border border-[#e4e4e4] px-3.5 text-[15px] outline-none focus:border-[#0C831F]"
+            className="bk-form-input"
           />
         </div>
       </section>
 
       <section className="border-b border-[#f0f0f0] py-6">
-        <p className="mb-3 text-[13px] font-semibold text-[#1f1f1f]">{t('settings.language')}</p>
+        <p className="bk-form-label mb-3">{t('settings.language')}</p>
         <div className="grid grid-cols-2 gap-2">
           {locales.map((lang) => (
             <button
@@ -133,7 +129,7 @@ export function EditProfileForm({ onSaved }: Props) {
               type="button"
               onClick={() => setLanguagePref(lang.code)}
               className={cn(
-                'h-12 rounded-xl text-[14px] font-bold',
+                'h-12 rounded-lg text-[14px] font-bold',
                 languagePref === lang.code
                   ? 'bg-[#0C831F] text-white'
                   : 'bg-[#f5f5f5] text-[#555]',
@@ -146,25 +142,19 @@ export function EditProfileForm({ onSaved }: Props) {
       </section>
 
       <section className="py-6">
-        <label className="mb-1.5 block text-[13px] font-semibold text-[#1f1f1f]">
-          {t('settings.password')}
-        </label>
+        <label className="bk-form-label">{t('settings.password')}</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
           placeholder="••••••••"
-          className="h-12 w-full rounded-xl border border-[#e4e4e4] px-3.5 text-[15px] outline-none focus:border-[#0C831F]"
+          className="bk-form-input"
         />
         <p className="mt-2 text-[12px] leading-relaxed text-[#8a8a8a]">{t('settings.passwordHint')}</p>
       </section>
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="h-12 w-full rounded-xl bg-[#0C831F] text-[15px] font-bold text-white hover:bg-[#097019] disabled:opacity-60"
-      >
+      <button type="submit" disabled={saving} className="bk-form-btn w-full">
         {saving ? t('settings.saving') : t('settings.save')}
       </button>
     </form>

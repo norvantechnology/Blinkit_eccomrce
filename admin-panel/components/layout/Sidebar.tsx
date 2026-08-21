@@ -52,23 +52,23 @@ function NavLink({
         type="button"
         onClick={() => setExpanded((v) => !v)}
         className={cn(
-          'flex w-full min-h-[44px] items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-medium transition-colors',
+          'flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors',
           isParentActive || isActive
-            ? 'border-[var(--border)] bg-[var(--primary-muted)] text-[var(--primary)]'
-            : 'text-[#363636] hover:border-[var(--border)] hover:bg-[var(--surface-muted)]',
+            ? 'bg-[var(--primary-muted)] text-[var(--primary)]'
+            : 'text-[var(--muted-foreground)] hover:bg-[var(--surface-muted)]',
         )}
       >
         <Icon
           className={cn(
-            'h-[18px] w-[18px] shrink-0',
-            isParentActive || isActive ? 'text-[var(--primary)]' : 'text-[#999]',
+            'h-4 w-4 shrink-0',
+            isParentActive || isActive ? 'text-[var(--primary)]' : 'text-[var(--muted)]',
           )}
-          strokeWidth={2}
+          strokeWidth={1.85}
         />
         <span className="flex-1 text-left">{item.label}</span>
         <ChevronDown
           className={cn(
-            'h-4 w-4 shrink-0 text-[#999] transition-transform duration-200',
+            'h-3.5 w-3.5 shrink-0 text-[var(--muted)] transition-transform duration-200',
             expanded && 'rotate-180',
           )}
         />
@@ -80,7 +80,7 @@ function NavLink({
         )}
       >
         <div className="overflow-hidden">
-          <div className="ml-3 space-y-0.5 border-l-2 border-[var(--border)] pl-2 pt-0.5">
+          <div className="ml-3 space-y-0.5 border-l border-[var(--border)] pl-2.5">
             {item.children!.map((child) => (
               <NavLink key={child.href} item={child} onNavigate={onNavigate} depth={depth + 1} />
             ))}
@@ -93,26 +93,25 @@ function NavLink({
       href={item.href}
       onClick={onNavigate}
       className={cn(
-        'group flex min-h-[44px] items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors',
-        depth > 0 && 'min-h-[40px] py-2 text-[13px]',
+        'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors',
+        depth > 0 && 'py-1.5 text-[12.5px]',
         isActive
-          ? 'border-[var(--primary)]/25 bg-[var(--primary)] text-white shadow-sm'
-          : 'border-transparent text-[#363636] hover:border-[var(--border)] hover:bg-[var(--surface-muted)]',
+          ? 'bg-[var(--primary)] text-white'
+          : 'text-[var(--muted-foreground)] hover:bg-[var(--surface-muted)] hover:text-[var(--foreground)]',
       )}
     >
       <Icon
         className={cn(
-          'h-[18px] w-[18px] shrink-0',
-          depth > 0 && 'h-4 w-4',
-          isActive ? 'text-white' : 'text-[#999] group-hover:text-[#666]',
+          'h-4 w-4 shrink-0',
+          depth > 0 && 'h-3.5 w-3.5',
+          isActive ? 'text-white' : 'text-[var(--muted)]',
         )}
-        strokeWidth={2}
+        strokeWidth={1.85}
       />
       <span className="truncate">{item.label}</span>
     </Link>
   );
 
-  // Dynamic PermissionGate from nav-config permissions (§19)
   if (!item.permissions?.length) {
     return linkBody;
   }
@@ -134,7 +133,7 @@ export default function Sidebar() {
     <>
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-slate-900/60 transition-opacity duration-200 lg:hidden',
+          'fixed inset-0 z-40 bg-black/40 transition-opacity duration-200 lg:hidden',
           sidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
         onClick={closeMobile}
@@ -143,37 +142,34 @@ export default function Sidebar() {
 
       <aside
         className={cn(
-          'flex w-[var(--sidebar-width)] shrink-0 flex-col border-r border-[var(--border-strong)] bg-[var(--sidebar-bg)] shadow-[2px_0_8px_var(--shadow-color)]',
-          'max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:w-[min(17.5rem,90vw)]',
-          'max-lg:transition-transform max-lg:duration-200 max-lg:ease-out safe-top safe-bottom',
+          'flex w-[var(--sidebar-width)] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--sidebar-bg)]',
+          'max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:w-[min(16rem,88vw)]',
+          'max-lg:shadow-lg max-lg:transition-transform max-lg:duration-200 max-lg:ease-out safe-top safe-bottom',
           sidebarOpen ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full',
         )}
       >
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--surface-muted)] px-4 sm:h-16">
-          <Link href="/dashboard" onClick={closeMobile}>
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--border)] px-4">
+          <Link href="/dashboard" onClick={closeMobile} className="min-w-0">
             <BrandLogo size="sm" showSubtitle={false} />
           </Link>
           <button
             type="button"
             onClick={closeMobile}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] bg-white text-slate-600 transition hover:bg-[var(--surface-muted)] lg:hidden"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--muted)] transition hover:bg-[var(--surface-muted)] lg:hidden"
             aria-label="Close menu"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        <nav className="custom-scrollbar flex-1 space-y-1 overflow-y-auto p-3">
+        <nav className="custom-scrollbar flex-1 space-y-0.5 overflow-y-auto px-2.5 py-3">
           {visibleNav.map((item) => (
             <NavLink key={item.href} item={item} onNavigate={closeMobile} />
           ))}
         </nav>
 
-        <div className="shrink-0 border-t border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3">
-          <p className="text-center text-[11px] font-medium text-[var(--muted)]">
-            © 2026 Tapi Grocery Admin
-          </p>
-          <p className="text-center text-[10px] text-[#999]">Version 1.0.0</p>
+        <div className="shrink-0 border-t border-[var(--border)] px-4 py-3">
+          <p className="text-[11px] text-[var(--muted)]">Tapi Grocery Admin · v1.0</p>
         </div>
       </aside>
     </>

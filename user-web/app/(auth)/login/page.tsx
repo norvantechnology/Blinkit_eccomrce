@@ -11,7 +11,9 @@ export default function LoginRoute() {
       <main className="flex-1">
         <HomeContent />
       </main>
-      <Footer />
+      <div className="bk-footer-host">
+        <Footer />
+      </div>
       <Suspense fallback={null}>
         <LoginOverlay />
       </Suspense>

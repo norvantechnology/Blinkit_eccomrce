@@ -1,0 +1,420 @@
+/**
+ * Blinkit Change Location desktop popup — exact from layout chunk + main.css
+ * HTML: containers__DesktopContainer / ChangeLocationV1 / LocationSelectorDesktopV1 / AddressListItem
+ */
+
+/* Overlay — Blinkit LocationDropDown__LocationOverlay: covers full page incl. header */
+.LocationDropDown__LocationOverlay-sc-bx29pc-1,
+.bk-loc-overlay {
+  background-color: #000;
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 2002;
+  opacity: 0.5;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Panel shell — user CSS: .hAbKnj */
+.containers__DesktopContainer-sc-95cgcs-0,
+.hAbKnj {
+  background-color: #ffffff;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+  color: #333333;
+  width: 500px;
+  position: relative;
+  font-family: Okra, Helvetica, sans-serif;
+  z-index: 2003;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: min(600px, calc(100vh - 100px));
+}
+
+.ChangeLocationV1__LocationContainer-sc-1sww6op-1,
+.COygo {
+  position: relative;
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 600px;
+}
+
+.LocationSelectorDesktopV1__DetectLocationContainer-sc-19zschz-2,
+.dQvgyY {
+  background-color: #f4f6fc;
+}
+
+.LocationSelectorDesktopV1__LocationBodyContainer-sc-19zschz-3,
+.hQrfMz {
+  padding: 24px;
+}
+
+.LocationSelectorDesktopV1__LoginContainer-sc-19zschz-1,
+.iLixdh {
+  /* empty in Blinkit */
+}
+
+.welcome-to-grofers.weight--semibold {
+  font-family: Okra, Helvetica, sans-serif;
+  font-weight: 500 !important;
+  font-size: 14px;
+  color: #333333;
+}
+
+.icon-cross::before {
+  content: "j";
+  font-family: IconFont, sans-serif;
+  font-style: normal;
+  font-size: 16px;
+  color: #666;
+}
+
+/* Detect + OR + search row */
+.btn.location-box.mask-button {
+  width: 130px;
+  height: 36px;
+  border-radius: 4px;
+  background-color: #0c831f;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-family: Okra, Helvetica, sans-serif;
+  font-weight: 500;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+.btn.location-box.mask-button:hover {
+  background-color: #097019;
+}
+
+.btn.location-box.mask-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.oval-container {
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.oval {
+  width: 28px;
+  height: 28px;
+  border: solid 1px #ccc;
+  background-color: #f9f9f9;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 15px;
+  position: relative;
+}
+
+.oval .separator-text {
+  position: relative;
+  display: inline-block;
+}
+
+.oval .separator-text::before,
+.oval .separator-text::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  border-bottom: 1px solid #ccc;
+  width: 8px;
+  margin: 0 7px;
+}
+
+.oval .separator-text::before {
+  right: 100%;
+}
+
+.oval .separator-text::after {
+  left: 100%;
+}
+
+.oval .or {
+  width: 16px;
+  height: 13px;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: #bbb;
+  text-align: center;
+  line-height: 13px;
+}
+
+.LocationSearchBox__InputSelect-sc-1k8u6a6-0,
+.fZCGlI,
+.location-search-input-v1-native {
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  background: #fff;
+  border: 0.5px solid #dddddd;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+  padding: 0 12px 0 12px;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  color: #666;
+  outline: none;
+}
+
+.LocationSearchBox__InputSelect-sc-1k8u6a6-0::placeholder,
+.fZCGlI::placeholder,
+.location-search-input-v1-native::placeholder {
+  color: #999;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.LocationSearchBox__InputSelect-sc-1k8u6a6-0:focus,
+.fZCGlI:focus,
+.location-search-input-v1-native:focus {
+  outline: none;
+}
+
+.modal-right__input-wrapper {
+  width: 100%;
+}
+
+.display--table {
+  display: table;
+}
+
+.display--table.full-width,
+.full-width {
+  width: 100%;
+}
+
+.display--table-cell {
+  display: table-cell;
+}
+
+.display--table-cell.full-width {
+  width: 100%;
+}
+
+/* Bottom saved addresses */
+.ChangeLocationV1__LocationBottom-sc-1sww6op-2,
+.iklVqv {
+  background: #f4f6fc;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4,
+.fXRPjX {
+  height: unset;
+  padding: 0 24px 20px;
+}
+
+.ChangeLocationV1__LocationListTitle-sc-1sww6op-5,
+.iHPeDK {
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 5px;
+  color: #333;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.address-container-v1 {
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.AddressListItem__AddressItemWrapperItem-sc-wi2msz-0,
+.gdmljZ {
+  /* wrapper item */
+}
+
+.AddressListItem__AddressItemWrapper-sc-wi2msz-1,
+.OLFGk {
+  padding: 12px;
+  background: white;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border-radius: 12px;
+  margin: 12px 0;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.AddressListItem__AddressIcon-sc-wi2msz-2,
+.hGpNML {
+  flex-shrink: 0;
+}
+
+.AddressListItem__IconImage-sc-wi2msz-6,
+.fyxEWH {
+  height: 39px;
+  width: 39px;
+  display: block;
+  object-fit: fill;
+}
+
+.AddressListItem__AddressDetails-sc-wi2msz-3,
+.hppBoz {
+  font-size: 12px;
+  color: #828282;
+  flex: 1;
+  min-width: 0;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.AddressListItem__AddressLabel-sc-wi2msz-4,
+.kmfNid {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1c1c1c;
+  margin-bottom: 2px;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.AddressListItem__AddressEditIcon-sc-wi2msz-5,
+.fcWpCe {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.AddressListItem__EditIcon-sc-wi2msz-7,
+.eiUMmD {
+  border-radius: 50%;
+  border: 1px solid rgba(214, 214, 214, 0.9);
+  font-size: 11px;
+  color: #0c831f;
+  height: 19px;
+  width: 19px;
+  margin-top: 0;
+  text-align: center;
+  line-height: 18px;
+  cursor: pointer;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: CustomFont, wasabicons, Wasabicons, sans-serif;
+}
+
+.AddressListItem__EditIcon-sc-wi2msz-7::after,
+.eiUMmD::after {
+  content: "\e98f";
+  font-family: CustomFont, wasabicons, Wasabicons, sans-serif;
+  font-size: 11px;
+  color: #0c831f;
+  line-height: 1;
+}
+
+.AddressListItem__DeleteIcon-sc-wi2msz-9,
+.fxKGaj {
+  color: #ef4f5f;
+}
+
+.AddressListItem__DeleteIcon-sc-wi2msz-9::after,
+.fxKGaj::after {
+  content: "\e8ac";
+  font-family: CustomFont, wasabicons, Wasabicons, sans-serif;
+  color: #ef4f5f;
+}
+
+/* Search suggestions inside panel */
+.bk-loc-suggestions {
+  background: #fff;
+  border-top: 1px solid #f2f2f2;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.LocationSearchList__LocationListContainer {
+  border-bottom: 1px solid #f2f2f2;
+  padding: 16px;
+  position: relative;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  width: 100%;
+  background: transparent;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.LocationSearchList__LocationListContainer:last-child {
+  border-bottom: none;
+}
+
+.LocationSearchList__LocationListContainer:hover {
+  background-color: #f2f2f2;
+}
+
+.LocationSearchList__LocationLabel {
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 20px;
+  color: #1c1c1c;
+}
+
+.LocationSearchList__LocationDetails {
+  font-size: 13px;
+  line-height: 18px;
+  color: #363636;
+  margin-top: 4px;
+}
+
+.bk-loc-error {
+  padding: 8px 24px 0;
+  font-size: 12px;
+  color: #d23333;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+/* Mobile sheet (simplified Blinkit parity) */
+.bk-loc-mobile-sheet {
+  display: none;
+}
+
+@media (max-width: 1020px) {
+  .bk-loc-desktop {
+    display: none !important;
+  }
+
+  .bk-loc-mobile-sheet {
+    display: flex;
+  }
+}
+
+@media (min-width: 1021px) {
+  .bk-loc-mobile-sheet {
+    display: none !important;
+  }
+}
