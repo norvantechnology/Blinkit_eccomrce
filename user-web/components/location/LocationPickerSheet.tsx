@@ -49,6 +49,9 @@ export function LocationPickerSheet() {
   const [loadingGps, setLoadingGps] = useState(false);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState('');
+  const [menuAddr, setMenuAddr] = useState<Address | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Address | null>(null);
   const debounceRef = useRef<number | null>(null);
 
   useEffect(() => setMounted(true), []);
@@ -58,6 +61,9 @@ export function LocationPickerSheet() {
     setQuery('');
     setSuggestions([]);
     setError('');
+    setMenuAddr(null);
+    setConfirmDelete(false);
+    setDeleteTarget(null);
   }, [setOpen]);
 
   const dismiss = useCloseOnPopstate(open, close);
@@ -186,20 +192,49 @@ export function LocationPickerSheet() {
     router.push('/account/addresses?add=1');
   };
 
-  const deleteAddress = async (e: MouseEvent, id: string) => {
+  const deleteAddress = (e: MouseEvent, addr: Address) => {
     e.stopPropagation();
-    if (!window.confirm('Delete this address?')) return;
+    setDeleteTarget(addr);
+    setMenuAddr(null);
+    setConfirmDelete(false);
+  };
+
+  const closeAddressMenu = () => {
+    setMenuAddr(null);
+    setConfirmDelete(false);
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteTarget(null);
+    setConfirmDelete(false);
+  };
+
+  const openAddressMenu = (e: MouseEvent, addr: Address) => {
+    e.stopPropagation();
+    setMenuAddr(addr);
+    setConfirmDelete(false);
+    setDeleteTarget(null);
+  };
+
+  const confirmDeleteAddress = async () => {
+    const target = deleteTarget || (confirmDelete ? menuAddr : null);
+    if (!target) return;
     try {
-      await addressesService.remove(id);
+      await addressesService.remove(target.id);
       await reloadSaved();
+      setDeleteTarget(null);
+      closeAddressMenu();
     } catch {
       setError('Could not delete address');
+      setConfirmDelete(false);
+      setDeleteTarget(null);
     }
   };
 
   /** Edit → account addresses + Enter complete address modal (location popup stays behind). */
   const editAddress = (e: MouseEvent, addr: Address) => {
     e.stopPropagation();
+    closeAddressMenu();
     if (!user) {
       close();
       router.replace(`/login?redirect=/account/addresses?edit=${encodeURIComponent(addr.id)}`);
@@ -248,14 +283,21 @@ export function LocationPickerSheet() {
   })();
 
   const searchRow = (
-    <div style={{ display: 'flex', height: '100%' }}>
+    <div className="bk-loc-desktop-search-row">
       <button
         type="button"
         className="btn location-box mask-button"
-        style={{ width: 130, justifyContent: 'center', alignItems: 'center', padding: 0 }}
         onClick={useCurrentLocation}
         disabled={loadingGps}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/blinkit-parity/icons/location/detect-pin.svg"
+          alt=""
+          width={12}
+          height={12}
+          className="bk-loc-detect-pin"
+        />
         {loadingGps ? 'Detecting…' : 'Detect my location'}
       </button>
       <div className="oval-container">
@@ -265,21 +307,24 @@ export function LocationPickerSheet() {
           </span>
         </div>
       </div>
-      <div style={{ width: 220, flex: 1, minWidth: 0 }}>
+      <div className="bk-loc-desktop-search-field">
         <div className="modal-right__input-wrapper">
           <div className="display--table full-width">
             <div className="display--table-cell full-width">
               <div id="map-canvas" />
-              <input
-                type="text"
-                name="select-locality"
-                placeholder="search delivery location"
-                autoComplete="off"
-                className="LocationSearchBox__InputSelect-sc-1k8u6a6-0 fZCGlI location-search-input-v1-native"
-                value={query}
-                onChange={(e) => handleSearch(e.target.value)}
-                autoFocus
-              />
+              <div className="bk-loc-desktop-search-wrap">
+                <span className="bk-loc-desktop-search-ico" aria-hidden />
+                <input
+                  type="text"
+                  name="select-locality"
+                  placeholder="search delivery location"
+                  autoComplete="off"
+                  className="LocationSearchBox__InputSelect-sc-1k8u6a6-0 fZCGlI location-search-input-v1-native"
+                  value={query}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  autoFocus
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -287,7 +332,7 @@ export function LocationPickerSheet() {
     </div>
   );
 
-  const savedList =
+  const renderSavedList = (mode: 'desktop' | 'mobile') =>
     user && saved.length > 0 ? (
       <div className="address-container-v1">
         {saved.map((addr) => (
@@ -324,26 +369,68 @@ export function LocationPickerSheet() {
                   {addr.fullAddress}
                 </div>
                 <div className="AddressListItem__AddressEditIcon-sc-wi2msz-5 fcWpCe">
-                  <div
-                    className="AddressListItem__EditIcon-sc-wi2msz-7 eiUMmD"
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Edit address"
-                    onClick={(e) => editAddress(e as unknown as MouseEvent, addr)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') editAddress(e as unknown as MouseEvent, addr);
-                    }}
-                  />
-                  <div
-                    className="AddressListItem__EditIcon-sc-wi2msz-7 AddressListItem__DeleteIcon-sc-wi2msz-9 eiUMmD fxKGaj"
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Delete address"
-                    onClick={(e) => void deleteAddress(e as unknown as MouseEvent, addr.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') void deleteAddress(e as unknown as MouseEvent, addr.id);
-                    }}
-                  />
+                  {mode === 'mobile' ? (
+                    <div
+                      className="AddressListItem__EditIcon-sc-wi2msz-7 eiMFKo"
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Address options"
+                      onClick={(e) => openAddressMenu(e as unknown as MouseEvent, addr)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter')
+                          openAddressMenu(e as unknown as MouseEvent, addr);
+                      }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/blinkit-parity/icons/location/more-dots.svg"
+                        alt=""
+                        width={16}
+                        height={16}
+                        className="bk-loc-more-dots"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        className="AddressListItem__EditIcon-sc-wi2msz-7 eiUMmD bk-loc-desktop-ico"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Edit address"
+                        onClick={(e) => editAddress(e as unknown as MouseEvent, addr)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') editAddress(e as unknown as MouseEvent, addr);
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/blinkit-parity/icons/location/edit-pencil.svg"
+                          alt=""
+                          width={14}
+                          height={14}
+                        />
+                      </div>
+                      <div
+                        className="AddressListItem__EditIcon-sc-wi2msz-7 AddressListItem__DeleteIcon-sc-wi2msz-9 eiUMmD fxKGaj bk-loc-desktop-ico"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Delete address"
+                        onClick={(e) => deleteAddress(e as unknown as MouseEvent, addr)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter')
+                            deleteAddress(e as unknown as MouseEvent, addr);
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/blinkit-parity/icons/location/delete-trash.svg"
+                          alt=""
+                          width={14}
+                          height={14}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -403,11 +490,10 @@ export function LocationPickerSheet() {
 
   const desktopPanel = (
     <div className="bk-loc-desktop" style={{ position: 'fixed', inset: 0, zIndex: 2002 }}>
-      <button
-        type="button"
-        className="LocationDropDown__LocationOverlay-sc-bx29pc-1 bk-loc-overlay"
-        aria-label="Dismiss"
-        onClick={dismiss}
+      <div
+        className="LocationDropDown__LocationOverlay-sc-bx29pc-1 bk-loc-overlay bk-dim-overlay"
+        style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
+        aria-hidden="true"
       />
       <div
         className="containers__DesktopContainer-sc-95cgcs-0 hAbKnj"
@@ -472,7 +558,7 @@ export function LocationPickerSheet() {
                 <div className="ChangeLocationV1__LocationListTitle-sc-1sww6op-5 iHPeDK">
                   Your saved addresses
                 </div>
-                {savedList}
+                {renderSavedList('desktop')}
               </div>
             </div>
           ) : null}
@@ -481,82 +567,186 @@ export function LocationPickerSheet() {
     </div>
   );
 
-  /* Mobile — same structure, full-width sheet */
+  /* Mobile — Blinkit LocationModal DOM parity */
   const mobilePanel = (
-    <div className="bk-loc-mobile-sheet fixed inset-0 z-[2002] flex flex-col justify-end">
-      <button
-        type="button"
-        className="LocationDropDown__LocationOverlay-sc-bx29pc-1 bk-loc-overlay absolute inset-0"
-        aria-label="Dismiss"
-        onClick={dismiss}
+    <div className="bk-loc-mobile-root">
+      <div
+        className="LocationDropDown__LocationOverlay-sc-bx29pc-1 bk-loc-overlay bk-dim-overlay"
+        style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
+        aria-hidden="true"
       />
       <div
-        className="containers__DesktopContainer-sc-95cgcs-0 hAbKnj relative z-[2003]"
-        style={{ width: '100%', maxHeight: '78vh', borderRadius: '16px 16px 0 0' }}
+        className="ReactModal__Content ReactModal__Content--after-open containers__MobileContainer-sc-95cgcs-1 hzvHjC modal-content mobile-content__bottomSheet LocationModal animation--delay-popup animation--enter-done"
+        tabIndex={-1}
         role="dialog"
+        aria-label="LocationModal"
         aria-modal="true"
       >
-        <div className="ChangeLocationV1__LocationContainer-sc-1sww6op-1 COygo">
-          <div className="LocationSelectorDesktopV1__DetectLocationContainer-sc-19zschz-2 dQvgyY">
-            <div className="LocationSelectorDesktopV1__LocationBodyContainer-sc-19zschz-3 hQrfMz">
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15 }}
-              >
-                <div className="welcome-to-grofers weight--semibold" style={{ color: '#333' }}>
-                  Change Location
+        <div
+          className="LocationMobileTopV1__BackButtonIcon-sc-iandd-2 eNYZkv"
+          role="button"
+          tabIndex={0}
+          onClick={dismiss}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              dismiss();
+            }
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/blinkit-parity/icons/location/close-slider.svg"
+            alt="Closs Slider"
+          />
+        </div>
+        <div>
+          <div className="ChangeLocationV1__LocationContainer-sc-1sww6op-1 COygo">
+            <div className="LocationMobileTopV1__Container-sc-iandd-0 bOYZpk">
+              <div className="LocationMobileTopV1__LocationCityTitle-sc-iandd-1 jhpDgF">
+                <div className="LocationMobileTopV1__LocationHeading-sc-iandd-3 eWmruh">
+                  Select your Location
                 </div>
-                <button
-                  type="button"
-                  onClick={dismiss}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
-                >
-                  <span className="icon-cross" />
-                </button>
               </div>
-              <button
-                type="button"
-                className="btn location-box mask-button"
-                style={{ width: '100%', marginBottom: 12 }}
-                onClick={useCurrentLocation}
-                disabled={loadingGps}
-              >
-                {loadingGps ? 'Detecting…' : 'Detect my location'}
-              </button>
-              <input
-                type="text"
-                placeholder="search delivery location"
-                className="LocationSearchBox__InputSelect-sc-1k8u6a6-0 fZCGlI"
-                value={query}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
+              <div className="LocationMobileTopV1__SearchContainer-sc-iandd-4 etGOdo">
+                <div className="LocationInputV1__AddressSearchContainer-sc-vt691u-0 dCemrT">
+                  <div className="LocationInputV1__AddressSearchBox-sc-vt691u-1 eSYJox">
+                    <div className="relative">
+                      <div className="search__box" data-test-id="search-box">
+                        <button type="button" className="btn search__btn-v1" tabIndex={-1} aria-hidden />
+                        <div className="modal-right__input-wrapper">
+                          <div className="display--table full-width">
+                            <div className="display--table-cell full-width">
+                              <div id="map-canvas-mobile" />
+                              <input
+                                type="text"
+                                name="select-locality"
+                                placeholder="search delivery location"
+                                autoComplete="off"
+                                className="LocationSearchBox__InputSelect-sc-1k8u6a6-0 fZCGlI"
+                                value={query}
+                                onChange={(e) => handleSearch(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="LocationInputV1__LocationDetectButton-sc-vt691u-2 ghSsRI"
+                    role="button"
+                    tabIndex={0}
+                    onClick={useCurrentLocation}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        useCurrentLocation();
+                      }
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/blinkit-parity/icons/location/current-location.svg"
+                      alt=""
+                    />
+                    {loadingGps ? 'Detecting…' : 'Use current location'}
+                  </div>
+                </div>
+              </div>
               {error ? <div className="bk-loc-error">{error}</div> : null}
             </div>
-          </div>
-          {suggestionBlock}
-          {!query.trim() ? (
-            <div className="ChangeLocationV1__LocationBottom-sc-1sww6op-2 iklVqv">
-              <div className="ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4 fXRPjX">
-                <div className="ChangeLocationV1__LocationListTitle-sc-1sww6op-5 iHPeDK">
-                  Your saved addresses
+
+            {query.trim().length >= 2 ? (
+              suggestionBlock
+            ) : (
+              <div className="ChangeLocationV1__LocationBottom-sc-1sww6op-2 iklVqv">
+                <div className="ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4 dlnKNt">
+                  <div className="ChangeLocationV1__LocationListTitle-sc-1sww6op-5 iHPeDK">
+                    Your saved addresses
+                  </div>
+                  {renderSavedList('mobile')}
                 </div>
-                {savedList}
               </div>
-            </div>
-          ) : null}
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
+
+
+  const showDeleteConfirm = Boolean(deleteTarget || (confirmDelete && menuAddr));
+
+  const deleteConfirmModal = showDeleteConfirm ? (
+    <div className="bk-loc-confirm-layer" role="alertdialog" aria-modal="true">
+        <div
+          className="bk-loc-confirm-layer__scrim bk-dim-overlay"
+          style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
+          aria-hidden="true"
+        />
+      <div className="bk-loc-confirm__card">
+        <p className="bk-loc-confirm__text">Are you sure you want to delete this address?</p>
+        <div className="bk-loc-confirm__row">
+          <button type="button" className="bk-loc-confirm__btn" onClick={closeDeleteConfirm}>
+            No
+          </button>
+          <button
+            type="button"
+            className="bk-loc-confirm__btn bk-loc-confirm__btn--yes"
+            onClick={() => void confirmDeleteAddress()}
+          >
+            Yes
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  const addressActionSheet =
+    menuAddr != null ? (
+      <div className="bk-loc-action" role="presentation">
+        <div
+          className="bk-loc-action__scrim bk-dim-overlay"
+          style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
+          aria-hidden="true"
+        />
+        <div className="bk-loc-action__sheet">
+          <div className="bk-loc-action__group">
+            <button
+              type="button"
+              className="bk-loc-action__btn bk-loc-action__btn--delete"
+              onClick={() => setConfirmDelete(true)}
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              className="bk-loc-action__btn bk-loc-action__btn--edit"
+              onClick={(e) => editAddress(e as unknown as MouseEvent, menuAddr)}
+            >
+              Edit
+            </button>
+          </div>
+          <div className="bk-loc-action__group">
+            <button
+              type="button"
+              className="bk-loc-action__btn bk-loc-action__btn--cancel"
+              onClick={closeAddressMenu}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : null;
 
   return createPortal(
     <>
       {desktopPanel}
       {mobilePanel}
+      {addressActionSheet}
+      {deleteConfirmModal}
     </>,
     document.body,
   );

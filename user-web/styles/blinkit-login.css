@@ -15,7 +15,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(50, 50, 50, 0.7);
   z-index: 10002;
   max-height: 100%;
   overflow: hidden;
@@ -24,7 +24,7 @@
 @media screen and (max-width: 1020px) {
   .modal-overlay--login,
   .ReactModal__Overlay--login {
-    background-color: #fff;
+    background-color: #fff !important;
   }
 }
 
@@ -97,6 +97,20 @@
   display: block;
   width: 20px;
   height: 16px;
+}
+
+@media screen and (max-width: 1020px) {
+  .LoginModal__BackIcon {
+    font-size: 14px;
+    padding: 6px 8px;
+    left: 10px;
+    top: 12px;
+  }
+
+  .LoginModal__BackIcon svg {
+    width: 14px;
+    height: 11px;
+  }
 }
 
 /* —— Login layout —— */

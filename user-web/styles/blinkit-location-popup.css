@@ -6,14 +6,14 @@
 /* Overlay — Blinkit LocationDropDown__LocationOverlay: covers full page incl. header */
 .LocationDropDown__LocationOverlay-sc-bx29pc-1,
 .bk-loc-overlay {
-  background-color: #000;
+  background-color: rgba(50, 50, 50, 0.7);
   bottom: 0;
   left: 0;
   position: fixed;
   right: 0;
   top: 0;
   z-index: 2002;
-  opacity: 0.5;
+  opacity: 1;
   border: 0;
   padding: 0;
   margin: 0;
@@ -29,8 +29,8 @@
 .containers__DesktopContainer-sc-95cgcs-0,
 .hAbKnj {
   background-color: #ffffff;
-  border-radius: 3px;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.28);
   color: #333333;
   width: 500px;
   position: relative;
@@ -39,7 +39,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: min(600px, calc(100vh - 100px));
+  max-height: min(640px, calc(100vh - 96px));
 }
 
 .ChangeLocationV1__LocationContainer-sc-1sww6op-1,
@@ -49,7 +49,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-height: 600px;
+  max-height: min(640px, calc(100vh - 96px));
 }
 
 .LocationSelectorDesktopV1__DetectLocationContainer-sc-19zschz-2,
@@ -83,23 +83,69 @@
 }
 
 /* Detect + OR + search row */
+.bk-loc-desktop-search-row {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  width: 100%;
+}
+
 .btn.location-box.mask-button {
-  width: 130px;
+  width: 148px;
   height: 36px;
   border-radius: 4px;
   background-color: #0c831f;
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
+  gap: 6px;
   font-size: 12px;
   font-family: Okra, Helvetica, sans-serif;
   font-weight: 500;
   color: #fff;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 0 10px;
   box-shadow: none;
   flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.bk-loc-detect-pin {
+  width: 12px;
+  height: 12px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.bk-loc-desktop-search-field {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+.bk-loc-desktop-search-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.bk-loc-desktop-search-ico {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  background: no-repeat center / 16px 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23999' stroke-width='1.7'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M11 11l3.5 3.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.bk-loc-desktop .LocationSearchBox__InputSelect-sc-1k8u6a6-0,
+.bk-loc-desktop .fZCGlI,
+.bk-loc-desktop .location-search-input-v1-native {
+  padding-left: 36px;
+  height: 36px;
 }
 
 .btn.location-box.mask-button:hover {
@@ -307,7 +353,8 @@
 }
 
 .AddressListItem__EditIcon-sc-wi2msz-7,
-.eiUMmD {
+.eiUMmD,
+.eiMFKo {
   border-radius: 50%;
   border: 1px solid rgba(214, 214, 214, 0.9);
   font-size: 11px;
@@ -323,6 +370,8 @@
   align-items: center;
   justify-content: center;
   font-family: CustomFont, wasabicons, Wasabicons, sans-serif;
+  padding: 0;
+  overflow: visible;
 }
 
 .AddressListItem__EditIcon-sc-wi2msz-7::after,
@@ -332,6 +381,44 @@
   font-size: 11px;
   color: #0c831f;
   line-height: 1;
+}
+
+/* Desktop pencil / trash SVGs — hide font glyph */
+.bk-loc-desktop-ico {
+  border: 1px solid rgba(214, 214, 214, 0.9);
+  background: #fff;
+  width: 22px;
+  height: 22px;
+}
+
+.bk-loc-desktop-ico::after {
+  content: none !important;
+}
+
+.bk-loc-desktop-ico img {
+  width: 12px;
+  height: 12px;
+  display: block;
+  pointer-events: none;
+}
+
+/* Mobile ⋯ — SVG dots (no font glyph) */
+.eiMFKo {
+  border: none;
+  background: transparent;
+  width: 19px;
+  height: 19px;
+}
+
+.eiMFKo::after {
+  content: none !important;
+}
+
+.bk-loc-more-dots {
+  width: 19px;
+  height: 19px;
+  display: block;
+  pointer-events: none;
 }
 
 .AddressListItem__DeleteIcon-sc-wi2msz-9,
@@ -398,8 +485,8 @@
   font-family: Okra, Helvetica, sans-serif;
 }
 
-/* Mobile sheet (simplified Blinkit parity) */
-.bk-loc-mobile-sheet {
+/* —— Mobile LocationModal (Blinkit DOM / CSS parity) —— */
+.bk-loc-mobile-root {
   display: none;
 }
 
@@ -408,13 +495,437 @@
     display: none !important;
   }
 
-  .bk-loc-mobile-sheet {
+  .bk-loc-mobile-root {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 2002;
+  }
+
+  .bk-loc-mobile-root .bk-loc-overlay {
+    background-color: rgba(50, 50, 50, 0.7);
+    opacity: 1;
+  }
+
+  .bk-loc-mobile-root .modal-content.mobile-content__bottomSheet.LocationModal {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    height: 70vh;
+    max-height: 70vh;
+    transform: none;
+    border-radius: 0;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    box-shadow: none;
+    overflow: visible;
+    box-sizing: border-box;
     display: flex;
+    flex-direction: column;
+    background-color: #f4f6fc !important;
+    z-index: 2003;
+    font-family: Okra, Helvetica, sans-serif;
+    outline: none;
+    animation: bk-sheet-in var(--bk-anim-sheet, 0.22s) var(--bk-anim-ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
+  }
+
+  .containers__MobileContainer-sc-95cgcs-1.hzvHjC {
+    background-color: rgb(244, 246, 252) !important;
+  }
+
+  .bk-loc-mobile-root .COygo {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    max-height: 70vh;
+    min-height: 0;
+    overflow: hidden;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+
+  .bk-loc-mobile-root > .LocationModal > div:not(.eNYZkv) {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+
+  /* Top block — inherits sheet #f4f6fc */
+  .LocationMobileTopV1__Container-sc-iandd-0,
+  .bOYZpk {
+    background-color: transparent;
+    padding: 16px 16px 8px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .LocationMobileTopV1__LocationCityTitle-sc-iandd-1,
+  .jhpDgF {
+    margin-bottom: 10px;
+  }
+
+  /* Close sits just above sheet (Blinkit — ~8px gap, fully outside) */
+  .bk-loc-mobile-root .LocationModal > .LocationMobileTopV1__BackButtonIcon-sc-iandd-2,
+  .bk-loc-mobile-root .LocationModal > .eNYZkv {
+    position: absolute;
+    left: 50%;
+    top: -44px;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    z-index: 5;
+    line-height: 0;
+  }
+
+  .bk-loc-mobile-root .LocationModal > .eNYZkv img {
+    width: 36px;
+    height: 36px;
+    display: block;
+  }
+
+  .LocationMobileTopV1__LocationHeading-sc-iandd-3,
+  .eWmruh {
+    font-family: Okra, Helvetica, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 20px;
+    color: #1c1c1c;
+  }
+
+  .LocationMobileTopV1__SearchContainer-sc-iandd-4,
+  .etGOdo {
+    width: 100%;
+  }
+
+  .LocationInputV1__AddressSearchContainer-sc-vt691u-0,
+  .dCemrT {
+    width: 100%;
+  }
+
+  .LocationInputV1__AddressSearchBox-sc-vt691u-1,
+  .eSYJox {
+    width: 100%;
+  }
+
+  .bk-loc-mobile-root .relative {
+    position: relative;
+  }
+
+  .bk-loc-mobile-root .search__box {
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+
+  .bk-loc-mobile-root .btn.search__btn-v1 {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23666' stroke-width='1.5'%3E%3Ccircle cx='6.5' cy='6.5' r='4.5'/%3E%3Cpath d='M10 10l2.8 2.8' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px 14px;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .bk-loc-mobile-root .LocationSearchBox__InputSelect-sc-1k8u6a6-0,
+  .bk-loc-mobile-root .fZCGlI {
+    height: 40px;
+    padding-left: 40px;
+    padding-right: 12px;
+    border: 0.5px solid #dddddd;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+    font-size: 14px;
+    line-height: 18px;
+    color: #666;
+    background: #fff;
+  }
+
+  .bk-loc-mobile-root .LocationSearchBox__InputSelect-sc-1k8u6a6-0::placeholder,
+  .bk-loc-mobile-root .fZCGlI::placeholder {
+    color: #999;
+    font-size: 14px;
+  }
+
+  .LocationInputV1__LocationDetectButton-sc-vt691u-2,
+  .ghSsRI {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px;
+    background: #f8f8f8;
+    border-radius: 8px;
+    border: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    font-family: Okra, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    color: #318616;
+  }
+
+  .LocationInputV1__LocationDetectButton-sc-vt691u-2 img,
+  .ghSsRI img {
+    width: 16px;
+    height: 16px;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .bk-loc-more-dots {
+    width: 16px;
+    height: 16px;
+  }
+
+  .eiMFKo {
+    width: 16px;
+    height: 16px;
+  }
+
+  .bk-loc-mobile-root .ChangeLocationV1__LocationBottom-sc-1sww6op-2,
+  .bk-loc-mobile-root .iklVqv {
+    background: #f4f6fc;
+    overflow: auto;
+    flex: 1;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4.dlnKNt,
+  .dlnKNt {
+    height: unset;
+    padding: 0 16px 20px;
+  }
+
+  .bk-loc-mobile-root .ChangeLocationV1__LocationListTitle-sc-1sww6op-5,
+  .bk-loc-mobile-root .iHPeDK {
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 8px;
+    margin-bottom: 0;
+    color: #333;
+    font-family: Okra, Helvetica, sans-serif;
+  }
+
+  .bk-loc-mobile-root .AddressListItem__AddressItemWrapper-sc-wi2msz-1,
+  .bk-loc-mobile-root .OLFGk {
+    padding: 12px;
+    background: white;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border-radius: 12px;
+    margin: 12px 0;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+
+  .bk-loc-mobile-root .AddressListItem__IconImage-sc-wi2msz-6,
+  .bk-loc-mobile-root .fyxEWH {
+    height: 39px;
+    width: 39px;
+    display: block;
+    object-fit: fill;
+  }
+
+  .bk-loc-mobile-root .AddressListItem__AddressLabel-sc-wi2msz-4,
+  .bk-loc-mobile-root .kmfNid {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1c1c1c;
+    margin-bottom: 2px;
+    line-height: 18px;
+  }
+
+  .bk-loc-mobile-root .AddressListItem__AddressDetails-sc-wi2msz-3,
+  .bk-loc-mobile-root .hppBoz {
+    font-size: 12px;
+    color: #828282;
+    line-height: 16px;
+    font-family: Okra, Helvetica, sans-serif;
+  }
+
+  .bk-loc-mobile-root .bk-loc-suggestions {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    overflow: auto;
+    background: #fff;
+  }
+
+  .bk-loc-mobile-root .bk-loc-error {
+    padding: 8px 0 0;
   }
 }
 
 @media (min-width: 1021px) {
-  .bk-loc-mobile-sheet {
+  .bk-loc-mobile-root {
     display: none !important;
   }
+}
+
+/* Address ⋯ action sheet (mobile only) */
+.bk-loc-action {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: none;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+@media (max-width: 1020px) {
+  .bk-loc-action {
+    display: flex;
+  }
+}
+
+.bk-loc-action__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background-color: rgba(50, 50, 50, 0.7);
+  pointer-events: auto;
+  cursor: default;
+}
+
+.bk-loc-action__sheet {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  padding: 0 10px calc(10px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.bk-loc-action__group {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.bk-loc-action__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 12px;
+  border: 0;
+  background: #fff;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.bk-loc-action__btn + .bk-loc-action__btn {
+  border-top: 0.5px solid #e5e5e5;
+}
+
+.bk-loc-action__btn--delete {
+  color: #e53935;
+}
+
+.bk-loc-action__btn--edit,
+.bk-loc-action__btn--cancel {
+  color: #007aff;
+}
+
+/* Centered delete confirm (desktop + mobile) */
+.bk-loc-confirm-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.bk-loc-confirm-layer__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background-color: rgba(50, 50, 50, 0.7);
+  pointer-events: auto;
+  cursor: default;
+}
+
+.bk-loc-confirm-layer .bk-loc-confirm__card {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+  width: 100%;
+  max-width: 320px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.bk-loc-confirm__text {
+  margin: 0;
+  padding: 24px 20px 20px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  color: #1c1c1c;
+}
+
+.bk-loc-confirm__row {
+  display: flex;
+  border-top: 0.5px solid #e5e5e5;
+}
+
+.bk-loc-confirm__btn {
+  flex: 1;
+  min-height: 48px;
+  border: 0;
+  background: #fff;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1c1c1c;
+  cursor: pointer;
+  padding: 12px 8px;
+}
+
+.bk-loc-confirm__btn + .bk-loc-confirm__btn {
+  border-left: 0.5px solid #e5e5e5;
+}
+
+.bk-loc-confirm__btn--yes {
+  color: #e53935;
 }

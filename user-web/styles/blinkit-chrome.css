@@ -29,14 +29,14 @@
 
 /* Blinkit .header__overlay — dark page behind account menu */
 .header__overlay {
-  background-color: #000;
+  background-color: rgba(50, 50, 50, 0.7);
   bottom: 0;
   left: 0;
   position: fixed;
   right: 0;
   top: 86px;
   z-index: 2002;
-  opacity: 0.5;
+  opacity: 1;
   border: 0;
   padding: 0;
   margin: 0;

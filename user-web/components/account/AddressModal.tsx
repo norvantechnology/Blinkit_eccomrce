@@ -2,7 +2,6 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState, type InputHTMLAttributes } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft } from 'lucide-react';
 import { blinkitTokens } from '@/lib/design-tokens';
 import { getApiErrorMessage } from '@/lib/auth';
 import { useAuthStore } from '@/store/authStore';
@@ -451,16 +450,13 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
         }}
       >
         <span className="bk-addr-gps-icon" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="3" stroke="#0c831f" strokeWidth="2" />
-            <path
-              d="M12 2v3M12 19v3M2 12h3M19 12h3"
-              stroke="#0c831f"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <circle cx="12" cy="12" r="8" stroke="#0c831f" strokeWidth="2" />
-          </svg>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/blinkit-parity/icons/location/current-location.svg"
+            alt=""
+            width={14}
+            height={14}
+          />
         </span>
         Go to current location
       </div>
@@ -479,6 +475,18 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
           ) : null}
         </div>
       </div>
+      {isMobile ? (
+        <button
+          type="button"
+          className="StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1 jBTrwA bk-addr-pin-proceed"
+          onClick={() => setStep('form')}
+        >
+          Update the pin & proceed
+          <span className="bk-addr-pin-proceed__chev" aria-hidden>
+            ▸
+          </span>
+        </button>
+      ) : null}
     </div>
   );
 
@@ -608,74 +616,56 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   if (isMobile) {
     return createPortal(
       <div className="bk-addr-mobile-root" role="dialog" aria-modal="true">
-        <div className="bk-addr-mobile-map">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '18px 12px',
-              background: '#fff',
-              position: 'relative',
-              zIndex: 2,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => (step === 'form' ? setStep('map') : dismiss())}
-              aria-label="Back"
-              style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
-            >
-              <ChevronLeft className="h-7 w-7 text-[#1c1c1c]" />
-            </button>
-            <div
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                color: '#1c1c1c',
-                fontSize: 15,
-                fontWeight: 600,
-                paddingRight: 28,
-              }}
-            >
-              {step === 'form' ? 'Enter complete address' : 'Confirm map pin location'}
-            </div>
-          </div>
-          {locationSelect}
-          {mapBlock}
-          {step === 'map' ? locationInfo : null}
-          {step === 'map' ? (
-            <div style={{ position: 'absolute', left: 12, right: 12, bottom: 24, zIndex: 10000 }}>
+        <div
+          className="bk-addr-mobile-dim bk-dim-overlay"
+          style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
+          aria-hidden="true"
+        />
+        <div className={`bk-addr-mobile-card${step === 'form' ? ' bk-addr-mobile-card--form' : ''}`}>
+          <div className="bk-addr-mobile-map">
+            <div className="bk-addr-mobile-header">
               <button
                 type="button"
-                className="StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1 jBTrwA"
-                onClick={() => setStep('form')}
+                className="bk-addr-mobile-back"
+                onClick={() => (step === 'form' ? setStep('map') : dismiss())}
+                aria-label="Back"
               >
-                Confirm location
-              </button>
-            </div>
-          ) : null}
-        </div>
-        {step === 'form' ? (
-          <div className="bk-addr-mobile-sheet" style={{ position: 'relative', height: '80svh' }}>
-            <div className="AddressFormModal__ModalHeader-sc-i6hou3-1 gSXqqS">
-              <span>Enter complete address</span>
-              <button type="button" className="bk-addr-close" aria-label="Close" onClick={dismiss}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <svg width="7" height="11" viewBox="0 0 7 11" fill="none" aria-hidden="true">
                   <path
-                    d="M1 1l12 12M13 1L1 13"
-                    stroke="#696969"
-                    strokeWidth="1.6"
+                    d="M5.75 1L1.25 5.5 5.75 10"
+                    stroke="#1c1c1c"
+                    strokeWidth="1.2"
                     strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                 </svg>
               </button>
+              <div className="bk-addr-mobile-header__title">Confirm map pin location</div>
             </div>
-            <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              {formBody}
-            </div>
+            {locationSelect}
+            {mapBlock}
+            {step === 'map' ? locationInfo : null}
+            {step === 'form' ? <div className="bk-addr-mobile-map-dim" aria-hidden /> : null}
           </div>
-        ) : null}
+          {step === 'form' ? (
+            <div className="bk-addr-mobile-sheet">
+              <div className="AddressFormModal__ModalHeader-sc-i6hou3-1 gSXqqS">
+                <span>Enter complete address</span>
+                <button type="button" className="bk-addr-close" aria-label="Close" onClick={dismiss}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path
+                      d="M1 1l12 12M13 1L1 13"
+                      stroke="#696969"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div className="bk-addr-mobile-sheet__body">{formBody}</div>
+            </div>
+          ) : null}
+        </div>
       </div>,
       document.body,
     );
@@ -683,15 +673,15 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
 
   return createPortal(
     <div
-      className="ReactModal__Overlay ReactModal__Overlay--after-open bk-addr-overlay"
-      onClick={dismiss}
+      className="ReactModal__Overlay ReactModal__Overlay--after-open bk-addr-overlay bk-dim-overlay"
+      style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
+      role="presentation"
     >
       <div
         className="ReactModal__Content ReactModal__Content--after-open styles__ModalContainer-sc-cc1wzf-0 kDsHLL"
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
       >
         <div className="styles__MapSection-sc-cc1wzf-12 fTrOuF">
           {locationSelect}

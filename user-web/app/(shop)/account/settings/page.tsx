@@ -110,13 +110,12 @@ export default function SettingsPage() {
 
       {deleteOpen && (
         <div className="fixed inset-0 z-[300] flex items-end justify-center sm:items-center sm:p-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/50"
-            aria-label="Close"
-            onClick={() => !deleting && setDeleteOpen(false)}
+          <div
+            className="absolute inset-0 bk-anim-overlay"
+            style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
+            aria-hidden="true"
           />
-          <div className="relative z-10 w-full max-w-sm rounded-t-2xl bg-white px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 shadow-xl sm:rounded-2xl sm:p-6">
+          <div className="relative z-10 w-full max-w-sm rounded-t-2xl bg-white px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 shadow-xl sm:rounded-2xl sm:p-6 bk-anim-sheet">
             <h3 className="text-[18px] font-extrabold text-[#1f1f1f]">
               {t('settings.deleteConfirmTitle')}
             </h3>

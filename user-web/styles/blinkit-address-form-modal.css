@@ -8,7 +8,7 @@
 .bk-addr-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(50, 50, 50, 0.7);
   z-index: 10001;
 }
 
@@ -99,7 +99,7 @@
   transform: translate(-50%, -100%);
   z-index: 2;
   pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 42'%3E%3Cpath fill='%23E53935' d='M16 0C7.2 0 0 7.2 0 16c0 12 16 26 16 26s16-14 16-26C32 7.2 24.8 0 16 0z'/%3E%3Ccircle fill='%23fff' cx='16' cy='16' r='6'/%3E%3C/svg%3E")
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 42'%3E%3Cpath fill='%23E53935' d='M16 0C7.2 0 0 7.2 0 16c0 12 16 26 16 26s16-14 16-26C32 7.2 24.8 0 16 0z'/%3E%3Ccircle fill='%23fff' cx='16' cy='16' r='6'/%3E%3Ccircle fill='%231C1C1C' cx='16' cy='16' r='2.5'/%3E%3C/svg%3E")
     center / contain no-repeat;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
 }
@@ -364,6 +364,20 @@
   .hEmjqm {
     left: 50%;
     transform: translateX(-50%);
+    top: -42px;
+    border-radius: 20px;
+    padding: 8px 14px;
+    height: auto;
+    min-height: 34px;
+    font-size: 13px;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .bk-addr-gps-icon img {
+    width: 12px;
+    height: 12px;
+    display: block;
   }
 }
 
@@ -561,6 +575,7 @@
 .gtySpN {
   border-color: #318616;
   background: #ebffef;
+  color: #318616;
 }
 
 .AddressForm__LocationTag-sc-12jjkjl-4.celWih:not(.is-selected),
@@ -763,32 +778,550 @@
   padding: 0 24px;
 }
 
-/* Mobile sheet uses same form bits */
+/* Mobile sheet uses same form bits — Blinkit card-on-dim (mobile only) */
 .bk-addr-mobile-root {
   position: fixed;
   inset: 0;
   z-index: 10001;
   display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Okra, Helvetica, sans-serif;
+  background: transparent;
+}
+
+.bk-addr-mobile-dim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background-color: rgba(50, 50, 50, 0.7);
+  cursor: default;
+  z-index: 0;
+}
+
+.bk-addr-mobile-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
   flex-direction: column;
-  background: #e5e3df;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: #fff;
+  overflow: hidden;
 }
 
 .bk-addr-mobile-map {
   position: relative;
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.bk-addr-mobile-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 12px 10px;
+  background: #fff;
+  position: relative;
+  z-index: 3;
+  border-bottom: 0;
+  flex-shrink: 0;
+}
+
+.bk-addr-mobile-back {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0 0 0 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.bk-addr-mobile-back svg {
+  width: 7px;
+  height: 11px;
+  display: block;
+}
+
+.bk-addr-mobile-header__title {
+  flex: 1;
+  text-align: center;
+  color: #1c1c1c;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
+  padding-right: 24px;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.bk-addr-mobile-map .styles__MapContainer-sc-cc1wzf-13,
+.bk-addr-mobile-map .jxdAuJ {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+.bk-addr-pin-proceed {
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  height: 48px;
+  border-radius: 8px;
+  background: #0c831f;
+}
+
+.bk-addr-pin-proceed__chev {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  margin-left: 2px;
 }
 
 .bk-addr-mobile-sheet {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
   z-index: 5;
   display: flex;
   flex-direction: column;
   background: #fff;
   border-top-left-radius: 18px;
   border-top-right-radius: 18px;
-  max-height: 80svh;
-  margin-top: auto;
+  height: auto;
+  max-height: 78svh;
   overflow: hidden;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.18);
+  animation: bk-sheet-in var(--bk-anim-sheet, 0.22s) var(--bk-anim-ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+
+.bk-addr-mobile-sheet__body {
+  width: 100%;
+  display: block;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Form content + footer in normal flow — no huge blank gap after phone field */
+.bk-addr-mobile-sheet .AddressForm__AddressFormWrapper-sc-12jjkjl-5,
+.bk-addr-mobile-sheet .tJywa {
+  flex: none;
+  min-height: 0;
+  overflow: visible;
+  padding: 12px 16px 8px !important;
+  gap: 14px;
+  justify-content: flex-start;
+}
+
+.bk-addr-mobile-sheet .StickyFooterComponent__StickyFooter-sc-13bkdgz-0,
+.bk-addr-mobile-sheet .gzMuRY {
+  position: sticky;
+  bottom: 0;
+  flex-shrink: 0;
+  border-radius: 0;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.bk-addr-mobile-sheet .gzMuRY > div {
+  margin: 12px 16px 16px !important;
+}
+
+.bk-addr-mobile-sheet .StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1,
+.bk-addr-mobile-sheet .jBTrwA {
+  height: 48px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #0c831f;
+}
+
+.bk-addr-mobile-map-dim {
+  display: none;
+}
+
+@media (max-width: 1020px) {
+  .bk-addr-mobile-root {
+    padding: 0;
+  }
+
+  .bk-addr-mobile-card {
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: none;
+  }
+
+  /* Form open: map stays visible under dim; sheet is popup */
+  .bk-addr-mobile-card--form {
+    background: transparent;
+  }
+
+  .bk-addr-mobile-card--form .bk-addr-mobile-map {
+    background: transparent;
+  }
+
+  .bk-addr-mobile-card--form .bk-addr-mobile-map-dim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background-color: rgba(50, 50, 50, 0.7);
+    pointer-events: none;
+  }
+
+  /* Map search bar — disabled look while address form is open (Blinkit) */
+  .bk-addr-mobile-card--form .styles__LocationSelectorWrapper-sc-cc1wzf-14,
+  .bk-addr-mobile-card--form .dkBIpa {
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .bk-addr-mobile-card--form .jRqnbc .Select-control {
+    background: #f0f0f0 !important;
+    border: 0.5px solid #e4e4e4 !important;
+    box-shadow: none !important;
+  }
+
+  .bk-addr-mobile-card--form .bk-addr-search-icon {
+    background: transparent;
+  }
+
+  .bk-addr-mobile-card--form .bk-addr-search-icon svg circle,
+  .bk-addr-mobile-card--form .bk-addr-search-icon svg path {
+    stroke: #9c9c9c;
+  }
+
+  .bk-addr-mobile-card--form .jRqnbc .Select-value-label,
+  .bk-addr-mobile-card--form .jRqnbc .Select-input input {
+    color: #696969 !important;
+    -webkit-text-fill-color: #696969;
+  }
+
+  .bk-addr-mobile-card--form .jRqnbc .Select-clear-zone,
+  .bk-addr-mobile-card--form .jRqnbc .Select-clear {
+    color: #9c9c9c;
+    opacity: 0.7;
+  }
+
+  .bk-addr-mobile-card--form .bk-addr-suggestions {
+    display: none;
+  }
+
+  .bk-addr-mobile-sheet {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 78svh;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+
+  .bk-addr-mobile-map .styles__LocationSelectorWrapper-sc-cc1wzf-14,
+  .bk-addr-mobile-map .dkBIpa {
+    top: 68px;
+    width: calc(100% - 24px);
+    height: 48px;
+  }
+
+  .bk-addr-mobile-map .styles__LocationSelect-sc-cc1wzf-15 .Select-control,
+  .bk-addr-mobile-map .jRqnbc .Select-control {
+    border-radius: 12px;
+    border: 0.5px solid #cfcfcf !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .bk-addr-mobile-map .bk-addr-search-icon {
+    border-radius: 12px 0 0 12px;
+    height: 48px;
+    width: 44px;
+  }
+
+  .bk-addr-mobile-map .styles__LocationSelect-sc-cc1wzf-15 .Select-multi-value-wrapper,
+  .bk-addr-mobile-map .jRqnbc .Select-multi-value-wrapper {
+    margin-left: 44px;
+  }
+
+  .bk-addr-mobile-map .center-marker {
+    width: 36px;
+    height: 48px;
+  }
+
+  .bk-addr-mobile-map .styles__DetectLocationButton-sc-cc1wzf-16,
+  .bk-addr-mobile-map .hEmjqm {
+    left: 50%;
+    transform: translateX(-50%);
+    top: -44px;
+    border-radius: 20px;
+    padding: 8px 14px;
+    height: auto;
+    min-height: 34px;
+    font-size: 13px;
+    font-weight: 500;
+    gap: 6px;
+    white-space: nowrap;
+    border: 1px solid #318616;
+    color: #0c831f;
+    box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.16);
+  }
+
+  .bk-addr-mobile-map .styles__LocationInfoWrapper-sc-cc1wzf-17,
+  .bk-addr-mobile-map .iQirAt {
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 16px 16px 20px;
+    gap: 12px;
+    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  .bk-addr-mobile-map .styles__LocationInfoHeader-sc-cc1wzf-18,
+  .bk-addr-mobile-map .eboNFh {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1c1c1c;
+  }
+
+  .bk-addr-mobile-map .styles__LocationInfo-sc-cc1wzf-19,
+  .bk-addr-mobile-map .eIqGle {
+    background: #f6fcfc;
+    border: 0.5px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 8px 12px 8px 8px;
+  }
+
+  .bk-addr-mobile-map .styles__LocationInfoHeading-sc-cc1wzf-8,
+  .bk-addr-mobile-map .InEAC {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .bk-addr-mobile-map .styles__LocationInfoSubheading-sc-cc1wzf-10,
+  .bk-addr-mobile-map .bkMpuG {
+    font-size: 12px;
+    color: #828282;
+  }
+
+  .bk-addr-mobile-sheet .AddressFormModal__ModalHeader-sc-i6hou3-1,
+  .bk-addr-mobile-sheet .gSXqqS {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 20px;
+    color: #1c1c1c;
+    padding: 12px 16px 10px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  /* Mobile: smaller thin icons (Blinkit parity) */
+  .bk-addr-mobile-sheet .bk-addr-close {
+    width: 22px;
+    height: 22px;
+  }
+
+  .bk-addr-mobile-sheet .bk-addr-close svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .bk-addr-mobile-sheet .bk-addr-close svg path {
+    stroke: #696969;
+    stroke-width: 1.4;
+  }
+
+  .bk-addr-mobile-map .bk-addr-search-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .bk-addr-mobile-map .bk-addr-search-icon svg circle,
+  .bk-addr-mobile-map .bk-addr-search-icon svg path {
+    stroke-width: 1.8;
+  }
+
+  .bk-addr-mobile-sheet .AddressForm__FieldLabel-sc-12jjkjl-1,
+  .bk-addr-mobile-sheet .bXIuQM {
+    color: #9c9c9c;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+  }
+
+  .bk-addr-mobile-sheet .AddressForm__LocationTagsWrapper-sc-12jjkjl-0,
+  .bk-addr-mobile-sheet .kfCACP {
+    gap: 8px;
+  }
+
+  .bk-addr-mobile-sheet .AddressForm__LocationPillWrapper-sc-12jjkjl-2,
+  .bk-addr-mobile-sheet .yIGGC {
+    gap: 8px;
+  }
+
+  .bk-addr-mobile-sheet .AddressForm__LocationTag-sc-12jjkjl-4,
+  .bk-addr-mobile-sheet .gtySpN,
+  .bk-addr-mobile-sheet .celWih {
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    gap: 6px;
+    color: #1c1c1c;
+    border: 0.5px solid #e8e8e8;
+    box-shadow: 0 1px 4px 0 rgba(28, 28, 28, 0.06);
+  }
+
+  .bk-addr-mobile-sheet .AddressForm__LocationTag-sc-12jjkjl-4.is-selected,
+  .bk-addr-mobile-sheet .gtySpN.is-selected,
+  .bk-addr-mobile-sheet .AddressForm__LocationTag-sc-12jjkjl-4.gtySpN {
+    border-color: #318616;
+    background: #ebffef;
+    color: #318616;
+  }
+
+  .bk-addr-mobile-sheet .AddressForm__LocationTag-sc-12jjkjl-4.celWih:not(.is-selected) {
+    border-color: #e8e8e8;
+    background: #fff;
+    color: #1c1c1c;
+  }
+
+  .bk-addr-mobile-sheet .AddressForm__LocationTag-sc-12jjkjl-4 img,
+  .bk-addr-mobile-sheet .gtySpN img,
+  .bk-addr-mobile-sheet .celWih img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .bk-addr-mobile-sheet .AddressForm___StyledDiv2-sc-12jjkjl-7,
+  .bk-addr-mobile-sheet .fmJKI {
+    margin-top: 4px;
+    margin-bottom: 0;
+  }
+
+  .bk-addr-mobile-sheet .fmJKI .tw-text-200 {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    color: #828282;
+  }
+
+  /* Inputs — Blinkit field size / color / type */
+  .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > input,
+  .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > textarea,
+  .bk-addr-mobile-sheet .cNThDN > input,
+  .bk-addr-mobile-sheet .cNThDN > textarea {
+    color: #1c1c1c;
+    -webkit-text-fill-color: #1c1c1c;
+    caret-color: #1c1c1c;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 18px;
+    min-height: 48px;
+    height: 48px;
+    padding: 14px 34px 14px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .bk-addr-mobile-sheet .cNThDN > textarea {
+    height: auto;
+    min-height: 48px;
+  }
+
+  .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > input:focus,
+  .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > textarea:focus,
+  .bk-addr-mobile-sheet .cNThDN > input:focus,
+  .bk-addr-mobile-sheet .cNThDN > textarea:focus {
+    border-color: #b8b8b8;
+  }
+
+  .bk-addr-mobile-sheet .cNThDN > input:disabled,
+  .bk-addr-mobile-sheet .cNThDN > textarea:disabled {
+    background-color: #f5f5f5;
+    border: none;
+    box-shadow: none;
+    color: #1c1c1c;
+    -webkit-text-fill-color: #1c1c1c;
+    opacity: 1;
+    cursor: default;
+  }
+
+  .bk-addr-mobile-sheet .TextInput__Label-sc-abdg41-1,
+  .bk-addr-mobile-sheet .ioloWN {
+    color: #9c9c9c;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 17px;
+    left: 12px;
+    top: 15px;
+  }
+
+  .bk-addr-mobile-sheet .cNThDN > input:focus ~ .ioloWN,
+  .bk-addr-mobile-sheet .cNThDN > textarea:focus ~ .ioloWN,
+  .bk-addr-mobile-sheet .cNThDN > input:not(:placeholder-shown) ~ .ioloWN,
+  .bk-addr-mobile-sheet .cNThDN > textarea:not(:placeholder-shown) ~ .ioloWN,
+  .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > input:focus ~ .TextInput__Label-sc-abdg41-1,
+  .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > textarea:focus ~ .TextInput__Label-sc-abdg41-1,
+  .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > input:not(:placeholder-shown) ~ .TextInput__Label-sc-abdg41-1,
+  .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > textarea:not(:placeholder-shown) ~ .TextInput__Label-sc-abdg41-1 {
+    top: -8px;
+    left: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 14px;
+    color: #9c9c9c;
+    background-color: #fff;
+    padding: 0 2px;
+  }
+
+  .bk-addr-mobile-sheet .cNThDN > input:disabled ~ .ioloWN,
+  .bk-addr-mobile-sheet .cNThDN > textarea:disabled ~ .ioloWN {
+    top: -8px;
+    left: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #9c9c9c;
+    background-color: transparent;
+    padding: 0 2px;
+  }
+
+  .bk-addr-mobile-sheet .TextInput__CrossIconWrapper-sc-abdg41-2,
+  .bk-addr-mobile-sheet .edUfUb {
+    width: 14px;
+    height: 14px;
+    right: 12px;
+    background-color: #b8b8b8;
+  }
+
+  .bk-addr-mobile-sheet .edUfUb svg {
+    width: 7px;
+    height: 7px;
+  }
+
+  .bk-addr-mobile-sheet .StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1,
+  .bk-addr-mobile-sheet .jBTrwA {
+    height: 48px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 18px;
+  }
+
+  .bk-addr-mobile-sheet .gzMuRY > div {
+    margin: 10px 16px 14px !important;
+  }
 }

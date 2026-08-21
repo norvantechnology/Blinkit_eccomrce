@@ -145,8 +145,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
 
   return (
     <div
-      className="modal-overlay--login ReactModal__Overlay ReactModal__Overlay--after-open"
-      onClick={dismissLogin}
+      className="modal-overlay--login ReactModal__Overlay ReactModal__Overlay--after-open bk-dim-overlay"
       role="presentation"
     >
       <div
@@ -154,7 +153,6 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Blinkit: CustomFont + "&". We use wasabicons glyph "back" path (same icon set). */}
         <button type="button" className="LoginModal__BackIcon" onClick={handleChromeBack} aria-label="Back">

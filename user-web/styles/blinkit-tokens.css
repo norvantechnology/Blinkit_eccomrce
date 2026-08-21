@@ -15,7 +15,8 @@
   --bk-search-bg: #F8F8F8;
   --bk-search-border: #E8E8E8;
   --bk-header-hover: #FCFCFC;
-  --bk-overlay-login: rgba(0,0,0,0.7);
+  --bk-overlay-login: rgba(50, 50, 50, 0.7);
+  --bk-overlay-dim: rgba(50, 50, 50, 0.7);
   --bk-footer-band: #FBFBFB;
   --bk-disabled: #9C9C9C;
   --bk-input-border: #CCCCCC;
@@ -55,5 +56,197 @@
   --bk-pad-input: 15px 20px 15px 50px;
   --bk-pad-links: 12px 0;
   --bk-pad-form-x: 24px;
+}
+
+/* Shared Blinkit disable / dim backdrop — all layers */
+.bk-dim-overlay,
+.bk-loc-overlay,
+.LocationDropDown__LocationOverlay-sc-bx29pc-1,
+.bk-loc-action__scrim,
+.bk-loc-confirm-layer__scrim,
+.bk-addr-overlay,
+.ReactModal__Overlay.bk-addr-overlay,
+.bk-addr-mobile-dim,
+.header__overlay,
+.modal-overlay--login,
+.ReactModal__Overlay--login {
+  background-color: rgba(50, 50, 50, 0.7) !important;
+  cursor: default;
+  pointer-events: auto;
+}
+
+/* —— Lightweight popup / modal motion (fast + smooth) —— */
+:root {
+  --bk-anim-fast: 0.16s;
+  --bk-anim-panel: 0.2s;
+  --bk-anim-sheet: 0.22s;
+  --bk-anim-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes bk-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bk-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bk-center-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px)) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes bk-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bk-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Overlays — quick fade */
+.bk-dim-overlay,
+.bk-loc-overlay,
+.LocationDropDown__LocationOverlay-sc-bx29pc-1,
+.bk-loc-action__scrim,
+.bk-loc-confirm-layer__scrim,
+.bk-addr-overlay,
+.ReactModal__Overlay.bk-addr-overlay,
+.bk-addr-mobile-dim,
+.header__overlay,
+.modal-overlay--login,
+.ReactModal__Overlay--login {
+  animation: bk-fade-in var(--bk-anim-fast) ease-out both;
+}
+
+/* Desktop centered panels */
+.modal-content--login,
+.styles__ModalContainer-sc-cc1wzf-0,
+.kDsHLL {
+  animation: bk-center-in var(--bk-anim-panel) var(--bk-anim-ease) both;
+}
+
+/* Desktop location panel (top/left positioned) */
+.containers__DesktopContainer-sc-95cgcs-0,
+.hAbKnj {
+  animation: bk-pop-in var(--bk-anim-panel) var(--bk-anim-ease) both;
+}
+
+/* Mobile bottom sheets */
+.bk-loc-mobile-root .modal-content.mobile-content__bottomSheet.LocationModal,
+.bk-addr-mobile-sheet,
+.bk-loc-action__sheet {
+  animation: bk-sheet-in var(--bk-anim-sheet) var(--bk-anim-ease) both;
+}
+
+/* Confirm / small cards */
+.bk-loc-confirm-layer .bk-loc-confirm__card {
+  animation: bk-pop-in var(--bk-anim-panel) var(--bk-anim-ease) both;
+}
+
+/* Account dropdown */
+.account-dropdown--container {
+  animation: bk-dropdown-in var(--bk-anim-fast) var(--bk-anim-ease) both;
+}
+
+/* Address mobile card + form dim */
+.bk-addr-mobile-card {
+  animation: bk-fade-in var(--bk-anim-fast) ease-out both;
+}
+
+.bk-addr-mobile-map-dim {
+  animation: bk-fade-in var(--bk-anim-fast) ease-out both;
+}
+
+/* Utility classes for ad-hoc modals (settings, etc.) */
+.bk-anim-overlay {
+  animation: bk-fade-in var(--bk-anim-fast) ease-out both;
+}
+
+.bk-anim-panel {
+  animation: bk-pop-in var(--bk-anim-panel) var(--bk-anim-ease) both;
+}
+
+.bk-anim-sheet {
+  animation: bk-sheet-in var(--bk-anim-sheet) var(--bk-anim-ease) both;
+}
+
+@media screen and (max-width: 1020px) {
+  /* Full-screen shells: fade only (no center transform) */
+  .modal-content--login,
+  .styles__ModalContainer-sc-cc1wzf-0,
+  .kDsHLL,
+  .bk-addr-mobile-card {
+    animation: bk-fade-in var(--bk-anim-fast) ease-out both;
+  }
+
+  /* Login mobile has white full-page overlay — still fade soft */
+  .modal-overlay--login,
+  .ReactModal__Overlay--login {
+    animation: bk-fade-in var(--bk-anim-fast) ease-out both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bk-dim-overlay,
+  .bk-loc-overlay,
+  .LocationDropDown__LocationOverlay-sc-bx29pc-1,
+  .bk-loc-action__scrim,
+  .bk-loc-confirm-layer__scrim,
+  .bk-addr-overlay,
+  .ReactModal__Overlay.bk-addr-overlay,
+  .bk-addr-mobile-dim,
+  .header__overlay,
+  .modal-overlay--login,
+  .ReactModal__Overlay--login,
+  .modal-content--login,
+  .styles__ModalContainer-sc-cc1wzf-0,
+  .kDsHLL,
+  .containers__DesktopContainer-sc-95cgcs-0,
+  .hAbKnj,
+  .bk-loc-mobile-root .modal-content.mobile-content__bottomSheet.LocationModal,
+  .bk-addr-mobile-sheet,
+  .bk-loc-action__sheet,
+  .bk-loc-confirm-layer .bk-loc-confirm__card,
+  .account-dropdown--container,
+  .bk-addr-mobile-card,
+  .bk-addr-mobile-map-dim,
+  .bk-anim-overlay,
+  .bk-anim-panel,
+  .bk-anim-sheet {
+    animation: none !important;
+  }
 }
 

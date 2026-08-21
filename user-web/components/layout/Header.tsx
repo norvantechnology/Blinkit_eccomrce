@@ -34,11 +34,10 @@ export function Header() {
       )}
     >
       {accountDropdownOpen ? (
-        <button
-          type="button"
-          className="header__overlay"
-          aria-label="Close account menu"
-          onClick={() => setAccountDropdownOpen(false)}
+        <div
+          className="header__overlay bk-dim-overlay"
+          style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
+          aria-hidden="true"
         />
       ) : null}
 
@@ -114,7 +113,7 @@ function MobileAccountChrome() {
         className="flex h-[68px] w-11 shrink-0 items-center justify-center"
         aria-label="Back"
       >
-        <BlinkitIcon name="back" size={20} />
+        <BlinkitIcon name="back" size={14} />
       </button>
       <LocationBar className="bk-location--flush flex-1" />
       <Link
@@ -123,7 +122,7 @@ function MobileAccountChrome() {
         className="flex h-[68px] w-11 shrink-0 items-center justify-center"
         aria-label="Home search"
       >
-        <BlinkitIcon name="search" size={20} />
+        <BlinkitIcon name="search" size={16} />
       </Link>
     </>
   );
