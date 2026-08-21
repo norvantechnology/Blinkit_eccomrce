@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState, type InputHTMLAtt
 import { createPortal } from 'react-dom';
 import { blinkitTokens } from '@/lib/design-tokens';
 import { getApiErrorMessage } from '@/lib/auth';
+import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
 import { useAuthStore } from '@/store/authStore';
 import { useLocationStore } from '@/store/locationStore';
 import {
@@ -146,10 +147,8 @@ function FloatingField({
 export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const user = useAuthStore((s) => s.user);
   const headerLocation = useLocationStore((s) => s.location);
-  /** Do not use history.back() — opening via ?edit= would reopen the modal. */
-  const dismiss = useCallback(() => {
-    onClose();
-  }, [onClose]);
+  /** Browser back closes the modal; query params are stripped on open so it won't reopen. */
+  const { dismiss } = useCloseOnPopstate(open, onClose);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [step, setStep] = useState<'map' | 'form'>('map');
@@ -616,10 +615,12 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   if (isMobile) {
     return createPortal(
       <div className="bk-addr-mobile-root" role="dialog" aria-modal="true">
-        <div
+        <button
+          type="button"
           className="bk-addr-mobile-dim bk-dim-overlay"
           style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
-          aria-hidden="true"
+          aria-label="Dismiss"
+          onClick={() => (step === 'form' ? setStep('map') : dismiss())}
         />
         <div className={`bk-addr-mobile-card${step === 'form' ? ' bk-addr-mobile-card--form' : ''}`}>
           <div className="bk-addr-mobile-map">
@@ -645,7 +646,14 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
             {locationSelect}
             {mapBlock}
             {step === 'map' ? locationInfo : null}
-            {step === 'form' ? <div className="bk-addr-mobile-map-dim" aria-hidden /> : null}
+            {step === 'form' ? (
+              <button
+                type="button"
+                className="bk-addr-mobile-map-dim"
+                aria-label="Close address form"
+                onClick={() => setStep('map')}
+              />
+            ) : null}
           </div>
           {step === 'form' ? (
             <div className="bk-addr-mobile-sheet">
@@ -676,12 +684,14 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       className="ReactModal__Overlay ReactModal__Overlay--after-open bk-addr-overlay bk-dim-overlay"
       style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
       role="presentation"
+      onClick={dismiss}
     >
       <div
         className="ReactModal__Content ReactModal__Content--after-open styles__ModalContainer-sc-cc1wzf-0 kDsHLL"
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="styles__MapSection-sc-cc1wzf-12 fTrOuF">
           {locationSelect}

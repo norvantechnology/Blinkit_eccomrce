@@ -32,11 +32,18 @@ export function ProfileButton({ className }: { className?: string }) {
 
   useEffect(() => {
     if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest?.('.header__overlay')) return;
+      if (!ref.current?.contains(e.target as Node)) setAccountDropdownOpen(false);
+    };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setAccountDropdownOpen(false);
     };
+    document.addEventListener('mousedown', onDoc);
     document.addEventListener('keydown', onKey);
     return () => {
+      document.removeEventListener('mousedown', onDoc);
       document.removeEventListener('keydown', onKey);
     };
   }, [open, setAccountDropdownOpen]);

@@ -68,7 +68,7 @@ function AddressesPageContent() {
     void load();
   }, [load]);
 
-  /** Deep-link from Change Location edit/add → open Enter complete address modal */
+  /** Deep-link from Change Location edit/add → open modal, then strip query so Back won't reopen it */
   useEffect(() => {
     const editId = searchParams.get('edit');
     const add = searchParams.get('add');
@@ -93,6 +93,7 @@ function AddressesPageContent() {
         if (found) {
           setEditing(found);
           setModalOpen(true);
+          clearAddressQuery();
         } else {
           clearAddressQuery();
         }
@@ -101,6 +102,7 @@ function AddressesPageContent() {
 
       setEditing(null);
       setModalOpen(true);
+      clearAddressQuery();
     })();
 
     return () => {

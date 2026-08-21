@@ -66,7 +66,7 @@ export function LocationPickerSheet() {
     setDeleteTarget(null);
   }, [setOpen]);
 
-  const dismiss = useCloseOnPopstate(open, close);
+  const { dismiss, dismissThen } = useCloseOnPopstate(open, close);
 
   const reloadSaved = useCallback(async () => {
     if (!user) {
@@ -184,12 +184,14 @@ export function LocationPickerSheet() {
 
   const goAddAddress = () => {
     if (!user) {
-      close();
-      router.replace('/login?redirect=/account/addresses?add=1');
+      dismissThen(() => {
+        router.replace('/login?redirect=/account/addresses?add=1');
+      });
       return;
     }
-    // Keep Change Location open behind (Blinkit); open form on account page
-    router.push('/account/addresses?add=1');
+    dismissThen(() => {
+      router.push('/account/addresses?add=1');
+    });
   };
 
   const deleteAddress = (e: MouseEvent, addr: Address) => {
@@ -231,16 +233,19 @@ export function LocationPickerSheet() {
     }
   };
 
-  /** Edit → account addresses + Enter complete address modal (location popup stays behind). */
+  /** Edit → close location sheet cleanly, then open address modal on account page */
   const editAddress = (e: MouseEvent, addr: Address) => {
     e.stopPropagation();
     closeAddressMenu();
     if (!user) {
-      close();
-      router.replace(`/login?redirect=/account/addresses?edit=${encodeURIComponent(addr.id)}`);
+      dismissThen(() => {
+        router.replace(`/login?redirect=/account/addresses?edit=${encodeURIComponent(addr.id)}`);
+      });
       return;
     }
-    router.push(`/account/addresses?edit=${encodeURIComponent(addr.id)}`);
+    dismissThen(() => {
+      router.push(`/account/addresses?edit=${encodeURIComponent(addr.id)}`);
+    });
   };
 
   if (!open || !mounted) return null;
@@ -490,10 +495,12 @@ export function LocationPickerSheet() {
 
   const desktopPanel = (
     <div className="bk-loc-desktop" style={{ position: 'fixed', inset: 0, zIndex: 2002 }}>
-      <div
+      <button
+        type="button"
         className="LocationDropDown__LocationOverlay-sc-bx29pc-1 bk-loc-overlay bk-dim-overlay"
         style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
-        aria-hidden="true"
+        aria-label="Dismiss"
+        onClick={dismiss}
       />
       <div
         className="containers__DesktopContainer-sc-95cgcs-0 hAbKnj"
@@ -570,10 +577,12 @@ export function LocationPickerSheet() {
   /* Mobile — Blinkit LocationModal DOM parity */
   const mobilePanel = (
     <div className="bk-loc-mobile-root">
-      <div
+      <button
+        type="button"
         className="LocationDropDown__LocationOverlay-sc-bx29pc-1 bk-loc-overlay bk-dim-overlay"
         style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
-        aria-hidden="true"
+        aria-label="Dismiss"
+        onClick={dismiss}
       />
       <div
         className="ReactModal__Content ReactModal__Content--after-open containers__MobileContainer-sc-95cgcs-1 hzvHjC modal-content mobile-content__bottomSheet LocationModal animation--delay-popup animation--enter-done"
@@ -680,10 +689,12 @@ export function LocationPickerSheet() {
 
   const deleteConfirmModal = showDeleteConfirm ? (
     <div className="bk-loc-confirm-layer" role="alertdialog" aria-modal="true">
-        <div
+        <button
+          type="button"
           className="bk-loc-confirm-layer__scrim bk-dim-overlay"
           style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
-          aria-hidden="true"
+          aria-label="Dismiss"
+          onClick={closeDeleteConfirm}
         />
       <div className="bk-loc-confirm__card">
         <p className="bk-loc-confirm__text">Are you sure you want to delete this address?</p>
@@ -706,10 +717,12 @@ export function LocationPickerSheet() {
   const addressActionSheet =
     menuAddr != null ? (
       <div className="bk-loc-action" role="presentation">
-        <div
+        <button
+          type="button"
           className="bk-loc-action__scrim bk-dim-overlay"
           style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
-          aria-hidden="true"
+          aria-label="Dismiss"
+          onClick={closeAddressMenu}
         />
         <div className="bk-loc-action__sheet">
           <div className="bk-loc-action__group">

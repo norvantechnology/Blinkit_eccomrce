@@ -34,10 +34,12 @@ export function Header() {
       )}
     >
       {accountDropdownOpen ? (
-        <div
+        <button
+          type="button"
           className="header__overlay bk-dim-overlay"
           style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
-          aria-hidden="true"
+          aria-label="Close account menu"
+          onClick={() => setAccountDropdownOpen(false)}
         />
       ) : null}
 
@@ -95,7 +97,12 @@ function MobileAccountChrome() {
 
   const back = () => {
     if (pathname === '/account' || pathname === '/account/') {
-      router.replace('/');
+      router.push('/');
+      return;
+    }
+    // Prefer real browser history so nested account pages return correctly
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
       return;
     }
     if (pathname.startsWith('/account/profile')) {
