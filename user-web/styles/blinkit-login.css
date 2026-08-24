@@ -141,6 +141,46 @@
   margin: auto;
   width: auto;
   border-radius: 3px;
+  position: relative;
+}
+
+/* Blinkit .login__lottie — product animation (mobile only) */
+.login__lottie {
+  display: none;
+}
+
+@media screen and (max-width: 1020px) {
+  .login__lottie {
+    display: block;
+    height: 50%;
+    width: 100%;
+    overflow: hidden;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+
+  .login__lottie > div,
+  .login__lottie svg {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .login__lottie--placeholder {
+    background: linear-gradient(180deg, #f4f4f4 0%, #ffffff 100%);
+  }
+
+  .LoginSteps__LoginWrapper.login,
+  .login.center-aligned {
+    height: 100%;
+  }
+
+  .login__body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 .login a:hover {
@@ -416,8 +456,11 @@
 }
 
 @media screen and (max-width: 1020px) {
+  .modal-content--login .PhoneNumberLogin__LoginButton,
   .PhoneNumberLogin__LoginButton {
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box !important;
   }
 }
 
@@ -869,8 +912,9 @@
     height: 100%;
   }
 
+  /* Form sheet sits under Lottie; keep Blinkit mobile pad (not 56px) */
   .PhoneNumberLogin__LoginContainer {
-    padding-top: 56px;
+    padding-top: 10px;
   }
 
   /* Mobile: keep resend slightly tighter under Verify button */

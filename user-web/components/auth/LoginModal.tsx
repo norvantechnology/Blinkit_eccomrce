@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { formatPhoneForApi, cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n/useI18n';
 import { OtpInput } from '@/components/auth/OtpInput';
+import { LoginLottie } from '@/components/auth/LoginLottie';
 import '@/styles/blinkit-login.css';
 
 type Step = 'phone' | 'otp' | 'profile';
@@ -174,6 +175,8 @@ export function LoginModal({ redirectTo = '/account/addresses', onCloseHref = '/
 
         <div className="LoginSteps__LoginWrapper login center-aligned">
           <div className="login__body">
+            {/* Mobile only: Blinkit product Lottie above the sheet */}
+            <LoginLottie />
             {step === 'phone' && (
               <div className="PhoneNumberLogin__LoginContainer">
                 <div className="PhoneNumberLogin__ImageContainer">
