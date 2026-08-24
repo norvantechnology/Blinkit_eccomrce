@@ -6,7 +6,9 @@ const findLatestOtp = ({ phone, email } = {}, purpose = OTP_PURPOSE.LOGIN) => {
 
   return prisma.otpVerification.findFirst({
     where: {
-      ...(phone ? { phone } : { email }),
+      ...(phone
+        ? { phone }
+        : { email: { equals: email, mode: 'insensitive' } }),
       purpose,
       verifiedAt: null,
       expiresAt: { gt: new Date() },
@@ -39,7 +41,10 @@ const findUserByPhone = (phone) => {
 
 const findUserByEmail = (email) => {
   return prisma.user.findFirst({
-    where: { email, deletedAt: null },
+    where: {
+      email: { equals: email, mode: 'insensitive' },
+      deletedAt: null,
+    },
   });
 };
 

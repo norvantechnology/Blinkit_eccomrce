@@ -4,6 +4,10 @@ const { loadSecrets } = require('./config/loadSecrets');
 const start = async () => {
   await loadSecrets();
 
+  // Sync schema gaps (email OTP) before serving traffic
+  const { ensureEmailAuthSchema } = require('./database/prisma/ensureEmailAuthSchema');
+  await ensureEmailAuthSchema();
+
   // Require after secrets so env.js / clients see populated process.env
   const app = require('./app');
   const env = require('./config/env');

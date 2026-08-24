@@ -135,10 +135,26 @@ const verifyOtp = async ({ phone, email, otp, deviceId = 'default', fcmToken, pl
   } else {
     user = await authRepository.findUserByEmail(normalizedEmail);
     if (!user) {
-      user = await authRepository.createUser({
-        email: normalizedEmail,
-        authProvider: AUTH_PROVIDER.EMAIL,
-      });
+      try {
+        user = await authRepository.createUser({
+          email: normalizedEmail,
+          authProvider: AUTH_PROVIDER.EMAIL,
+        });
+      } catch (err) {
+        // Schema may lack AuthProvider.email on older deploys — retry after clear message
+        if (/AuthProvider|invalid input value for enum/i.test(err.message || '')) {
+          throw new AppError(
+            'Email login is not ready on this server (database schema). Redeploy backend.',
+            503,
+          );
+        }
+        if (err.code === 'P2002') {
+          user = await authRepository.findUserByEmail(normalizedEmail);
+          if (!user) throw err;
+        } else {
+          throw err;
+        }
+      }
     }
   }
 

@@ -18,7 +18,20 @@ const errorHandler = (err, _req, res, _next) => {
     if (err.code === 'P1001' || err.code === 'P1000') {
       statusCode = 503;
       message = 'Database connection failed. Check DATABASE_URL and ensure PostgreSQL is running.';
+    } else if (err.code === 'P2002') {
+      statusCode = 409;
+      message = 'A record with this value already exists';
+    } else if (err.code === 'P2003' || err.code === 'P2011') {
+      statusCode = 400;
+      message = 'Invalid data for this request';
+    } else if (err.code === 'P2022') {
+      // Column does not exist — schema out of date
+      statusCode = 503;
+      message = 'Database schema is out of date. Please redeploy the API.';
     }
+  } else if (/invalid input value for enum/i.test(message) || /AuthProvider/i.test(message)) {
+    statusCode = 503;
+    message = 'Database schema is out of date (AuthProvider). Please redeploy the API.';
   } else if (message.includes('Authentication failed against database server')) {
     statusCode = 503;
     message = 'Database authentication failed. Check DATABASE_URL credentials.';
