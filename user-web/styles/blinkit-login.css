@@ -274,7 +274,7 @@
 
 /* —— Form —— */
 .login-form {
-  margin: 0 24px;
+  margin: 12px 24px 0;
   display: flex;
   flex-direction: column;
 }
@@ -284,6 +284,68 @@
     width: 80%;
     margin: 0 auto;
   }
+}
+
+.login-channel {
+  display: flex;
+  width: calc(100% - 48px);
+  margin: 16px 24px 0;
+  padding: 3px;
+  border-radius: 10px;
+  background: #f2f2f2;
+  box-sizing: border-box;
+}
+
+@media screen and (max-width: 1020px) {
+  .login-channel {
+    width: 80%;
+    margin: 16px auto 0;
+  }
+}
+
+.login-channel__btn {
+  flex: 1;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #666;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-channel__btn.is-active {
+  background: #fff;
+  color: #1c1c1c;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.login-email {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.login-email__input.input {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #1c1c1c;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  height: 48px;
+  outline: 0;
+  padding: 12px 14px;
+  width: 100%;
+}
+
+.login-email__input.input:focus,
+.login-email__input.input:focus-visible {
+  border-color: #666;
 }
 
 .login-phone {
@@ -631,7 +693,8 @@
   font-weight: 600;
   font-family: Okra, Helvetica, sans-serif;
   text-align: center;
-  width: 10%;
+  width: 42px;
+  flex: 0 0 42px;
   padding: 16px 8px;
   outline: 0;
   margin: 0;
@@ -652,13 +715,6 @@
   /* Soft focus — thin dark border, not bold/thick */
   border: 1px solid #666666 !important;
   box-shadow: none !important;
-}
-
-@media screen and (min-width: 1020px) {
-  .otp__input.input,
-  .otp__input {
-    width: 42px;
-  }
 }
 
 .otp__input--error,
@@ -721,79 +777,143 @@
   margin-top: 18px;
 }
 
-/* —— Desktop OTP (≥1020) — match Blinkit laptop screenshot —— */
+/* Blinkit OTP screen — same on mobile + laptop */
+.LoginModal__BackIcon.OtpVerification__BackIcon {
+  left: 8px;
+  top: 10px;
+  padding: 6px 8px;
+  z-index: 1;
+  background-color: transparent;
+}
+
+.modal-content--login .login-otp-step {
+  position: relative;
+  padding: 0 0 47px;
+  width: 570px;
+  max-width: 100%;
+  min-height: 0;
+  height: auto;
+  align-items: stretch;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.modal-content--login .login-otp-step .otp-text {
+  display: block;
+  padding: 16px 0 14px;
+  margin: 0;
+  box-shadow: none;
+  border-bottom: 1px solid #eeeeee;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #333;
+  text-align: center;
+  letter-spacing: normal;
+}
+
+.modal-content--login .login-otp-step .otp-msg {
+  font-size: 12px;
+  padding: 28px 24px 0;
+  line-height: 1.6;
+  color: #333333;
+  text-align: center;
+}
+
+.modal-content--login .login-otp-step .otp-msg__label {
+  display: block;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #333333;
+  font-weight: 400;
+}
+
+.modal-content--login .login-otp-step .otp-msg__phone {
+  display: block;
+  margin-top: 2px;
+  text-align: center;
+}
+
+.modal-content--login .login-otp-step .otp-msg .login-help__phone {
+  display: inline;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #333;
+}
+
+.modal-content--login .login-otp-step .otp-block {
+  margin: 0 24px;
+  width: auto;
+  align-items: center;
+}
+
+.modal-content--login .login-otp-step .otp {
+  margin-top: 24px;
+  max-width: none;
+  width: auto;
+}
+
+.modal-content--login .login-otp-step .otp-input-container {
+  gap: 10px;
+  justify-content: center;
+}
+
+.modal-content--login .login-otp-step .otp__input,
+.modal-content--login .login-otp-step .otp__input.input {
+  width: 42px;
+  flex: 0 0 42px;
+  height: auto;
+  padding: 16px 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  font-weight: 600;
+  box-sizing: border-box;
+  outline: 0;
+}
+
+.modal-content--login .login-otp-step .otp-resend {
+  padding: 24px 0 16px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.modal-content--login .login-otp-step .otp-resend.is-ready,
+.modal-content--login .login-otp-step .otp-resend--enabled {
+  color: #0c831f;
+}
+
+.modal-content--login .login-otp-step .otp-resend--disabled {
+  color: #ccc;
+}
+
+.modal-content--login .login-otp-step .modal-error {
+  display: block;
+  background-color: #fff5f5;
+  border-radius: 3px;
+  bottom: 0;
+  color: #f34343;
+  font-size: 12px;
+  left: 0;
+  padding: 14px 0;
+  position: absolute;
+  text-align: center;
+  width: 100%;
+  z-index: 1;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
 @media screen and (min-width: 1020px) {
-  /* Same small back icon as phone login screen */
   .LoginModal__BackIcon.OtpVerification__BackIcon {
     left: 15px;
     top: 15px;
-    padding: 6px 8px;
-    font-size: 14px;
-    z-index: 1;
-    background-color: transparent;
   }
 
   .LoginModal__BackIcon.OtpVerification__BackIcon svg {
     width: 14px;
     height: 11px;
-  }
-
-  /* Compact but with breathing room above + below Resend */
-  .modal-content--login .login-otp-step {
-    position: relative;
-    padding: 0 0 47px;
-    width: 570px;
-    min-height: 0;
-    height: auto;
-    align-items: stretch;
-    box-sizing: border-box;
-  }
-
-  /* Title + full-width hairline (Blinkit .login-head / .otp-text) */
-  .modal-content--login .login-otp-step .otp-text {
-    display: block;
-    padding: 16px 0 14px;
-    margin: 0;
-    box-shadow: none;
-    border-bottom: 1px solid #eeeeee;
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 1.6;
-    color: #333;
-    text-align: center;
-    letter-spacing: normal;
-  }
-
-  /* More space above the message block (under the title line) */
-  .modal-content--login .login-otp-step .otp-msg {
-    font-size: 12px;
-    padding: 28px 24px 0;
-    line-height: 1.6;
-    color: #333333;
-    text-align: center;
-  }
-
-  .modal-content--login .login-otp-step .otp-msg__label {
-    display: block;
-    font-size: 12px;
-    line-height: 1.6;
-    color: #333333;
-    font-weight: 400;
-  }
-
-  .modal-content--login .login-otp-step .otp-msg__phone {
-    display: block;
-    margin-top: 2px;
-    text-align: center;
-  }
-
-  .modal-content--login .login-otp-step .otp-msg .login-help__phone {
-    display: inline;
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.6;
-    color: #333;
   }
 
   .otp-only-desktop {
@@ -802,77 +922,6 @@
 
   .otp-only-mobile {
     display: none !important;
-  }
-
-  .modal-content--login .login-otp-step .otp-block {
-    margin: 0 24px;
-    width: auto;
-    align-items: center;
-  }
-
-  .modal-content--login .login-otp-step .otp {
-    margin-top: 24px;
-    max-width: none;
-    width: auto;
-  }
-
-  .modal-content--login .login-otp-step .otp-input-container {
-    gap: 10px;
-  }
-
-  .modal-content--login .login-otp-step .otp__input,
-  .modal-content--login .login-otp-step .otp__input.input {
-    width: 42px;
-    height: auto;
-    padding: 16px 8px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-    font-weight: 600;
-    box-sizing: border-box;
-    outline: 0;
-  }
-
-  .modal-content--login .login-otp-step .otp__input:focus,
-  .modal-content--login .login-otp-step .otp__input:focus-visible,
-  .modal-content--login .login-otp-step .otp__input.input:focus,
-  .modal-content--login .login-otp-step .otp__input.input:focus-visible {
-    outline: 0 !important;
-    border: 1px solid #666666 !important;
-    box-shadow: none !important;
-  }
-
-  /* Extra space above + below Resend */
-  .modal-content--login .login-otp-step .otp-resend {
-    padding: 28px 0 16px;
-    font-size: 14px;
-    color: #ccc;
-  }
-
-  .modal-content--login .login-otp-step .otp-resend.is-ready,
-  .modal-content--login .login-otp-step .otp-resend--enabled {
-    color: #0c831f;
-  }
-
-  .modal-content--login .login-otp-step .otp-resend--disabled {
-    color: #ccc;
-  }
-
-  /* Blinkit .modal-error — pink bar at bottom of modal */
-  .modal-content--login .login-otp-step .modal-error.otp-only-desktop {
-    display: block !important;
-    background-color: #fff5f5;
-    border-radius: 3px;
-    bottom: 0;
-    color: #f34343;
-    font-size: 12px;
-    left: 0;
-    padding: 14px 0;
-    position: absolute;
-    text-align: center;
-    width: 100%;
-    z-index: 1;
-    font-family: Okra, Helvetica, sans-serif;
   }
 }
 
@@ -884,64 +933,15 @@
     padding-right: 20px;
   }
 
-  /* OTP boxes: fill form row (same ~80% as phone field), shrink on narrow screens */
-  .modal-content--login .login-otp-step .otp-block {
-    width: 80%;
-    max-width: 360px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .modal-content--login .login-otp-step .otp {
+  .modal-content--login .login-otp-step {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    max-width: none;
-    margin-top: 24px;
-  }
-
-  .modal-content--login .login-otp-step .otp-input-container {
-    width: 100%;
-    gap: clamp(6px, 2vw, 10px);
-  }
-
-  .modal-content--login .login-otp-step .otp__input,
-  .modal-content--login .login-otp-step .otp__input.input {
-    flex: 1 1 0;
-    width: auto;
-    min-width: 0;
-    max-width: none;
-    height: auto;
-    aspect-ratio: 1 / 1;
+    height: 100%;
     padding: 0;
-    font-size: clamp(16px, 4.5vw, 20px);
-    font-weight: 600;
-    border-radius: 8px;
-    box-sizing: border-box;
-  }
-
-  /* Mobile title stays large (previous look) */
-  .modal-content--login .login-otp-step .otp-text {
-    box-shadow: none;
-    border-bottom: none;
-    padding: 0;
-    font-size: 24px;
-    font-weight: 800;
-    line-height: normal;
-    color: #333;
-    letter-spacing: normal;
-  }
-
-  .modal-content--login .login-otp-step .otp-msg {
-    padding-top: 8px;
-    font-size: 16px;
-  }
-
-  .modal-content--login .login-otp-step .otp-msg__label {
-    display: inline;
-    font-size: 16px;
-  }
-
-  .modal-content--login .login-otp-step .otp-msg__phone {
-    display: inline;
+    padding-left: 0;
+    padding-right: 0;
+    z-index: 3;
   }
 
   .LoginSteps__LoginWrapper,
@@ -953,10 +953,5 @@
   /* Form sheet sits under Lottie; keep Blinkit mobile pad (not 56px) */
   .PhoneNumberLogin__LoginContainer {
     padding-top: 10px;
-  }
-
-  /* Mobile: keep resend slightly tighter under Verify button */
-  .modal-content--login .login-otp-step .otp-resend {
-    padding: 24px 0 0;
   }
 }

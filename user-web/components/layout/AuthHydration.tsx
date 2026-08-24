@@ -4,13 +4,15 @@ import { useEffect } from 'react';
 import { getStoredUser, isAuthenticated, clearSession, setStoredUser } from '@/lib/auth';
 import { ensureValidAccessToken } from '@/lib/token-refresh';
 import { useAuthStore } from '@/store/authStore';
+import { useLocaleStore } from '@/store/localeStore';
 import { usersService } from '@/services/users.service';
 import { normalizeLocale } from '@/lib/i18n/messages';
-import { setStoredLocale } from '@/lib/i18n/useI18n';
+import { getStoredLocale, setStoredLocale } from '@/lib/i18n/useI18n';
 
 export function AuthHydration({ children }: { children: React.ReactNode }) {
   const setUser = useAuthStore((s) => s.setUser);
   const setHydrated = useAuthStore((s) => s.setHydrated);
+  const setLocale = useLocaleStore((s) => s.setLocale);
 
   useEffect(() => {
     let cancelled = false;
@@ -20,7 +22,13 @@ export function AuthHydration({ children }: { children: React.ReactNode }) {
         const stored = getStoredUser();
         if (stored) {
           setUser(stored);
-          setStoredLocale(normalizeLocale(stored.languagePref));
+          const loc = normalizeLocale(stored.languagePref || getStoredLocale());
+          setStoredLocale(loc);
+          setLocale(loc);
+        } else {
+          const loc = getStoredLocale();
+          setStoredLocale(loc);
+          setLocale(loc);
         }
 
         if (isAuthenticated()) {
@@ -34,7 +42,9 @@ export function AuthHydration({ children }: { children: React.ReactNode }) {
               if (!cancelled) {
                 setUser(me);
                 setStoredUser(me);
-                setStoredLocale(normalizeLocale(me.languagePref));
+                const loc = normalizeLocale(me.languagePref);
+                setStoredLocale(loc);
+                setLocale(loc);
               }
             } catch {
               /* keep stored user if offline / getMe fail */
@@ -49,7 +59,7 @@ export function AuthHydration({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [setUser, setHydrated]);
+  }, [setUser, setHydrated, setLocale]);
 
   return <>{children}</>;
 }

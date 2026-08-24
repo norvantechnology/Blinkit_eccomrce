@@ -142,15 +142,17 @@ function buildOpenApiSpec(req) {
       '/auth/otp/send': {
         post: {
           tags: ['Auth'],
-          summary: 'Send OTP to phone',
+          summary: 'Send OTP to phone or email',
           requestBody: {
             required: true,
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
-                  required: ['phone'],
-                  properties: { phone: { type: 'string', example: '+919999999999' } },
+                  properties: {
+                    phone: { type: 'string', example: '+919999999999' },
+                    email: { type: 'string', example: 'user@example.com' },
+                  },
                 },
               },
             },
@@ -161,16 +163,17 @@ function buildOpenApiSpec(req) {
       '/auth/otp/verify': {
         post: {
           tags: ['Auth'],
-          summary: 'Verify OTP and login/register',
+          summary: 'Verify OTP and login/register (phone or email)',
           requestBody: {
             required: true,
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
-                  required: ['phone', 'otp'],
+                  required: ['otp'],
                   properties: {
                     phone: { type: 'string' },
+                    email: { type: 'string' },
                     otp: { type: 'string' },
                     deviceId: { type: 'string' },
                   },
@@ -294,9 +297,29 @@ function buildOpenApiSpec(req) {
       '/auth/account': {
         delete: {
           tags: ['Auth'],
-          summary: 'Delete user account',
+          summary: 'Delete user account (OTP required)',
           security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['otp'],
+                  properties: { otp: { type: 'string', minLength: 6, maxLength: 6 } },
+                },
+              },
+            },
+          },
           responses: { 200: { description: 'Account deleted' } },
+        },
+      },
+      '/auth/account/delete-otp': {
+        post: {
+          tags: ['Auth'],
+          summary: 'Send OTP to confirm account deletion',
+          security: [{ bearerAuth: [] }],
+          responses: { 200: { description: 'OTP sent' } },
         },
       },
       '/auth/password': {

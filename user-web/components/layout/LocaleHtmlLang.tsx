@@ -1,18 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAuthStore } from '@/store/authStore';
-import { normalizeLocale } from '@/lib/i18n/messages';
-import { getStoredLocale, setStoredLocale } from '@/lib/i18n/useI18n';
+import { useLocaleStore } from '@/store/localeStore';
+import { setStoredLocale } from '@/lib/i18n/useI18n';
 
-/** Keeps <html lang="…"> in sync with user language preference. */
+/** Keeps <html lang="…"> in sync with the selected language. */
 export function LocaleHtmlLang() {
-  const user = useAuthStore((s) => s.user);
+  const locale = useLocaleStore((s) => s.locale);
 
   useEffect(() => {
-    const locale = normalizeLocale(user?.languagePref || getStoredLocale());
     setStoredLocale(locale);
-  }, [user?.languagePref]);
+  }, [locale]);
 
   return null;
 }

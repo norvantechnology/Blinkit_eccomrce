@@ -12,13 +12,19 @@ const isDev = process.env.NODE_ENV !== 'production';
 const otpSendLimiter = rateLimiter({
   max: isDev ? 30 : 3,
   windowSeconds: 600,
-  keyGenerator: (req) => `otp:send:${req.body.phone || req.ip}`,
+  keyGenerator: (req) => `otp:send:${req.body.phone || req.body.email || req.ip}`,
 });
 
 const otpVerifyLimiter = rateLimiter({
   max: isDev ? 50 : 10,
   windowSeconds: 600,
-  keyGenerator: (req) => `otp:verify:${req.body.phone || req.ip}`,
+  keyGenerator: (req) => `otp:verify:${req.body.phone || req.body.email || req.ip}`,
+});
+
+const deleteOtpLimiter = rateLimiter({
+  max: isDev ? 30 : 3,
+  windowSeconds: 600,
+  keyGenerator: (req) => `otp:delete:${req.user?.id || req.ip}`,
 });
 
 const authIpLimiter = rateLimiter({
@@ -83,7 +89,19 @@ router.post(
   authController.logout,
 );
 
-router.delete('/account', authenticate('user'), authController.deleteAccount);
+router.post(
+  '/account/delete-otp',
+  authenticate('user'),
+  deleteOtpLimiter,
+  authController.sendDeleteAccountOtp,
+);
+
+router.delete(
+  '/account',
+  authenticate('user'),
+  validateRequest(authValidator.deleteAccountSchema),
+  authController.deleteAccount,
+);
 
 router.post(
   '/password',

@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const authRepository = require('./auth.repository');
 const tokenService = require('./token.service');
 const smsProvider = require('../../integrations/sms-provider');
+const emailProvider = require('../../integrations/email-provider');
 const googleAuth = require('../../integrations/google-auth');
 const appleAuth = require('../../integrations/apple-auth');
 const { AppError } = require('../../utils/errors');
@@ -17,6 +18,8 @@ const generateOtp = () => {
   }
   return String(Math.floor(100000 + Math.random() * 900000));
 };
+
+const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
 
 const formatUserProfile = (user) => ({
   id: user.id,
@@ -44,30 +47,64 @@ const issueTokensForUser = async (user, { deviceId = 'default', fcmToken, platfo
   return { user: formatUserProfile(user), tokens };
 };
 
-const sendOtp = async ({ phone }) => {
+const sendOtp = async ({ phone, email, purpose = OTP_PURPOSE.LOGIN }) => {
+  const normalizedEmail = email ? normalizeEmail(email) : null;
+  if (!phone && !normalizedEmail) {
+    throw new AppError('Phone or email is required', 400);
+  }
+  if (phone && normalizedEmail) {
+    throw new AppError('Provide either phone or email', 400);
+  }
+
   const otp = generateOtp();
   const otpHash = await bcrypt.hash(otp, 10);
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
   await authRepository.createOtp({
-    phone,
+    phone: phone || null,
+    email: normalizedEmail,
     otpHash,
-    purpose: OTP_PURPOSE.LOGIN,
+    purpose,
     expiresAt,
   });
 
-  const delivery = await smsProvider.sendOtp(phone, otp);
+  const delivery = phone
+    ? await smsProvider.sendOtp(phone, otp)
+    : await emailProvider.sendOtpEmail(normalizedEmail, otp);
 
-  const payload = { message: 'If this phone number is valid, an OTP has been sent.' };
+  const channel = phone ? 'phone number' : 'email';
+  const payload = { message: `If this ${channel} is valid, an OTP has been sent.` };
   if (delivery?.staticOtp) {
     payload.staticOtp = true;
-    payload.otp = otp; // free/static mode only — never enable with paid SMS
+    payload.otp = otp; // free/static mode only — never enable with paid SMS/email
   }
   return payload;
 };
 
-const verifyOtp = async ({ phone, otp, deviceId = 'default', fcmToken, platform = 'web' }) => {
-  const record = await authRepository.findLatestOtp(phone, OTP_PURPOSE.LOGIN);
+const sendDeleteAccountOtp = async (userId) => {
+  const user = await authRepository.findUserById(userId);
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+  if (user.phone) {
+    return sendOtp({ phone: user.phone, purpose: OTP_PURPOSE.DELETE_ACCOUNT });
+  }
+  if (user.email) {
+    return sendOtp({ email: user.email, purpose: OTP_PURPOSE.DELETE_ACCOUNT });
+  }
+  throw new AppError('A phone number or email is required to delete your account', 400);
+};
+
+const verifyOtp = async ({ phone, email, otp, deviceId = 'default', fcmToken, platform = 'web' }) => {
+  const normalizedEmail = email ? normalizeEmail(email) : null;
+  if (!phone && !normalizedEmail) {
+    throw new AppError('Phone or email is required', 400);
+  }
+
+  const record = await authRepository.findLatestOtp(
+    { phone, email: normalizedEmail },
+    OTP_PURPOSE.LOGIN,
+  );
 
   if (!record) {
     throw new AppError('Invalid or expired OTP', 400);
@@ -86,13 +123,23 @@ const verifyOtp = async ({ phone, otp, deviceId = 'default', fcmToken, platform 
 
   await authRepository.markOtpVerified(record.id);
 
-  let user = await authRepository.findUserByPhone(phone);
-
-  if (!user) {
-    user = await authRepository.createUser({
-      phone,
-      authProvider: AUTH_PROVIDER.PHONE,
-    });
+  let user;
+  if (phone) {
+    user = await authRepository.findUserByPhone(phone);
+    if (!user) {
+      user = await authRepository.createUser({
+        phone,
+        authProvider: AUTH_PROVIDER.PHONE,
+      });
+    }
+  } else {
+    user = await authRepository.findUserByEmail(normalizedEmail);
+    if (!user) {
+      user = await authRepository.createUser({
+        email: normalizedEmail,
+        authProvider: AUTH_PROVIDER.EMAIL,
+      });
+    }
   }
 
   return issueTokensForUser(user, { deviceId, fcmToken, platform });
@@ -229,12 +276,36 @@ const logout = async (userId, deviceId = 'default') => {
   return { message: 'Logged out successfully' };
 };
 
-const deleteAccount = async (userId) => {
+const deleteAccount = async (userId, otp) => {
   const user = await authRepository.findUserById(userId);
   if (!user) {
     throw new AppError('User not found', 404);
   }
+  if (!user.phone && !user.email) {
+    throw new AppError('A phone number or email is required to delete your account', 400);
+  }
+  if (!otp) {
+    throw new AppError('OTP is required to delete your account', 400);
+  }
 
+  const record = await authRepository.findLatestOtp(
+    user.phone ? { phone: user.phone } : { email: user.email },
+    OTP_PURPOSE.DELETE_ACCOUNT,
+  );
+  if (!record) {
+    throw new AppError('Invalid or expired OTP', 400);
+  }
+  if (record.attempts >= MAX_OTP_ATTEMPTS) {
+    throw new AppError('Too many failed attempts. Please request a new OTP.', 429);
+  }
+
+  const valid = await bcrypt.compare(otp, record.otpHash);
+  if (!valid) {
+    await authRepository.incrementOtpAttempts(record.id, record.attempts + 1);
+    throw new AppError('Invalid OTP', 400);
+  }
+
+  await authRepository.markOtpVerified(record.id);
   await authRepository.revokeAllUserDevices(userId);
   await tokenService.revokeAllUserRefreshTokens(userId);
   await authRepository.softDeleteUser(userId);
@@ -250,6 +321,7 @@ const setPassword = async (userId, password) => {
 
 module.exports = {
   sendOtp,
+  sendDeleteAccountOtp,
   verifyOtp,
   loginWithGoogle,
   loginWithApple,

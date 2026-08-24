@@ -24,6 +24,9 @@ jest.mock('../src/integrations/email-provider', () => ({
     capturedResetTokens.push({ email, token });
     return { success: true, provider: 'mock' };
   }),
+  sendOtpEmail: jest.fn().mockImplementation(async (email, otp) => {
+    return { success: true, provider: 'static', staticOtp: true, otp };
+  }),
 }));
 
 const app = require('../src/app');
@@ -182,5 +185,57 @@ describe('RBAC authorization', () => {
 
     expect(res.status).toBe(403);
     expect(res.body.success).toBe(false);
+  });
+});
+
+describe('Auth email OTP flow', () => {
+  const TEST_EMAIL = 'otp-user@test.local';
+
+  it('POST /auth/otp/send email → verify → returns tokens and user', async () => {
+    const sendRes = await request(app)
+      .post('/api/v1/auth/otp/send')
+      .send({ email: TEST_EMAIL });
+
+    expect(sendRes.status).toBe(200);
+    expect(sendRes.body.success).toBe(true);
+
+    const verifyRes = await request(app)
+      .post('/api/v1/auth/otp/verify')
+      .send({ email: TEST_EMAIL, otp: TEST_OTP, deviceId: 'email-device' });
+
+    expect(verifyRes.status).toBe(200);
+    expect(verifyRes.body.success).toBe(true);
+    expect(verifyRes.body.data.tokens.accessToken).toBeDefined();
+    expect(verifyRes.body.data.user.email).toBe(TEST_EMAIL);
+  });
+});
+
+describe('Delete account OTP', () => {
+  const DELETE_PHONE = '+919999999998';
+
+  it('requires OTP to delete, then deletes after verify', async () => {
+    await request(app).post('/api/v1/auth/otp/send').send({ phone: DELETE_PHONE });
+    const verifyRes = await request(app)
+      .post('/api/v1/auth/otp/verify')
+      .send({ phone: DELETE_PHONE, otp: TEST_OTP, deviceId: 'delete-device' });
+    const token = verifyRes.body.data.tokens.accessToken;
+
+    const noOtp = await request(app)
+      .delete('/api/v1/auth/account')
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+    expect(noOtp.status).toBe(400);
+
+    const sendDel = await request(app)
+      .post('/api/v1/auth/account/delete-otp')
+      .set('Authorization', `Bearer ${token}`);
+    expect(sendDel.status).toBe(200);
+
+    const delRes = await request(app)
+      .delete('/api/v1/auth/account')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ otp: TEST_OTP });
+    expect(delRes.status).toBe(200);
+    expect(delRes.body.success).toBe(true);
   });
 });

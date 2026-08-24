@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import '@/styles/blinkit-iconfont.css';
 import '@/styles/blinkit-account.css';
 import '@/styles/blinkit-addresses.css';
+import '@/styles/blinkit-delete-account.css';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     if (hydrated && !user) {
-      router.replace(`/login?redirect=${encodeURIComponent(pathname || '/account')}`);
+      router.replace(`/login?redirect=/`);
     }
   }, [hydrated, user, router, pathname]);
 

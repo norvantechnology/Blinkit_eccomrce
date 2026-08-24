@@ -62,7 +62,7 @@ export async function ensureValidAccessToken(): Promise<boolean> {
 export function forceLogout() {
   clearSession();
   if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-    window.location.href = '/login';
+    window.location.href = '/login?redirect=/';
   }
 }
 

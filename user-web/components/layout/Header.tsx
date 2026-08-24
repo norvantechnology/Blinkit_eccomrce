@@ -8,6 +8,7 @@ import { LocationBar } from '@/components/layout/LocationBar';
 import { SearchBar } from '@/components/layout/SearchBar';
 import { ProfileButton } from '@/components/layout/ProfileButton';
 import { CartButton } from '@/components/layout/CartButton';
+import { LanguageSelect } from '@/components/layout/LanguageSelect';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,7 @@ import '@/styles/blinkit-chrome.css';
 export function Header() {
   const pathname = usePathname();
   const isAccount = pathname.startsWith('/account');
+  const hideAccountSearch = isAccount;
   const locationPickerOpen = useUiStore((s) => s.locationPickerOpen);
   const accountDropdownOpen = useUiStore((s) => s.accountDropdownOpen);
   const setAccountDropdownOpen = useUiStore((s) => s.setAccountDropdownOpen);
@@ -30,6 +32,7 @@ export function Header() {
         'bk-header',
         locationPickerOpen && 'bk-header--location-open',
         !locationPickerOpen && accountDropdownOpen && 'bk-header--dropdown-open',
+        hideAccountSearch && 'bk-header--no-search',
         !locationPickerOpen && !accountDropdownOpen && 'z-[1000]',
       )}
     >
@@ -49,7 +52,7 @@ export function Header() {
           <div className="bk-header__mobile-account">
             <MobileAccountChrome />
           </div>
-          <SearchBar />
+          {hideAccountSearch ? null : <SearchBar />}
         </div>
       )}
 
@@ -59,6 +62,7 @@ export function Header() {
           <div className="bk-header__mobile-top">
             <LocationBar />
             <div className="bk-header__right">
+              <LanguageSelect />
               <MobileProfileIcon />
             </div>
           </div>
@@ -75,6 +79,7 @@ export function Header() {
         </div>
         <SearchBar />
         <div className="bk-header__right">
+          <LanguageSelect />
           <ProfileButton />
           <div className="bk-divider-v bk-divider-v--right" aria-hidden />
           <CartButton />
@@ -89,7 +94,7 @@ function MobileProfileIcon() {
   const href = user ? '/account' : '/login?redirect=/';
   return (
     <Link href={href} className="bk-profile bk-profile--icon" aria-label="Account">
-      <BlinkitIcon name="profile" size={22} />
+      <BlinkitIcon name="profile" size={24} />
     </Link>
   );
 }
@@ -123,9 +128,10 @@ function MobileAccountChrome() {
         className="flex h-[68px] w-11 shrink-0 items-center justify-center"
         aria-label="Back"
       >
-        <BlinkitIcon name="back" size={14} />
+        <BlinkitIcon name="back" size={20} />
       </button>
       <LocationBar className="bk-location--flush flex-1" />
+      <LanguageSelect className="bk-lang--account" />
       <Link
         href="/"
         replace

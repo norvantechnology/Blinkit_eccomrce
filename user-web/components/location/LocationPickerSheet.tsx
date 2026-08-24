@@ -185,7 +185,7 @@ export function LocationPickerSheet() {
   const goAddAddress = () => {
     if (!user) {
       dismissThen(() => {
-        router.replace('/login?redirect=/account/addresses?add=1');
+        router.replace('/login');
       });
       return;
     }
@@ -239,7 +239,7 @@ export function LocationPickerSheet() {
     closeAddressMenu();
     if (!user) {
       dismissThen(() => {
-        router.replace(`/login?redirect=/account/addresses?edit=${encodeURIComponent(addr.id)}`);
+        router.replace('/login');
       });
       return;
     }

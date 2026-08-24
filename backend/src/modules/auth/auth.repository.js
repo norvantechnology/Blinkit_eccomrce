@@ -1,10 +1,12 @@
 const prisma = require('../../config/database');
 const { OTP_PURPOSE } = require('../../config/constants');
 
-const findLatestOtp = (phone, purpose = OTP_PURPOSE.LOGIN) => {
+const findLatestOtp = ({ phone, email } = {}, purpose = OTP_PURPOSE.LOGIN) => {
+  if (!phone && !email) return null;
+
   return prisma.otpVerification.findFirst({
     where: {
-      phone,
+      ...(phone ? { phone } : { email }),
       purpose,
       verifiedAt: null,
       expiresAt: { gt: new Date() },

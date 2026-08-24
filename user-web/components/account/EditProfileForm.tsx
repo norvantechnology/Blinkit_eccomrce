@@ -6,9 +6,7 @@ import { usersService } from '@/services/users.service';
 import { authService } from '@/services/auth.service';
 import { getApiErrorMessage, setStoredUser } from '@/lib/auth';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
-import { cn } from '@/lib/utils';
-import { useI18n, setStoredLocale } from '@/lib/i18n/useI18n';
-import type { Locale } from '@/lib/i18n/messages';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 type Props = {
   onSaved?: () => void;
@@ -17,13 +15,12 @@ type Props = {
 export function EditProfileForm({ onSaved }: Props) {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
-  const { t, locales } = useI18n();
+  const { t } = useI18n();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [languagePref, setLanguagePref] = useState<Locale>('en');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
@@ -33,7 +30,6 @@ export function EditProfileForm({ onSaved }: Props) {
     setName(user.name || '');
     setEmail(user.email || '');
     setAvatarUrl(user.avatarUrl || null);
-    setLanguagePref(user.languagePref === 'hi' ? 'hi' : 'en');
   }, [user]);
 
   if (!user) return null;
@@ -52,9 +48,7 @@ export function EditProfileForm({ onSaved }: Props) {
         name: name.trim(),
         ...(email.trim() ? { email: email.trim() } : {}),
         avatarUrl,
-        languagePref,
       });
-      setStoredLocale(languagePref);
 
       if (password.trim().length >= 6) {
         merged = await authService.setPassword(password.trim());
@@ -77,18 +71,14 @@ export function EditProfileForm({ onSaved }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[520px] lg:mx-0">
-      {error && (
-        <p className="mb-4 rounded-xl bg-red-50 px-3 py-2 text-[13px] text-red-600">{error}</p>
-      )}
-      {saved && !error && (
-        <p className="mb-4 rounded-xl bg-[#f0faf2] px-3 py-2 text-[13px] font-semibold text-[#0C831F]">
-          {t('settings.saved')}
-        </p>
-      )}
+    <form onSubmit={handleSubmit} className="bk-profile-edit__form">
+      {error ? <p className="bk-profile-edit__msg bk-profile-edit__msg--error">{error}</p> : null}
+      {saved && !error ? (
+        <p className="bk-profile-edit__msg bk-profile-edit__msg--ok">{t('settings.saved')}</p>
+      ) : null}
 
-      <section className="flex flex-col items-center border-b border-[#f0f0f0] pb-6 lg:items-start">
-        <p className="mb-3 w-full text-[13px] font-semibold text-[#1f1f1f]">{t('settings.photo')}</p>
+      <section className="bk-profile-edit__section">
+        <p className="bk-profile-edit__section-title">{t('settings.photo')}</p>
         <AvatarUpload
           value={avatarUrl}
           onUploaded={(file) => setAvatarUrl(file.url)}
@@ -96,67 +86,48 @@ export function EditProfileForm({ onSaved }: Props) {
         />
       </section>
 
-      <section className="space-y-4 border-b border-[#f0f0f0] py-6">
-        <div>
-          <label className="bk-form-label">{t('settings.name')}</label>
+      <section className="bk-profile-edit__section">
+        <div className="bk-profile-edit__field">
+          <label className="bk-profile-edit__label">{t('settings.name')}</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             autoComplete="name"
-            className="bk-form-input"
+            className="bk-profile-edit__input"
           />
         </div>
-        <div>
-          <label className="bk-form-label">{t('settings.email')}</label>
+        <div className="bk-profile-edit__field">
+          <label className="bk-profile-edit__label">{t('settings.email')}</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             placeholder="name@example.com"
-            className="bk-form-input"
+            className="bk-profile-edit__input"
           />
         </div>
       </section>
 
-      <section className="border-b border-[#f0f0f0] py-6">
-        <p className="bk-form-label mb-3">{t('settings.language')}</p>
-        <div className="grid grid-cols-2 gap-2">
-          {locales.map((lang) => (
-            <button
-              key={lang.code}
-              type="button"
-              onClick={() => setLanguagePref(lang.code)}
-              className={cn(
-                'h-12 rounded-lg text-[14px] font-bold',
-                languagePref === lang.code
-                  ? 'bg-[#0C831F] text-white'
-                  : 'bg-[#f5f5f5] text-[#555]',
-              )}
-            >
-              {lang.nativeLabel}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="py-6">
-        <label className="bk-form-label">{t('settings.password')}</label>
+      <section className="bk-profile-edit__section">
+        <label className="bk-profile-edit__label">{t('settings.password')}</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
           placeholder="••••••••"
-          className="bk-form-input"
+          className="bk-profile-edit__input"
         />
-        <p className="mt-2 text-[12px] leading-relaxed text-[#8a8a8a]">{t('settings.passwordHint')}</p>
+        <p className="bk-profile-edit__hint">{t('settings.passwordHint')}</p>
       </section>
 
-      <button type="submit" disabled={saving} className="bk-form-btn w-full">
-        {saving ? t('settings.saving') : t('settings.save')}
-      </button>
+      <div className="bk-profile-edit__save-wrap">
+        <button type="submit" disabled={saving} className="bk-profile-edit__save">
+          {saving ? t('settings.saving') : t('settings.save')}
+        </button>
+      </div>
     </form>
   );
 }

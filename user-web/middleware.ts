@@ -15,11 +15,10 @@ export function middleware(request: NextRequest) {
   const refreshToken = request.cookies.get('refreshToken')?.value;
 
   if (!accessToken && !refreshToken) {
-    // Rewrite (not redirect) so Back does not bounce: /account → /login → /account → …
     const url = request.nextUrl.clone();
     url.pathname = '/login';
-    url.searchParams.set('redirect', pathname);
-    return NextResponse.rewrite(url);
+    url.search = '';
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();

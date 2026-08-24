@@ -117,6 +117,10 @@
     padding-top: 0;
     padding-bottom: 12px;
   }
+
+  .bk-header--no-search .bk-search {
+    display: none !important;
+  }
 }
 
 /* Header__HeaderLeft */
@@ -159,6 +163,7 @@
     right: 0;
     margin-left: auto;
     height: 68px;
+    gap: 0;
   }
 }
 
@@ -278,7 +283,7 @@
     min-width: 0;
     max-width: none;
     flex: 1;
-    padding-right: 48px;
+    padding-right: 148px;
   }
 }
 
@@ -357,14 +362,14 @@
 
 @media (max-width: 1020px) {
   .bk-location__sub {
-    max-width: calc(100vw - 16px - 8px - 28px - 85px);
+    max-width: calc(100vw - 16px - 8px - 28px - 132px);
     font-size: 12px;
     line-height: 15px;
   }
 
-  /* Account chrome: back + search take ~88px; tighten address max-width */
+  /* Account chrome: back + language + search */
   .bk-header__mobile-account .bk-location__sub {
-    max-width: calc(100vw - 44px - 44px - 12px - 24px);
+    max-width: calc(100vw - 44px - 52px - 44px - 44px - 12px - 16px);
   }
 }
 
@@ -813,3 +818,97 @@
   min-width: 44px;
   padding: 0 10px;
 }
+
+.bk-header__right > .bk-lang {
+  margin-right: 2px;
+}
+
+.bk-lang {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.bk-lang__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 36px;
+  min-width: 48px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: #1c1c1c;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bk-lang__caret {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #363636;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.bk-lang__caret.is-open {
+  transform: rotate(180deg);
+}
+
+.bk-lang__menu {
+  position: absolute;
+  top: calc(100% - 4px);
+  right: 0;
+  min-width: 132px;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+  z-index: 2005;
+}
+
+.bk-lang__opt {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  background: #fff;
+  text-align: left;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #1c1c1c;
+  cursor: pointer;
+}
+
+.bk-lang__opt:hover,
+.bk-lang__opt.is-on {
+  background: #f7f7f7;
+}
+
+.bk-lang__opt.is-on {
+  font-weight: 700;
+  color: #0c831f;
+}
+
+@media (max-width: 1020px) {
+  .bk-lang__btn {
+    height: 68px;
+    min-width: 44px;
+  }
+
+  .bk-lang--account .bk-lang__menu {
+    right: 0;
+  }
+
+  .bk-header__mobile-account .bk-lang__btn {
+    height: 68px;
+  }
+}
+

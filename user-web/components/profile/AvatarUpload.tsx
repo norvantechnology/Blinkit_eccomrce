@@ -47,7 +47,7 @@ export function AvatarUpload({
   };
 
   return (
-    <div className="flex flex-col items-start gap-2">
+    <div className="bk-avatar">
       <input
         ref={inputRef}
         type="file"
@@ -56,7 +56,7 @@ export function AvatarUpload({
         onChange={(e) => void onPick(e.target.files?.[0])}
       />
 
-      <div className="relative h-20 w-20 overflow-hidden rounded-full bg-[#f0f0f0]">
+      <div className="bk-avatar__disc relative h-[72px] w-[72px] overflow-hidden rounded-full bg-[#f0f0f0]">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={preview} alt="Avatar" className="h-full w-full object-cover" />

@@ -1,7 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { useLocaleStore } from '@/store/localeStore';
+import { usersService } from '@/services/users.service';
+import { setStoredUser } from '@/lib/auth';
 import {
   LOCALES,
   normalizeLocale,
@@ -34,19 +37,35 @@ export function setStoredLocale(locale: Locale) {
 
 export function useI18n() {
   const user = useAuthStore((s) => s.user);
-  const locale = useMemo(
-    () => normalizeLocale(user?.languagePref || getStoredLocale()),
-    [user?.languagePref],
-  );
+  const setUser = useAuthStore((s) => s.setUser);
+  const locale = useLocaleStore((s) => s.locale);
+  const setLocaleState = useLocaleStore((s) => s.setLocale);
 
   useEffect(() => {
     setStoredLocale(locale);
   }, [locale]);
+
+  const setLanguage = useCallback(
+    async (next: Locale) => {
+      const normalized = normalizeLocale(next);
+      setStoredLocale(normalized);
+      setLocaleState(normalized);
+      if (!user) return;
+      try {
+        const updated = await usersService.updateLanguage(normalized);
+        setUser(updated);
+        setStoredUser(updated);
+      } catch {
+        /* keep local selection if API fails */
+      }
+    },
+    [setLocaleState, setUser, user],
+  );
 
   const t = useCallback(
     (key: MessageKey, vars?: Record<string, string | number>) => translate(locale, key, vars),
     [locale],
   );
 
-  return { locale, t, locales: LOCALES };
+  return { locale, t, locales: LOCALES, setLanguage };
 }

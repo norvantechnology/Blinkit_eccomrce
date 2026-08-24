@@ -73,9 +73,18 @@ const logout = async (req, res, next) => {
   }
 };
 
+const sendDeleteAccountOtp = async (req, res, next) => {
+  try {
+    const result = await authService.sendDeleteAccountOtp(req.user.id);
+    return success(res, result, result.message);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const deleteAccount = async (req, res, next) => {
   try {
-    const result = await authService.deleteAccount(req.user.id);
+    const result = await authService.deleteAccount(req.user.id, req.body.otp);
     return success(res, result, result.message);
   } catch (err) {
     next(err);
@@ -100,6 +109,7 @@ module.exports = {
   loginApple,
   refreshToken,
   logout,
+  sendDeleteAccountOtp,
   deleteAccount,
   setPassword,
 };

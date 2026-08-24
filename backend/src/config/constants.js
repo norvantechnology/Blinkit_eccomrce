@@ -37,6 +37,7 @@ const PERMISSIONS = {
 
 const AUTH_PROVIDER = {
   PHONE: 'phone',
+  EMAIL: 'email',
   GOOGLE: 'google',
   APPLE: 'apple',
   FIREBASE: 'firebase',

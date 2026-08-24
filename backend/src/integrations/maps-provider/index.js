@@ -10,7 +10,7 @@ const DEFAULT_BIAS = { lat: 12.9352, lng: 77.6245 };
 
 /**
  * Google Places Autocomplete — requires MAPS_API_KEY with Places API enabled.
- * Uses geocode type for area/street search in India (Blinkit “search delivery location”).
+ * Uses geocode type for area/street search (Blinkit “search delivery location”).
  */
 const searchAddresses = async (query, options = {}) => {
   const apiKey = env.mapsApiKey;

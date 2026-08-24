@@ -16,6 +16,7 @@ datasource db {
 
 enum AuthProvider {
   phone
+  email
   google
   apple
   firebase

@@ -4,12 +4,14 @@ import type { AuthTokens, UserProfile } from '@/lib/auth';
 
 export type AuthResult = { user: UserProfile; tokens: AuthTokens };
 
-export const authService = {
-  sendOtp: (phone: string) => apiClient.post('/auth/otp/send', { phone }),
+export type OtpChannel = { phone: string; email?: never } | { email: string; phone?: never };
 
-  verifyOtp: async (phone: string, otp: string): Promise<AuthResult> => {
+export const authService = {
+  sendOtp: (channel: OtpChannel) => apiClient.post('/auth/otp/send', channel),
+
+  verifyOtp: async (channel: OtpChannel, otp: string): Promise<AuthResult> => {
     const { data } = await apiClient.post('/auth/otp/verify', {
-      phone,
+      ...channel,
       otp,
       deviceId: getDeviceId(),
       platform: 'web',
@@ -59,7 +61,12 @@ export const authService = {
   logout: () =>
     apiClient.post('/auth/logout', { deviceId: getDeviceId() }).catch(() => undefined),
 
-  deleteAccount: () => apiClient.delete('/auth/account'),
+  sendDeleteOtp: async () => {
+    const { data } = await apiClient.post('/auth/account/delete-otp');
+    return data.data as { message?: string; otp?: string; staticOtp?: boolean };
+  },
+
+  deleteAccount: (otp: string) => apiClient.delete('/auth/account', { data: { otp } }),
 
   setPassword: async (password: string) => {
     const { data } = await apiClient.post('/auth/password', { password });

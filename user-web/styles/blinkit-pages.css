@@ -522,15 +522,9 @@
   font-family: inherit;
 }
 
-/* Footer visibility: Blinkit desktop footer; hide under 1020 */
+/* Footer visibility — desktop always; mobile accordion lives in Footer */
 .bk-footer-host {
-  display: none;
-}
-
-@media (min-width: 1021px) {
-  .bk-footer-host {
-    display: block;
-  }
+  display: block;
 }
 
 /* Blinkit Feed loader (laptop) — components__Spin + Feed__LoaderContainer */

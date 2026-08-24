@@ -11,30 +11,40 @@ import { OtpInput } from '@/components/auth/OtpInput';
 import { LoginLottie } from '@/components/auth/LoginLottie';
 import '@/styles/blinkit-login.css';
 
-type Step = 'phone' | 'otp' | 'profile';
+type Channel = 'phone' | 'email';
+type Step = 'identifier' | 'otp' | 'profile';
 
 interface LoginModalProps {
-  redirectTo?: string;
   onCloseHref?: string;
 }
 
-export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalProps) {
+const goHome = () => {
+  window.location.replace('/');
+};
+
+const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
   const { t } = useI18n();
 
-  const [step, setStep] = useState<Step>('phone');
+  const [channel, setChannel] = useState<Channel>('phone');
+  const [step, setStep] = useState<Step>('identifier');
   const [phoneDigits, setPhoneDigits] = useState('');
+  const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [staticOtpHint, setStaticOtpHint] = useState<string | null>(null);
   const [resendIn, setResendIn] = useState(0);
   const verifyingRef = useRef(false);
 
   const formattedPhone = useMemo(() => formatPhoneForApi(phoneDigits), [phoneDigits]);
+  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
   const phoneValid = /^[6-9]\d{9}$/.test(phoneDigits.replace(/\D/g, ''));
+  const emailValid = isValidEmail(normalizedEmail);
+  const identifierValid = channel === 'phone' ? phoneValid : emailValid;
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -57,9 +67,7 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
       setStep('profile');
       return;
     }
-    const next =
-      redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/';
-    router.replace(next);
+    goHome();
   };
 
   const dismissLogin = () => {
@@ -69,8 +77,8 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
   };
 
   const handleChromeBack = () => {
-    if (step !== 'phone') {
-      setStep('phone');
+    if (step !== 'identifier') {
+      setStep('identifier');
       setError('');
       setOtpCode('');
       return;
@@ -78,13 +86,14 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
     dismissLogin();
   };
 
+  const otpChannel = () =>
+    channel === 'phone' ? { phone: formattedPhone } : { email: normalizedEmail };
+
   const sendOtp = async () => {
     setError('');
     setLoading(true);
     try {
-      const { data } = await authService.sendOtp(formattedPhone);
-      const payload = data?.data as { staticOtp?: boolean; otp?: string } | undefined;
-      setStaticOtpHint(payload?.staticOtp && payload?.otp ? payload.otp : null);
+      await authService.sendOtp(otpChannel());
       setStep('otp');
       setOtpCode('');
       setResendIn(30);
@@ -97,7 +106,7 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
 
   const handleContinue = async (e: FormEvent) => {
     e.preventDefault();
-    if (!phoneValid || loading) return;
+    if (!identifierValid || loading) return;
     await sendOtp();
   };
 
@@ -108,7 +117,7 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
     setError('');
     setLoading(true);
     try {
-      const result = await authService.verifyOtp(formattedPhone, normalized);
+      const result = await authService.verifyOtp(otpChannel(), normalized);
       finishAuth(result.user, result.tokens);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Invalid OTP'));
@@ -136,12 +145,20 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
         accessToken: localStorage.getItem('accessToken') || '',
         refreshToken: localStorage.getItem('refreshToken') || '',
       });
-      router.replace(redirectTo.startsWith('/') ? redirectTo : '/');
+      goHome();
     } catch (err) {
       setError(getApiErrorMessage(err, 'Could not save profile'));
     } finally {
       setLoading(false);
     }
+  };
+
+  const switchChannel = (next: Channel) => {
+    if (next === channel) return;
+    setChannel(next);
+    setError('');
+    setOtpCode('');
+    setStep('identifier');
   };
 
   return (
@@ -175,9 +192,8 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
 
         <div className="LoginSteps__LoginWrapper login center-aligned">
           <div className="login__body">
-            {/* Mobile only: Blinkit product Lottie above the sheet */}
-            <LoginLottie />
-            {step === 'phone' && (
+            {step === 'identifier' ? <LoginLottie /> : null}
+            {step === 'identifier' && (
               <div className="PhoneNumberLogin__LoginContainer">
                 <div className="PhoneNumberLogin__ImageContainer">
                   <div className="ZImage__Container" style={{ height: 64, width: 64 }}>
@@ -200,21 +216,57 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
                   </div>
                 </div>
 
+                <div className="login-channel" role="tablist" aria-label="Login method">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={channel === 'phone'}
+                    className={cn('login-channel__btn', channel === 'phone' && 'is-active')}
+                    onClick={() => switchChannel('phone')}
+                  >
+                    {t('login.withPhone')}
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={channel === 'email'}
+                    className={cn('login-channel__btn', channel === 'email' && 'is-active')}
+                    onClick={() => switchChannel('email')}
+                  >
+                    {t('login.withEmail')}
+                  </button>
+                </div>
+
                 <form className="login-form" onSubmit={handleContinue}>
-                  <div className="login-phone">
-                    <input
-                      type="tel"
-                      maxLength={10}
-                      className="login-phone__input input"
-                      data-test-id="phone-no-text-box"
-                      placeholder="Enter mobile number"
-                      inputMode="numeric"
-                      autoComplete="tel-national"
-                      value={phoneDigits}
-                      onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      autoFocus
-                    />
-                  </div>
+                  {channel === 'phone' ? (
+                    <div className="login-phone">
+                      <input
+                        type="tel"
+                        maxLength={10}
+                        className="login-phone__input input"
+                        data-test-id="phone-no-text-box"
+                        placeholder={t('login.phonePlaceholder')}
+                        inputMode="numeric"
+                        autoComplete="tel-national"
+                        value={phoneDigits}
+                        onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <div className="login-email">
+                      <input
+                        type="email"
+                        className="login-email__input input"
+                        data-test-id="email-text-box"
+                        placeholder={t('login.emailPlaceholder')}
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                  )}
 
                   {error && <p className="login-form__error">{error}</p>}
 
@@ -222,9 +274,9 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
                     type="submit"
                     className={cn(
                       'PhoneNumberLogin__LoginButton',
-                      phoneValid && !loading && 'is-enabled',
+                      identifierValid && !loading && 'is-enabled',
                     )}
-                    disabled={!phoneValid || loading}
+                    disabled={!identifierValid || loading}
                   >
                     {loading ? '…' : t('login.continue')}
                   </button>
@@ -245,37 +297,16 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
 
             {step === 'otp' && (
               <div className="login-step-secondary login-otp-step">
-                {/* Blinkit: login-help + otp-text (not login-head__text on desktop) */}
-                <div className="login-help weight--semibold otp-text">
-                  {t('login.otpTitle')}
-                </div>
+                <div className="login-help weight--semibold otp-text">{t('login.otpTitle')}</div>
 
                 <div className="otp-msg">
                   <span className="otp-msg__label">{t('login.otpSent')}</span>
-                  {/* Desktop: phone on its own line (block), matching Blinkit */}
-                  <div className="otp-msg__phone otp-only-desktop">
+                  <div className="otp-msg__phone">
                     <span className="login-help weight--semibold login-help__phone">
-                      +91-{phoneDigits}
+                      {channel === 'phone' ? `+91-${phoneDigits}` : normalizedEmail}
                     </span>
                   </div>
-                  {/* Mobile: inline phone (unchanged) */}
-                  <span className="login-help weight--semibold login-help__phone otp-only-mobile">
-                    {' '}
-                    +91 {phoneDigits}
-                  </span>
                 </div>
-
-                <button
-                  type="button"
-                  className="login-change-number otp-only-mobile"
-                  onClick={() => {
-                    setStep('phone');
-                    setError('');
-                    setOtpCode('');
-                  }}
-                >
-                  {t('login.changeNumber')}
-                </button>
 
                 <div className="otp-block">
                   <OtpInput
@@ -287,25 +318,6 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
                     disabled={loading}
                     error={Boolean(error)}
                   />
-
-                  {staticOtpHint && (
-                    <p className="otp-hint otp-only-mobile">
-                      {t('login.staticOtp', { code: staticOtpHint })}
-                    </p>
-                  )}
-
-                  <button
-                    type="button"
-                    className={cn(
-                      'PhoneNumberLogin__LoginButton',
-                      'otp-only-mobile',
-                      otpCode.length === 6 && !loading && 'is-enabled',
-                    )}
-                    disabled={otpCode.length !== 6 || loading}
-                    onClick={() => void verifyOtp(otpCode)}
-                  >
-                    {loading ? t('login.verifying') : t('login.verify')}
-                  </button>
 
                   {resendIn > 0 ? (
                     <p className="otp-resend otp-resend--disabled">
@@ -325,12 +337,9 @@ export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalPr
                 </div>
 
                 {error ? (
-                  <>
-                    <p className="login-form__error otp-only-mobile">{error}</p>
-                    <div className="modal-error otp-only-desktop" role="alert">
-                      Verification Failed.
-                    </div>
-                  </>
+                  <div className="modal-error" role="alert">
+                    Verification Failed.
+                  </div>
                 ) : null}
               </div>
             )}
