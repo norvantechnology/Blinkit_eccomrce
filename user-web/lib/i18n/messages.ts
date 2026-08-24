@@ -82,7 +82,7 @@ const en = {
   'settings.deleteConfirm':
     'All data associated with this account will be deleted in accordance with our privacy policy. You will not be able to retrieve this information once deleted.',
   'settings.deleteOtpTitle': 'OTP Verification',
-  'settings.deleteOtpSent': 'Enter the verification code sent to',
+  'settings.deleteOtpSent': 'We have sent a verification code to',
   'settings.deleteOtpVerify': 'Verify and delete',
   'settings.passwordTooShort': 'Password must be at least 6 characters',
   'settings.saveFailed': 'Could not save profile',
@@ -270,7 +270,7 @@ const hi: Record<keyof typeof en, string> = {
   'settings.deleteConfirm':
     'इस खाते से जुड़ा सारा डेटा हमारी गोपनीयता नीति के अनुसार हटा दिया जाएगा। हटाए जाने के बाद यह जानकारी वापस नहीं मिल सकेगी।',
   'settings.deleteOtpTitle': 'OTP सत्यापन',
-  'settings.deleteOtpSent': 'इस नंबर पर भेजा गया सत्यापन कोड दर्ज करें',
+  'settings.deleteOtpSent': 'हमने इस पर सत्यापन कोड भेजा है',
   'settings.deleteOtpVerify': 'सत्यापित करें और हटाएँ',
   'settings.passwordTooShort': 'पासवर्ड कम से कम 6 अक्षर का होना चाहिए',
   'settings.saveFailed': 'प्रोफ़ाइल सेव नहीं हो सकी',

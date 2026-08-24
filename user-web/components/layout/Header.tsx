@@ -125,10 +125,10 @@ function MobileAccountChrome() {
       <button
         type="button"
         onClick={back}
-        className="flex h-[68px] w-11 shrink-0 items-center justify-center"
+        className="bk-header__back"
         aria-label="Back"
       >
-        <BlinkitIcon name="back" size={20} />
+        <BlinkitIcon name="back" size={16} className="bk-header__back-ico" />
       </button>
       <LocationBar className="bk-location--flush flex-1" />
       <LanguageSelect className="bk-lang--account" />

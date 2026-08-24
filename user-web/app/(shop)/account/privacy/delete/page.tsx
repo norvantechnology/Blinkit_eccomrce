@@ -9,6 +9,7 @@ import { getApiErrorMessage } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n/useI18n';
 import type { MessageKey } from '@/lib/i18n/messages';
 import { OtpInput } from '@/components/auth/OtpInput';
+import { cn } from '@/lib/utils';
 import '@/styles/blinkit-delete-account.css';
 
 const REASONS: { id: string; key: MessageKey }[] = [
@@ -45,6 +46,7 @@ function DeleteAccountFlow() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
   const [otpCode, setOtpCode] = useState('');
+  const [staticOtpHint, setStaticOtpHint] = useState<string | null>(null);
   const [resendIn, setResendIn] = useState(0);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
@@ -60,13 +62,15 @@ function DeleteAccountFlow() {
     setError('');
     setDeleting(true);
     try {
-      await authService.sendDeleteOtp();
+      const result = await authService.sendDeleteOtp();
+      setStaticOtpHint(result.staticOtp && result.otp ? String(result.otp) : null);
       setOtpCode('');
       setResendIn(30);
       setConfirmOpen(false);
       setOtpOpen(true);
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Could not send OTP'));
+      setStaticOtpHint(null);
+      setError(getApiErrorMessage(err, t('login.sendOtpFailed')));
     } finally {
       setDeleting(false);
     }
@@ -100,18 +104,31 @@ function DeleteAccountFlow() {
 
   if (reason) {
     return (
-      <div className="bk-del">
-        <div className="bk-del__feedback">
+      <div className={cn('bk-del', otpOpen && 'bk-del--otp')}>
+        <div className={cn('bk-del__feedback', otpOpen && 'bk-del__feedback--otp')}>
           {otpOpen ? (
-            <>
-              <h1 className="bk-del__title">{t('settings.deleteOtpTitle')}</h1>
-              <p className="bk-del__sub">
-                {t('settings.deleteOtpSent')}
+            <div className="bk-del__otp-panel">
+              <h1 className="bk-del__otp-title">{t('settings.deleteOtpTitle')}</h1>
+              <p className="bk-del__otp-sub">
+                <span className="bk-del__otp-sub-label">{t('settings.deleteOtpSent')}</span>
                 <span className="bk-del__otp-phone">{formatContactDisplay(user)}</span>
               </p>
               <div className="bk-del__otp">
-                <OtpInput value={otpCode} onChange={setOtpCode} disabled={deleting} error={Boolean(error)} />
+                <OtpInput
+                  value={otpCode}
+                  onChange={(digits) => {
+                    setError('');
+                    setOtpCode(digits);
+                  }}
+                  disabled={deleting}
+                  error={Boolean(error)}
+                />
               </div>
+              {staticOtpHint ? (
+                <p className="bk-del__otp-hint" role="status">
+                  {t('login.staticOtp', { code: staticOtpHint })}
+                </p>
+              ) : null}
               {resendIn > 0 ? (
                 <p className="bk-del__otp-resend is-wait">{t('login.resendIn', { n: resendIn })}</p>
               ) : (
@@ -124,7 +141,8 @@ function DeleteAccountFlow() {
                   {t('login.resend')}
                 </button>
               )}
-            </>
+              {error ? <p className="bk-del__error bk-del__error--otp">{error}</p> : null}
+            </div>
           ) : (
             <>
               <h1 className="bk-del__title">{t(reason.key)}</h1>
@@ -145,9 +163,9 @@ function DeleteAccountFlow() {
                 {t('settings.deleteMyAccount')}
               </button>
               <p className="bk-del__note">{t('settings.deleteNote')}</p>
+              {error ? <p className="bk-del__error">{error}</p> : null}
             </>
           )}
-          {error ? <p className="bk-del__error">{error}</p> : null}
         </div>
 
         {confirmOpen ? (
