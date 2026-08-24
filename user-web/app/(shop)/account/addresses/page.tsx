@@ -173,6 +173,39 @@ function AddressesPageContent() {
     }
   };
 
+  if (!loading && addresses.length === 0) {
+    return (
+      <>
+        <div className="no-address">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt="No Saved Addresses"
+            src="/blinkit-parity/images/no-saved-addresses.png"
+            width={224}
+            height={224}
+          />
+          <div className="no-address__heading">You have no saved addresses</div>
+          <div className="no-address__sub-heading">Tell us where you want your orders delivered</div>
+          <button
+            type="button"
+            className="btn"
+            data-test-id="add-new-address-button"
+            onClick={openAdd}
+          >
+            Add New Address
+          </button>
+        </div>
+        {error ? <div className="ua-error">{error}</div> : null}
+        <AddressModal
+          open={modalOpen}
+          onClose={closeModal}
+          editing={editing}
+          onSaved={handleSaved}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="UserAddressesV2__UserAddressesWrapper-sc-bnlqpe-3 icnSoU">
       <div className="UserAddressesV2__MyAddresses-sc-bnlqpe-1 ZgErW my-addresses">
@@ -214,22 +247,6 @@ function AddressesPageContent() {
               <div className="AddressCard__CardContainer-sc-1v9p7y9-3 jYQcBy blinkit-shimmer" style={{ height: 52 }} />
               <div className="AddressCard__CardContainer-sc-1v9p7y9-3 jYQcBy blinkit-shimmer" style={{ height: 52 }} />
             </>
-          ) : addresses.length === 0 ? (
-            <div className="ua-empty">
-              <p>No saved addresses yet.</p>
-              <div
-                data-test-id="add-new-address"
-                className="UserAddressesV2__AddAddressLink-sc-bnlqpe-9 eaZfsM"
-                role="button"
-                tabIndex={0}
-                onClick={openAdd}
-              >
-                <div className="UserAddressesV2__AddIconContainer-sc-bnlqpe-8 fMgxzu">
-                  <span className="icon-plus tw-inline-flex" role="img" style={{ fontSize: 12 }} />
-                </div>
-                Add new address
-              </div>
-            </div>
           ) : (
             addresses.map((addr) => (
               <div key={addr.id} className="AddressCard__CardContainer-sc-1v9p7y9-3 jYQcBy">

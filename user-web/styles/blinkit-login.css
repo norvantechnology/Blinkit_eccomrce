@@ -2,12 +2,12 @@
 @import "./blinkit-tokens.css";
 
 /**
- * Blinkit login modal — rules from live blinkit.com
- * Font sizes / padding: see ../tools/.../out/extracted/TOKENS.md
- * CSS vars: --bk-fs-login-*, --bk-pad-*, --bk-login-*
+ * Blinkit login modal — exact from live blinkit.com
+ * Source: tools/blinkit-login-capture/out/extracted/login-global.css + login-styled.css
+ * Breakpoints: tablet 1020 / desktop 1260
  */
 
-/* —— Overlay (modal-overlay--login) —— */
+/* —— Overlay —— */
 .modal-overlay--login,
 .ReactModal__Overlay--login {
   position: fixed;
@@ -15,7 +15,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(50, 50, 50, 0.7);
+  background-color: rgba(0, 0, 0, 0.7) !important;
   z-index: 10002;
   max-height: 100%;
   overflow: hidden;
@@ -28,7 +28,7 @@
   }
 }
 
-/* —— Modal shell (modal-content--login) —— */
+/* —— Modal shell —— */
 .modal-content--login {
   position: absolute;
   top: 50%;
@@ -46,14 +46,14 @@
   border-radius: 16px;
   background-color: #fff;
   outline: none;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  /* Contain absolutely positioned back icon */
+  isolation: isolate;
 }
 
 .modal-content--login:focus,
 .modal-content--login:focus-visible {
   outline: none;
   border: none;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
 }
 
 @media screen and (max-width: 1020px) {
@@ -72,21 +72,21 @@
   }
 }
 
-/* —— Back icon (LoginModal__BackIcon) ——
-   Blinkit uses font-family:CustomFont with character "&".
-   Path below = wasabicons glyph "back" (tools/blinkit-login-capture). */
+/* —— Back icon (CustomFont "&" → wasabicons back SVG) —— */
+/* Blinkit uses font-size:20px but the glyph paints ~14px; our SVG filled the box and looked oversized */
 .LoginModal__BackIcon {
   cursor: pointer;
   padding: 8px 10px;
-  font-size: 20px;
-  left: 15px;
-  top: 15px;
+  font-size: 16px;
+  left: 12px;
+  top: 12px;
   z-index: 100001;
   color: #1f1f1f;
   position: absolute;
   outline: none;
   border: none;
   background-color: #ffffff;
+  font-weight: 600;
   line-height: 1;
   display: inline-flex;
   align-items: center;
@@ -95,16 +95,17 @@
 
 .LoginModal__BackIcon svg {
   display: block;
-  width: 20px;
-  height: 16px;
+  width: 16px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
-@media screen and (max-width: 1020px) {
+@media screen and (min-width: 1020px) {
   .LoginModal__BackIcon {
-    font-size: 14px;
     padding: 6px 8px;
-    left: 10px;
-    top: 12px;
+    font-size: 14px;
+    left: 15px;
+    top: 15px;
   }
 
   .LoginModal__BackIcon svg {
@@ -116,7 +117,7 @@
 /* —— Login layout —— */
 .login {
   margin: auto;
-  font-family: Okra, var(--font-okra), 'Plus Jakarta Sans', sans-serif;
+  font-family: Okra, Helvetica, sans-serif;
 }
 
 @media screen and (min-width: 1020px) {
@@ -158,14 +159,21 @@
   padding-top: 20px;
   box-sizing: border-box;
   align-items: center;
-  max-height: 100%;
-  height: 100%;
+}
+
+@media screen and (min-width: 1020px) {
+  .PhoneNumberLogin__LoginContainer {
+    max-height: 100%;
+    height: 100%;
+  }
 }
 
 @media screen and (max-width: 1020px) {
   .PhoneNumberLogin__LoginContainer {
     position: absolute;
     bottom: 0;
+    left: 0;
+    right: 0;
     box-shadow: -10px -20px 11px 20px rgb(255 255 255);
     padding-top: 10px;
     height: auto;
@@ -173,7 +181,7 @@
   }
 }
 
-/* —— Logo —— */
+/* —— Logo 64×64 —— */
 .PhoneNumberLogin__ImageContainer {
   display: flex;
   justify-content: center;
@@ -197,40 +205,44 @@
   object-fit: contain;
 }
 
-/* —— Typography (from main.css) —— */
+/* —— Typography —— */
 .login-help {
   display: block;
-  font-family: Okra, var(--font-okra), 'Plus Jakarta Sans', sans-serif;
+  font-family: Okra, Helvetica, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   color: #333;
+  font-weight: 500;
+  letter-spacing: normal;
 }
 
 .weight--semibold {
   font-weight: 500 !important;
 }
 
-.login-head__text {
-  color: var(--bk-text-dark, #333);
-  font-family: Okra, var(--bk-font), var(--font-okra), 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--bk-fs-login-title, 24px);
+.login-head__text,
+.modal-content--login h2.login-head__text {
+  color: #333;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 24px;
   line-height: normal;
   margin: 0;
   text-align: center;
   font-weight: 800;
+  letter-spacing: normal;
 }
 
-/* —— Form + phone (exact Blinkit) —— */
+/* —— Form —— */
 .login-form {
   margin: 0 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 @media screen and (max-width: 1020px) {
   .login-form {
     width: 80%;
+    margin: 0 auto;
   }
 }
 
@@ -256,60 +268,135 @@
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
+  font-family: Okra, Helvetica, sans-serif;
 }
 
-/* Base .input + login-phone__input overrides */
+/* Blinkit base .input / .textarea */
+.modal-content--login .input,
+.modal-content--login .textarea,
 .login-phone__input.input {
   background: #fff;
   border: 1px solid #ccc;
   color: #333;
   cursor: text;
-  outline: 0;
-  box-sizing: border-box;
   font-size: 14px;
-  padding: 15px 20px 15px 50px;
+  outline: 0;
+}
+
+.input,
+.textarea {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  color: #333;
+  cursor: text;
+  font-size: 14px;
+  outline: 0;
+  padding: 12px 10px;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+/* Blinkit .login-phone__input — exact responsive rules
+   !important on box model: Tailwind preflight forces border-box on * */
+.modal-content--login .login-phone__input,
+.modal-content--login .login-phone__input.input,
+.login-phone__input,
+.login-phone__input.input {
+  box-sizing: border-box !important;
+  font-size: 14px !important;
+  padding: 15px 20px 15px 50px !important;
   width: 100%;
   border-radius: 12px;
   font-weight: 600;
+  font-family: Okra, Helvetica, sans-serif;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  line-height: normal !important;
+  letter-spacing: normal;
 }
 
 @media screen and (min-width: 1020px) {
-  .login-phone__input.input {
-    box-sizing: initial;
-    width: 220px;
+  .modal-content--login .login-phone .login-phone__input,
+  .modal-content--login .login-phone .login-phone__input.input,
+  .login-phone .login-phone__input,
+  .login-phone .login-phone__input.input {
+    /* Blinkit: content-box + width 220px (pad sits outside) */
+    box-sizing: content-box !important;
+    width: 220px !important;
   }
 }
 
+/* Name / non-phone fields: same chrome, no +91 gutter */
+.modal-content--login .login-name__input,
+.modal-content--login .login-name__input.input {
+  box-sizing: border-box !important;
+  font-size: 14px !important;
+  padding: 15px 20px !important;
+  width: 100%;
+  max-width: 300px;
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  background: #fff;
+  color: #333;
+  font-weight: 600;
+  font-family: Okra, Helvetica, sans-serif;
+  height: auto !important;
+  min-height: 0 !important;
+  line-height: normal !important;
+  outline: 0;
+}
+
+@media screen and (min-width: 1020px) {
+  .modal-content--login .login-name__input,
+  .modal-content--login .login-name__input.input {
+    box-sizing: content-box !important;
+    width: 260px !important;
+    max-width: none;
+  }
+}
+
+.login-phone__input::placeholder,
 .login-phone__input.input::placeholder {
   color: #999;
   font-weight: 500;
+  font-size: 14px;
 }
 
+.login-phone__input:focus,
 .login-phone__input.input:focus,
+.login-phone__input:focus-visible,
 .login-phone__input.input:focus-visible {
   border-color: #ccc;
   outline: none;
   box-shadow: none;
 }
 
-/* —— Continue button (PhoneNumberLogin__LoginButton) —— */
+/* —— Continue button —— */
+.modal-content--login .PhoneNumberLogin__LoginButton,
 .PhoneNumberLogin__LoginButton {
   margin-top: 18px;
   border: none;
   color: #fff;
   border-radius: 12px;
   outline: none;
-  font-family: inherit;
-  font-size: 14px;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 14px !important;
   text-align: center;
-  padding: 16px;
+  padding: 16px !important;
   font-weight: 500;
   width: 300px;
   background-color: #9c9c9c;
   pointer-events: none;
   cursor: not-allowed;
-  min-height: 50px;
+  min-height: 50px !important;
+  height: auto !important;
+  max-height: none !important;
+  line-height: normal !important;
+  letter-spacing: normal;
   flex: 0 1 auto;
+  box-sizing: border-box !important;
 }
 
 .PhoneNumberLogin__LoginButton.is-enabled {
@@ -338,7 +425,8 @@
   margin-top: 8px;
   color: #f34343;
   font-size: 13px;
-  text-align: left;
+  text-align: center;
+  width: 100%;
 }
 
 /* —— Terms footer —— */
@@ -347,9 +435,11 @@
   width: 100%;
   text-align: center;
   padding: 12px 0;
+  margin-top: -6px; /* slightly tighter under Continue */
   color: #696969;
   font-size: 12px;
   line-height: 1.5;
+  font-family: Okra, Helvetica, sans-serif;
 }
 
 .PhoneNumberLogin__Links {
@@ -407,12 +497,61 @@
   color: #0c831f;
   font-size: 14px;
   font-weight: 600;
-  font-family: inherit;
+  font-family: Okra, Helvetica, sans-serif;
   cursor: pointer;
   text-align: center;
 }
 
-/* Blinkit .otp / .otp-input-container / .otp__input */
+/* Blinkit OTP helpers — visibility toggled by breakpoint */
+.otp-only-desktop {
+  display: none !important;
+}
+
+.otp-only-mobile {
+  /* visible by default (mobile-first); hidden ≥1020 */
+}
+
+.otp-msg {
+  font-size: 12px;
+  padding-top: 32px;
+  line-height: 1.6;
+  color: #333333;
+  text-align: center;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.otp-msg__phone {
+  display: inline;
+}
+
+.login-help__edit-link-holder {
+  font-weight: 500;
+  color: #333;
+}
+
+.login-help__edit-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #0c831f;
+  font-size: inherit;
+  font-family: Okra, Helvetica, sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.login-help__edit-link:hover {
+  text-decoration: underline;
+}
+
+.otp-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .otp {
   position: relative;
   margin-top: 24px;
@@ -422,31 +561,8 @@
   margin-right: auto;
 }
 
-.otp__native {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
+.otp-input-form {
   margin: 0;
-  padding: 0;
-  border: 0;
-  opacity: 0.01;
-  color: transparent;
-  caret-color: transparent;
-  background: transparent;
-  font-size: 16px;
-  cursor: text;
-  outline: none !important;
-  box-shadow: none !important;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.otp__native:focus,
-.otp__native:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
 }
 
 .otp-input-container {
@@ -455,35 +571,54 @@
   align-items: center;
   gap: 10px;
   flex-wrap: nowrap;
-  pointer-events: none;
 }
 
+/* Blinkit .otp__input + .input — exact focus/border (outline:0, border #ccc) */
+.otp__input.input,
 .otp__input {
   box-sizing: border-box;
-  width: 42px;
-  flex: 0 0 42px;
-  height: auto;
-  min-height: 48px;
-  padding: 16px 8px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
   background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  color: #333;
+  cursor: text;
   font-size: 16px;
   font-weight: 600;
-  font-family: Okra, var(--bk-font, sans-serif);
-  line-height: 1;
+  font-family: Okra, Helvetica, sans-serif;
   text-align: center;
-  color: #1f1f1f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 10%;
+  padding: 16px 8px;
+  outline: 0;
+  margin: 0;
+  line-height: 1.15;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.otp__input--active {
-  border-color: #ccc;
+.otp__input:focus,
+.otp__input:focus-visible,
+.otp__input.input:focus,
+.otp__input.input:focus-visible {
+  outline: 0 !important;
+  /* Soft focus — thin dark border, not bold/thick */
+  border: 1px solid #666666 !important;
+  box-shadow: none !important;
 }
 
-.otp__input--error {
+@media screen and (min-width: 1020px) {
+  .otp__input.input,
+  .otp__input {
+    width: 42px;
+  }
+}
+
+.otp__input--error,
+.otp__input--error:focus,
+.otp__input--error:focus-visible {
   border-color: #f34343 !important;
 }
 
@@ -495,33 +630,205 @@
   text-align: center;
 }
 
+/* Blinkit .otp-resend — green when enabled, #ccc when disabled */
 .otp-resend {
-  color: #999;
-  cursor: default;
+  color: #0c831f;
+  cursor: pointer;
   display: block;
   font-size: 14px;
-  padding: 24px 0 0;
+  padding: 24px 0;
   text-align: center;
   width: 100%;
   margin: 0;
-  font-family: inherit;
-}
-
-.otp-resend.is-ready {
-  color: #0c831f;
-  cursor: pointer;
+  font-family: Okra, Helvetica, sans-serif;
   background: none;
   border: 0;
-  font-weight: 600;
-  padding: 24px 0 0;
+  font-weight: 500;
 }
 
-.otp-resend.is-ready:hover {
+.otp-resend.is-ready,
+.otp-resend--enabled {
+  color: #0c831f;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.otp-resend.is-ready:hover,
+.otp-resend--enabled:hover {
   text-decoration: underline;
+}
+
+.otp-resend--disabled {
+  cursor: default;
+  color: #ccc;
+  pointer-events: none;
+}
+
+.otp-resend--disabled:hover {
+  text-decoration: none !important;
+}
+
+.modal-error {
+  display: none;
 }
 
 .modal-content--login .login-step-secondary .PhoneNumberLogin__LoginButton {
   margin-top: 18px;
+}
+
+/* —— Desktop OTP (≥1020) — match Blinkit laptop screenshot —— */
+@media screen and (min-width: 1020px) {
+  /* Same small back icon as phone login screen */
+  .LoginModal__BackIcon.OtpVerification__BackIcon {
+    left: 15px;
+    top: 15px;
+    padding: 6px 8px;
+    font-size: 14px;
+    z-index: 1;
+    background-color: transparent;
+  }
+
+  .LoginModal__BackIcon.OtpVerification__BackIcon svg {
+    width: 14px;
+    height: 11px;
+  }
+
+  /* Compact but with breathing room above + below Resend */
+  .modal-content--login .login-otp-step {
+    position: relative;
+    padding: 0 0 47px;
+    width: 570px;
+    min-height: 0;
+    height: auto;
+    align-items: stretch;
+    box-sizing: border-box;
+  }
+
+  /* Title + full-width hairline (Blinkit .login-head / .otp-text) */
+  .modal-content--login .login-otp-step .otp-text {
+    display: block;
+    padding: 16px 0 14px;
+    margin: 0;
+    box-shadow: none;
+    border-bottom: 1px solid #eeeeee;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: #333;
+    text-align: center;
+    letter-spacing: normal;
+  }
+
+  /* More space above the message block (under the title line) */
+  .modal-content--login .login-otp-step .otp-msg {
+    font-size: 12px;
+    padding: 28px 24px 0;
+    line-height: 1.6;
+    color: #333333;
+    text-align: center;
+  }
+
+  .modal-content--login .login-otp-step .otp-msg__label {
+    display: block;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #333333;
+    font-weight: 400;
+  }
+
+  .modal-content--login .login-otp-step .otp-msg__phone {
+    display: block;
+    margin-top: 2px;
+    text-align: center;
+  }
+
+  .modal-content--login .login-otp-step .otp-msg .login-help__phone {
+    display: inline;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.6;
+    color: #333;
+  }
+
+  .otp-only-desktop {
+    display: block !important;
+  }
+
+  .otp-only-mobile {
+    display: none !important;
+  }
+
+  .modal-content--login .login-otp-step .otp-block {
+    margin: 0 24px;
+    width: auto;
+    align-items: center;
+  }
+
+  .modal-content--login .login-otp-step .otp {
+    margin-top: 24px;
+    max-width: none;
+    width: auto;
+  }
+
+  .modal-content--login .login-otp-step .otp-input-container {
+    gap: 10px;
+  }
+
+  .modal-content--login .login-otp-step .otp__input,
+  .modal-content--login .login-otp-step .otp__input.input {
+    width: 42px;
+    height: auto;
+    padding: 16px 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    font-weight: 600;
+    box-sizing: border-box;
+    outline: 0;
+  }
+
+  .modal-content--login .login-otp-step .otp__input:focus,
+  .modal-content--login .login-otp-step .otp__input:focus-visible,
+  .modal-content--login .login-otp-step .otp__input.input:focus,
+  .modal-content--login .login-otp-step .otp__input.input:focus-visible {
+    outline: 0 !important;
+    border: 1px solid #666666 !important;
+    box-shadow: none !important;
+  }
+
+  /* Extra space above + below Resend */
+  .modal-content--login .login-otp-step .otp-resend {
+    padding: 28px 0 16px;
+    font-size: 14px;
+    color: #ccc;
+  }
+
+  .modal-content--login .login-otp-step .otp-resend.is-ready,
+  .modal-content--login .login-otp-step .otp-resend--enabled {
+    color: #0c831f;
+  }
+
+  .modal-content--login .login-otp-step .otp-resend--disabled {
+    color: #ccc;
+  }
+
+  /* Blinkit .modal-error — pink bar at bottom of modal */
+  .modal-content--login .login-otp-step .modal-error.otp-only-desktop {
+    display: block !important;
+    background-color: #fff5f5;
+    border-radius: 3px;
+    bottom: 0;
+    color: #f34343;
+    font-size: 12px;
+    left: 0;
+    padding: 14px 0;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    z-index: 1;
+    font-family: Okra, Helvetica, sans-serif;
+  }
 }
 
 @media screen and (max-width: 1020px) {
@@ -530,11 +837,30 @@
     padding-top: 64px;
   }
 
-  .otp__input {
-    width: 10%;
-    flex: 1 1 0;
-    max-width: 48px;
-    min-width: 36px;
+  /* Mobile title stays large (previous look) */
+  .modal-content--login .login-otp-step .otp-text {
+    box-shadow: none;
+    border-bottom: none;
+    padding: 0;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: normal;
+    color: #333;
+    letter-spacing: normal;
+  }
+
+  .modal-content--login .login-otp-step .otp-msg {
+    padding-top: 8px;
+    font-size: 16px;
+  }
+
+  .modal-content--login .login-otp-step .otp-msg__label {
+    display: inline;
+    font-size: 16px;
+  }
+
+  .modal-content--login .login-otp-step .otp-msg__phone {
+    display: inline;
   }
 
   .LoginSteps__LoginWrapper,
@@ -545,7 +871,10 @@
 
   .PhoneNumberLogin__LoginContainer {
     padding-top: 56px;
-    left: 0;
-    right: 0;
+  }
+
+  /* Mobile: keep resend slightly tighter under Verify button */
+  .modal-content--login .login-otp-step .otp-resend {
+    padding: 24px 0 0;
   }
 }

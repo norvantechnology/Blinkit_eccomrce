@@ -268,11 +268,80 @@
   color: #d23333;
 }
 
-.ua-empty {
-  padding: 48px 16px;
+/* Blinkit empty addresses — exact from main.css */
+.no-address {
+  margin: 0 auto;
+  padding-top: 82px;
+  padding-bottom: 48px;
   text-align: center;
+  box-sizing: border-box;
+  width: 100%;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.no-address img {
+  display: block;
+  width: 224px;
+  height: 224px;
+  max-width: 70vw;
+  object-fit: contain;
+  margin: 0 auto;
+  border: 0;
+}
+
+.no-address__heading {
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  margin-top: 0;
+  line-height: 1.4;
+}
+
+.no-address__sub-heading {
   color: #999;
   font-size: 14px;
+  margin-bottom: 30px;
+  line-height: 1.4;
+}
+
+.no-address .btn {
+  display: inline-block;
+  background-color: #0c831f;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.15;
+  padding: 13px 14px;
+  text-align: center;
+  outline: none;
+}
+
+.no-address .btn:hover {
+  background-color: #097019;
+}
+
+.no-address .btn:focus,
+.no-address .btn:focus-visible {
+  outline: none;
+}
+
+@media screen and (max-width: 1019px) {
+  .no-address {
+    padding-top: 64px;
+    padding-left: 20px;
+    padding-right: 20px;
+    min-height: calc(100svh - 140px);
+  }
+
+  .no-address img {
+    width: 200px;
+    height: 200px;
+  }
 }
 
 .ua-error {

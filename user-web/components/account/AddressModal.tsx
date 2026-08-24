@@ -82,6 +82,7 @@ function FloatingField({
   inputMode,
   type = 'text',
   multiline,
+  className,
 }: {
   id: string;
   name: string;
@@ -93,10 +94,13 @@ function FloatingField({
   inputMode?: InputHTMLAttributes<HTMLInputElement>['inputMode'];
   type?: string;
   multiline?: boolean;
+  className?: string;
 }) {
   const clear = () => onChange('');
   return (
-    <div className="TextInput__StyledTextInput-sc-abdg41-0 cNThDN">
+    <div
+      className={`TextInput__StyledTextInput-sc-abdg41-0 cNThDN${className ? ` ${className}` : ''}`}
+    >
       {multiline ? (
         <textarea
           rows={1}
@@ -540,14 +544,14 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
             id="heuristics"
             name="heuristics"
             label="Area / Sector / Locality *"
-            value={area}
+            value={area.replace(/\s*\n\s*/g, ', ')}
             onChange={(v) => {
               setArea(v);
               setQuery(v);
             }}
             required
             disabled
-            multiline
+            className="bk-addr-area-field"
           />
         </div>
         <div>

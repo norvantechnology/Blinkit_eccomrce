@@ -17,7 +17,7 @@ interface LoginModalProps {
   onCloseHref?: string;
 }
 
-export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: LoginModalProps) {
+export function LoginModal({ redirectTo = '/account/addresses', onCloseHref = '/' }: LoginModalProps) {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
   const { t } = useI18n();
@@ -145,7 +145,7 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
 
   return (
     <div
-      className="modal-overlay--login ReactModal__Overlay ReactModal__Overlay--after-open bk-dim-overlay"
+      className="modal-overlay--login ReactModal__Overlay ReactModal__Overlay--after-open"
       onClick={dismissLogin}
       role="presentation"
     >
@@ -156,9 +156,13 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Blinkit: CustomFont + "&". We use wasabicons glyph "back" path (same icon set). */}
-        <button type="button" className="LoginModal__BackIcon" onClick={handleChromeBack} aria-label="Back">
-          <svg viewBox="0 0 999 800" width="20" height="16" aria-hidden="true">
+        <button
+          type="button"
+          className={cn('LoginModal__BackIcon', step === 'otp' && 'OtpVerification__BackIcon')}
+          onClick={handleChromeBack}
+          aria-label="Back"
+        >
+          <svg viewBox="0 0 999 800" width="16" height="13" aria-hidden="true">
             <g transform="translate(0 729) scale(1 -1)">
               <path
                 fill="currentColor"
@@ -237,15 +241,30 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
             )}
 
             {step === 'otp' && (
-              <div className="login-step-secondary">
-                <h2 className="login-head__text">{t('login.otpTitle')}</h2>
-                <p className="login-help weight--semibold">
-                  {t('login.otpSent')}{' '}
-                  <span className="login-help__phone">+91 {phoneDigits}</span>
-                </p>
+              <div className="login-step-secondary login-otp-step">
+                {/* Blinkit: login-help + otp-text (not login-head__text on desktop) */}
+                <div className="login-help weight--semibold otp-text">
+                  {t('login.otpTitle')}
+                </div>
+
+                <div className="otp-msg">
+                  <span className="otp-msg__label">{t('login.otpSent')}</span>
+                  {/* Desktop: phone on its own line (block), matching Blinkit */}
+                  <div className="otp-msg__phone otp-only-desktop">
+                    <span className="login-help weight--semibold login-help__phone">
+                      +91-{phoneDigits}
+                    </span>
+                  </div>
+                  {/* Mobile: inline phone (unchanged) */}
+                  <span className="login-help weight--semibold login-help__phone otp-only-mobile">
+                    {' '}
+                    +91 {phoneDigits}
+                  </span>
+                </div>
+
                 <button
                   type="button"
-                  className="login-change-number"
+                  className="login-change-number otp-only-mobile"
                   onClick={() => {
                     setStep('phone');
                     setError('');
@@ -254,57 +273,75 @@ export function LoginModal({ redirectTo = '/account', onCloseHref = '/' }: Login
                 >
                   {t('login.changeNumber')}
                 </button>
-                <OtpInput
-                  value={otpCode}
-                  onChange={(digits) => {
-                    setError('');
-                    setOtpCode(digits);
-                  }}
-                  disabled={loading}
-                  error={Boolean(error)}
-                />
-                {error && <p className="login-form__error" style={{ textAlign: 'center' }}>{error}</p>}
-                {staticOtpHint && (
-                  <p className="otp-hint">{t('login.staticOtp', { code: staticOtpHint })}</p>
-                )}
-                <button
-                  type="button"
-                  className={cn(
-                    'PhoneNumberLogin__LoginButton',
-                    otpCode.length === 6 && !loading && 'is-enabled',
+
+                <div className="otp-block">
+                  <OtpInput
+                    value={otpCode}
+                    onChange={(digits) => {
+                      setError('');
+                      setOtpCode(digits);
+                    }}
+                    disabled={loading}
+                    error={Boolean(error)}
+                  />
+
+                  {staticOtpHint && (
+                    <p className="otp-hint otp-only-mobile">
+                      {t('login.staticOtp', { code: staticOtpHint })}
+                    </p>
                   )}
-                  disabled={otpCode.length !== 6 || loading}
-                  onClick={() => void verifyOtp(otpCode)}
-                >
-                  {loading ? t('login.verifying') : t('login.verify')}
-                </button>
-                {resendIn > 0 ? (
-                  <p className="otp-resend otp-resend--disabled">
-                    {t('login.resendIn', { n: resendIn })}
-                  </p>
-                ) : (
+
                   <button
                     type="button"
-                    className="otp-resend is-ready"
-                    onClick={() => void sendOtp()}
-                    disabled={loading}
+                    className={cn(
+                      'PhoneNumberLogin__LoginButton',
+                      'otp-only-mobile',
+                      otpCode.length === 6 && !loading && 'is-enabled',
+                    )}
+                    disabled={otpCode.length !== 6 || loading}
+                    onClick={() => void verifyOtp(otpCode)}
                   >
-                    {t('login.resend')}
+                    {loading ? t('login.verifying') : t('login.verify')}
                   </button>
-                )}
+
+                  {resendIn > 0 ? (
+                    <p className="otp-resend otp-resend--disabled">
+                      {t('login.resendIn', { n: resendIn })}
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      className="otp-resend otp-resend--enabled is-ready"
+                      data-test-id="resend-otp"
+                      onClick={() => void sendOtp()}
+                      disabled={loading}
+                    >
+                      {t('login.resend')}
+                    </button>
+                  )}
+                </div>
+
+                {error ? (
+                  <>
+                    <p className="login-form__error otp-only-mobile">{error}</p>
+                    <div className="modal-error otp-only-desktop" role="alert">
+                      Verification Failed.
+                    </div>
+                  </>
+                ) : null}
               </div>
             )}
 
             {step === 'profile' && (
-              <form className="login-step-secondary w-full max-w-[320px]" onSubmit={handleProfile}>
+              <form className="login-step-secondary" onSubmit={handleProfile}>
                 <h2 className="login-head__text">{t('login.profileTitle')}</h2>
-                <p className="login-help weight--semibold mt-2">Tell us your name to continue</p>
+                <p className="login-help weight--semibold">Tell us your name to continue</p>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Full name"
                   required
-                  className="login-phone__input input mt-5 h-12 w-full rounded-xl border border-[#e0e0e0] px-3"
+                  className="login-name__input input"
                   autoFocus
                 />
                 {error && <p className="login-form__error">{error}</p>}

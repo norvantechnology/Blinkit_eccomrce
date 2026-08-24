@@ -523,3 +523,5 @@ a.profile-nav__list-item:first-child,
   background: #fff;
   min-height: 240px;
 }
+
+/* Addresses empty state lives in blinkit-addresses.css (.ua-empty--addresses) */

@@ -127,7 +127,7 @@ export default function SettingsPage() {
                 type="button"
                 disabled={deleting}
                 onClick={() => setDeleteOpen(false)}
-                className="h-12 flex-1 rounded-xl border border-[#ddd] text-[14px] font-bold text-[#666]"
+                className="h-11 flex-1 rounded-xl border border-[#ddd] text-[14px] font-bold text-[#666]"
               >
                 {t('settings.cancel')}
               </button>
@@ -135,7 +135,7 @@ export default function SettingsPage() {
                 type="button"
                 disabled={deleting}
                 onClick={() => void handleDelete()}
-                className="h-12 flex-1 rounded-xl bg-red-600 text-[14px] font-bold text-white disabled:opacity-60"
+                className="h-11 flex-1 rounded-xl bg-red-600 text-[14px] font-bold text-white disabled:opacity-60"
               >
                 {deleting ? t('settings.deleting') : t('settings.deleteConfirmBtn')}
               </button>

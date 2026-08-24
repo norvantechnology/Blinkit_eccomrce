@@ -43,10 +43,13 @@ export function Header() {
         />
       ) : null}
 
-      {/* Mobile account chrome */}
+      {/* Mobile account — back + location + search icon + search bar (Blinkit) */}
       {isAccount && (
-        <div className="bk-header__mobile-account">
-          <MobileAccountChrome />
+        <div className="bk-header__row bk-header__row--mobile bk-header__row--account">
+          <div className="bk-header__mobile-account">
+            <MobileAccountChrome />
+          </div>
+          <SearchBar />
         </div>
       )}
 
@@ -83,7 +86,7 @@ export function Header() {
 
 function MobileProfileIcon() {
   const user = useAuthStore((s) => s.user);
-  const href = user ? '/account' : '/login?redirect=/account';
+  const href = user ? '/account' : '/login?redirect=/account/addresses';
   return (
     <Link href={href} className="bk-profile bk-profile--icon" aria-label="Account">
       <BlinkitIcon name="profile" size={22} />
@@ -129,7 +132,7 @@ function MobileAccountChrome() {
         className="flex h-[68px] w-11 shrink-0 items-center justify-center"
         aria-label="Home search"
       >
-        <BlinkitIcon name="search" size={16} />
+        <BlinkitIcon name="search" size={24} />
       </Link>
     </>
   );

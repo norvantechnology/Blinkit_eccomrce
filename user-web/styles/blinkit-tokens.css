@@ -15,7 +15,7 @@
   --bk-search-bg: #F8F8F8;
   --bk-search-border: #E8E8E8;
   --bk-header-hover: #FCFCFC;
-  --bk-overlay-login: rgba(50, 50, 50, 0.7);
+  --bk-overlay-login: rgba(0, 0, 0, 0.7);
   --bk-overlay-dim: rgba(50, 50, 50, 0.7);
   --bk-footer-band: #FBFBFB;
   --bk-disabled: #9C9C9C;
@@ -67,10 +67,18 @@
 .bk-addr-overlay,
 .ReactModal__Overlay.bk-addr-overlay,
 .bk-addr-mobile-dim,
-.header__overlay,
-.modal-overlay--login,
-.ReactModal__Overlay--login {
+.header__overlay {
   background-color: rgba(50, 50, 50, 0.7) !important;
+  cursor: default;
+  pointer-events: auto;
+}
+
+/* Login laptop overlay — true black 70% (Blinkit) */
+.modal-overlay--login,
+.ReactModal__Overlay--login,
+.modal-overlay--login.bk-dim-overlay,
+.ReactModal__Overlay--login.bk-dim-overlay {
+  background-color: rgba(0, 0, 0, 0.7) !important;
   cursor: default;
   pointer-events: auto;
 }
@@ -103,6 +111,7 @@
   }
 }
 
+/* Desktop centered panels — preserve Blinkit translate centering */
 @keyframes bk-center-in {
   from {
     opacity: 0;

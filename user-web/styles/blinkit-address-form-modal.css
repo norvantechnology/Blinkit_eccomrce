@@ -112,7 +112,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 24px);
-  height: 54px;
+  height: 48px;
   z-index: 9999;
 }
 
@@ -129,11 +129,30 @@
   position: relative;
 }
 
-/* Green search icon (Blinkit CustomFont "!" → magnifier; we use SVG for reliability) */
+/* Green search icon — Blinkit .jRqnbc::before (CustomFont "!" → magnifier) */
 .styles__LocationSelect-sc-cc1wzf-15::before,
 .jRqnbc::before {
-  content: none;
-  display: none;
+  /* Blinkit uses content: "!"; wasabicons maps the same search glyph at \e929 */
+  content: "\e929";
+  position: absolute;
+  z-index: 1;
+  color: rgb(49, 134, 22);
+  font-size: 24px;
+  font-weight: 800;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  top: 0px;
+  left: 0px;
+  font-family: CustomFont, wasabicons, sans-serif;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px 0px 0px 12px;
+  pointer-events: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
 }
 
 .bk-addr-search-icon {
@@ -141,13 +160,26 @@
   z-index: 2;
   top: 0;
   left: 0;
-  width: 48px;
-  height: 54px;
-  display: flex;
+  width: 44px;
+  height: 48px;
+  display: none;
   align-items: center;
   justify-content: center;
   pointer-events: none;
   border-radius: 12px 0 0 12px;
+}
+
+/* Mobile keeps SVG search icon (CustomFont glyph sizing differs on sheet) */
+@media (max-width: 1020px) {
+  .styles__LocationSelect-sc-cc1wzf-15::before,
+  .jRqnbc::before {
+    content: none;
+    display: none;
+  }
+
+  .bk-addr-search-icon {
+    display: flex;
+  }
 }
 
 .bk-addr-gps-icon {
@@ -194,7 +226,7 @@
   display: flex;
   align-items: center;
   height: 100%;
-  margin-left: 48px;
+  margin-left: 44px;
   flex: 1;
   min-width: 0;
   position: relative;
@@ -619,17 +651,25 @@
   font-size: 13px;
   font-weight: 500;
   line-height: 17px;
-  padding: 15px 30px 15px 12px;
+  padding: 12px 30px 12px 12px;
+  min-height: 44px;
+  height: 44px;
   display: block;
   width: 100%;
   box-sizing: border-box;
   font-family: Okra, Helvetica, sans-serif;
   background: none;
   border: 1px solid #b8b8b8;
-  border-radius: 12px;
+  border-radius: 10px;
   caret-color: #363636;
   outline: none;
   resize: none;
+}
+
+.TextInput__StyledTextInput-sc-abdg41-0 > textarea,
+.cNThDN > textarea {
+  height: auto;
+  min-height: 44px;
 }
 
 .TextInput__StyledTextInput-sc-abdg41-0 > input:focus,
@@ -659,8 +699,8 @@
   line-height: 17px;
   position: absolute;
   pointer-events: none;
-  left: 16px;
-  top: 15px;
+  left: 14px;
+  top: 13px;
   transition: 300ms ease all;
   -webkit-transition: 300ms ease all;
   font-family: Okra, Helvetica, sans-serif;
@@ -751,13 +791,13 @@
 .jBTrwA {
   color: #fff;
   text-align: center;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 500;
-  height: 48px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 7px;
+  border-radius: 8px;
   background: #0c831f;
   cursor: pointer;
   border: 0;
@@ -879,7 +919,7 @@
   margin-top: 4px;
   font-size: 15px;
   font-weight: 600;
-  height: 48px;
+  height: 44px;
   border-radius: 8px;
   background: #0c831f;
 }
@@ -945,9 +985,9 @@
 
 .bk-addr-mobile-sheet .StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1,
 .bk-addr-mobile-sheet .jBTrwA {
-  height: 48px;
+  height: 44px;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   background: #0c831f;
 }
@@ -1042,7 +1082,7 @@
   .bk-addr-mobile-map .dkBIpa {
     top: 68px;
     width: calc(100% - 24px);
-    height: 48px;
+    height: 44px;
   }
 
   .bk-addr-mobile-map .styles__LocationSelect-sc-cc1wzf-15 .Select-control,
@@ -1054,13 +1094,13 @@
 
   .bk-addr-mobile-map .bk-addr-search-icon {
     border-radius: 12px 0 0 12px;
-    height: 48px;
-    width: 44px;
+    height: 44px;
+    width: 40px;
   }
 
   .bk-addr-mobile-map .styles__LocationSelect-sc-cc1wzf-15 .Select-multi-value-wrapper,
   .bk-addr-mobile-map .jRqnbc .Select-multi-value-wrapper {
-    margin-left: 44px;
+    margin-left: 40px;
   }
 
   .bk-addr-mobile-map .center-marker {
@@ -1234,10 +1274,10 @@
     caret-color: #1c1c1c;
     font-size: 13px;
     font-weight: 500;
-    line-height: 18px;
-    min-height: 48px;
-    height: 48px;
-    padding: 14px 34px 14px 12px;
+    line-height: 17px;
+    min-height: 44px;
+    height: 44px;
+    padding: 12px 32px 12px 12px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     background: #fff;
@@ -1245,7 +1285,7 @@
 
   .bk-addr-mobile-sheet .cNThDN > textarea {
     height: auto;
-    min-height: 48px;
+    min-height: 44px;
   }
 
   .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > input:focus,
@@ -1273,7 +1313,7 @@
     font-weight: 400;
     line-height: 17px;
     left: 12px;
-    top: 15px;
+    top: 13px;
   }
 
   .bk-addr-mobile-sheet .cNThDN > input:focus ~ .ioloWN,
@@ -1320,7 +1360,7 @@
 
   .bk-addr-mobile-sheet .StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1,
   .bk-addr-mobile-sheet .jBTrwA {
-    height: 48px;
+    height: 44px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 700;
@@ -1329,5 +1369,91 @@
 
   .bk-addr-mobile-sheet .gzMuRY > div {
     margin: 10px 16px 14px !important;
+  }
+}
+
+/* —— Laptop address modal polish (≥1020) —— */
+@media (min-width: 1020px) {
+  /* A little more space above "Save address as *" */
+  .bk-addr-overlay .AddressForm__AddressFormWrapper-sc-12jjkjl-5,
+  .bk-addr-overlay .tJywa {
+    padding-top: 20px;
+  }
+
+  .bk-addr-overlay .AddressForm__LocationTagsWrapper-sc-12jjkjl-0,
+  .bk-addr-overlay .kfCACP {
+    margin-top: 4px;
+  }
+
+  /* Delivering card: tighter MG Road / Bangalore gap */
+  .bk-addr-overlay .styles__LocationInfoText-sc-cc1wzf-11,
+  .bk-addr-overlay .cmbRXV {
+    gap: 0;
+  }
+
+  .bk-addr-overlay .styles__LocationInfoHeading-sc-cc1wzf-8,
+  .bk-addr-overlay .InEAC {
+    line-height: 16px;
+  }
+
+  .bk-addr-overlay .styles__LocationInfoSubheading-sc-cc1wzf-10,
+  .bk-addr-overlay .bkMpuG {
+    line-height: 15px;
+    margin-top: 1px;
+  }
+
+  /* Pull Area field closer to Floor */
+  .bk-addr-overlay .tJywa > div:has(.bk-addr-area-field) {
+    margin-top: -6px;
+  }
+
+  /* Area / Sector — label inside grey box (Blinkit read-only field) */
+  .bk-addr-overlay .bk-addr-area-field.cNThDN > input:disabled,
+  .bk-addr-overlay .bk-addr-area-field .TextInput__StyledTextInput-sc-abdg41-0 > input:disabled {
+    border: none;
+    background-color: #f8f8f8;
+    padding: 22px 12px 10px 12px;
+    min-height: 50px;
+    height: auto;
+    line-height: 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #363636;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bk-addr-overlay .bk-addr-area-field.cNThDN > input:disabled ~ .ioloWN,
+  .bk-addr-overlay .bk-addr-area-field.cNThDN > input:not(:placeholder-shown) ~ .ioloWN,
+  .bk-addr-overlay .bk-addr-area-field .TextInput__Label-sc-abdg41-1 {
+    top: 6px;
+    left: 12px;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 14px;
+    color: #9c9c9c;
+    background-color: transparent;
+    padding: 0;
+  }
+
+  /* Save Address — slightly larger label */
+  .bk-addr-overlay .StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1,
+  .bk-addr-overlay .jBTrwA {
+    font-size: 16px;
+  }
+
+  /* Map search: slightly smaller search + clear icons */
+  .bk-addr-overlay .styles__LocationSelect-sc-cc1wzf-15::before,
+  .bk-addr-overlay .jRqnbc::before {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .bk-addr-overlay .styles__LocationSelect-sc-cc1wzf-15 .Select-clear-zone,
+  .bk-addr-overlay .jRqnbc .Select-clear-zone,
+  .bk-addr-overlay .jRqnbc .Select-clear {
+    font-size: 15px;
+    width: 24px;
   }
 }

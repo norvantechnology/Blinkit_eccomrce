@@ -30,7 +30,7 @@ export function SearchBar({ className }: { className?: string }) {
       <div className="bk-search__btn" role="search">
         <span className="bk-search__icon">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/blinkit-parity/icons/search.svg" alt="" width={20} height={20} aria-hidden />
+          <img src="/blinkit-parity/icons/search-muted.svg" alt="" width={20} height={20} aria-hidden />
         </span>
         <span className="bk-search__placeholder">
           <span key={index} className="absolute inset-x-0 top-0 truncate animate-fade-in">

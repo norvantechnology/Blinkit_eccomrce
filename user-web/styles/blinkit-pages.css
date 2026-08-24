@@ -8,7 +8,7 @@
 
 /* —— Page / feed shell —— */
 .bk-page {
-  max-width: 1280px;
+  max-width: 1300px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
@@ -21,7 +21,7 @@
 
 @media (min-width: 1021px) {
   .bk-page--home {
-    padding: 20px 20px 48px;
+    padding: 15px 20px 48px;
   }
 }
 
@@ -531,6 +531,49 @@
   .bk-footer-host {
     display: block;
   }
+}
+
+/* Blinkit Feed loader (laptop) — components__Spin + Feed__LoaderContainer */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.Feed__LoaderContainer-sc-1yhjzxr-0,
+.lgnjla,
+.bk-feed-loader {
+  left: 0;
+  right: 0;
+  height: calc(100vh - 86px);
+  position: relative;
+  top: 0;
+  padding-bottom: 0;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+/* When rendered inside <main> (header already above) */
+.bk-feed-loader--in-main {
+  min-height: calc(100vh - 86px);
+  height: calc(100dvh - 86px);
+  top: 0;
+}
+
+.components__Spin-sc-1drf5am-1,
+.dEibCm,
+.bk-spin {
+  border: 2px solid #0c831f;
+  border-radius: 50%;
+  border-top: 2px solid transparent;
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  -webkit-animation: spin 700ms linear infinite;
+  animation: spin 700ms linear infinite;
 }
 
 .bk-account-only-desktop {

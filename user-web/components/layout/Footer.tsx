@@ -102,7 +102,8 @@ export function Footer() {
 
           <div className="bk-footer__band-item bk-footer__band-item--center">
             <div className="bk-footer__download-title">Download App</div>
-            <div className="bk-footer__flex" style={{ gap: 16 }}>
+            <div className="bk-footer__flex bk-footer__flex--badges">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className="bk-footer__badge"
                 src="/blinkit-parity/icons/footer/app-store.svg"
@@ -110,6 +111,7 @@ export function Footer() {
                 width={92}
                 height={30}
               />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className="bk-footer__badge"
                 src="/blinkit-parity/icons/footer/google-play.svg"
@@ -124,6 +126,7 @@ export function Footer() {
             <div className="bk-footer__flex bk-footer__flex--social">
               {SOCIAL.map((s) => (
                 <span key={s.name} className="bk-footer__social" aria-label={s.name}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={s.src} alt="" width={40} height={40} />
                 </span>
               ))}

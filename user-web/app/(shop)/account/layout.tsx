@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { AccountSidebar } from '@/components/account/AccountSidebar';
+import { BlinkitPageLoader } from '@/components/layout/BlinkitPageLoader';
 import { cn } from '@/lib/utils';
 import '@/styles/blinkit-iconfont.css';
 import '@/styles/blinkit-account.css';
@@ -23,9 +24,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   }, [hydrated, user, router, pathname]);
 
   if (!hydrated || !user) {
-    return (
-      <div className="bg-white px-4 py-16 text-center text-sm text-[#999]">Loading…</div>
-    );
+    return <BlinkitPageLoader className="bk-feed-loader--in-main" />;
   }
 
   /* Mobile hub is full-bleed Blinkit profile page (no desktop card chrome) */

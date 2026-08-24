@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AccountMobileHub } from '@/components/account/AccountMobileHub';
+import { BlinkitPageLoader } from '@/components/layout/BlinkitPageLoader';
 
 /**
  * Blinkit `/account`:
@@ -28,8 +29,8 @@ export default function AccountIndexPage() {
       <div className="bk-account-only-mobile">
         <AccountMobileHub />
       </div>
-      <div className="bk-account-only-desktop bg-white px-4 py-16 text-center text-sm text-[#999]">
-        Loading…
+      <div className="bk-account-only-desktop">
+        <BlinkitPageLoader className="bk-feed-loader--in-main" />
       </div>
     </>
   );

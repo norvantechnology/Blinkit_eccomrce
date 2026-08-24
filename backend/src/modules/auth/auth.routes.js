@@ -7,20 +7,22 @@ const rateLimiter = require('../../middlewares/rateLimiter');
 
 const router = Router();
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 const otpSendLimiter = rateLimiter({
-  max: 3,
+  max: isDev ? 30 : 3,
   windowSeconds: 600,
   keyGenerator: (req) => `otp:send:${req.body.phone || req.ip}`,
 });
 
 const otpVerifyLimiter = rateLimiter({
-  max: 10,
+  max: isDev ? 50 : 10,
   windowSeconds: 600,
   keyGenerator: (req) => `otp:verify:${req.body.phone || req.ip}`,
 });
 
 const authIpLimiter = rateLimiter({
-  max: 20,
+  max: isDev ? 200 : 20,
   windowSeconds: 600,
   keyGenerator: (req) => `auth:ip:${req.ip}`,
 });
