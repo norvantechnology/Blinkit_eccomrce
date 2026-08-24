@@ -21,7 +21,7 @@ export default function StoreDetailsPage() {
         <div>
           <h2 className="text-sm font-semibold">Store logo</h2>
           <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">
-            JPEG, PNG, WebP, GIF, or PDF — max 10MB
+            JPEG, PNG, WebP, GIF, or PDF - max 10MB
           </p>
         </div>
 

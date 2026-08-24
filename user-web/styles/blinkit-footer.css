@@ -1,5 +1,5 @@
 /**
- * Blinkit footer parity — from styled-components on blinkit.com
+ * Blinkit footer parity - from styled-components on blinkit.com
  * (FooterLinks / DownloadAndFollowRow / GrofersDisclaimer / Footer)
  * Snapshot: tools/blinkit-login-capture/out/extracted/footer-exact-from-blinkit.css
  */
@@ -9,6 +9,10 @@
   max-width: 1300px;
   margin: 48px auto 0;
   transition: 0.4s;
+  font-family: Okra, Helvetica, sans-serif;
+  color: #666666;
+  font-size: 12px;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1020px) {
@@ -26,6 +30,7 @@
 .bk-footer__inner {
   width: auto;
   margin: 20px auto 40px;
+  font-family: Okra, Helvetica, sans-serif;
 }
 
 @media (max-width: 1300px) {
@@ -49,23 +54,26 @@
   }
 }
 
-/* FooterLinks__Grid — Useful Links | Categories */
-.bk-footer__links-grid {
+/* FooterLinks__Grid / .hyzNyz - Useful Links | Categories */
+.bk-footer__links-grid,
+.hyzNyz {
   display: grid;
   grid-template-columns: 1fr 2fr;
 }
 
 @media (max-width: 1020px) {
-  .bk-footer__links-grid {
+  .bk-footer__links-grid,
+  .hyzNyz {
     grid-template-columns: 1fr;
   }
 }
 
-/* FooterLinks__ListHeading */
-.bk-footer__heading {
-  font-family: Okra, var(--bk-font, sans-serif);
+/* FooterLinks__ListHeading / .aonOx */
+.bk-footer__heading,
+.aonOx {
+  font-family: Okra, Helvetica, sans-serif;
   font-weight: 600;
-  color: #000000;
+  color: rgb(0, 0, 0);
   font-size: 18px;
   margin: 24px 0;
   line-height: 1.2;
@@ -78,6 +86,10 @@
   align-items: center;
 }
 
+.bk-footer__heading-row .bk-footer__heading {
+  margin-right: 0;
+}
+
 /* FooterLinks__SeeAll */
 .bk-footer__see-all {
   display: flex;
@@ -87,18 +99,19 @@
   color: #0c831f;
   font-size: 16px;
   font-weight: 400;
+  line-height: 1.2;
   text-decoration: none;
   cursor: pointer;
   background: none;
   border: 0;
-  font-family: inherit;
+  font-family: Okra, Helvetica, sans-serif;
 }
 
 .bk-footer__see-all:hover {
   text-decoration: underline;
 }
 
-/* FooterLinks__List — outer 3 columns */
+/* FooterLinks__List - outer 3 columns */
 .bk-footer__cols {
   list-style: none;
   margin: 0;
@@ -149,7 +162,7 @@
   }
 }
 
-/* FooterLinks__List — single column */
+/* FooterLinks__List - single column */
 .bk-footer__col {
   list-style: none;
   margin: 0;
@@ -165,24 +178,26 @@
   display: inline-block;
   font-size: 14px;
   line-height: 18px;
+  font-family: Okra, Helvetica, sans-serif;
+  color: #666666;
 }
 
-/* FooterLinkshelpers__FooterLink */
+/* FooterLinkshelpers__FooterLink - Blinkit grey links on laptop */
 .bk-footer__link {
-  color: #000000;
+  color: #666666;
   text-decoration: none;
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  font-family: Okra, var(--bk-font, sans-serif);
-  cursor: default;
+  font-family: Okra, Helvetica, sans-serif;
+  cursor: pointer;
 }
 
 .bk-footer__link:hover {
   color: #333333;
 }
 
-/* DownloadAndFollowRow__Wrapper — full-bleed grey bar */
+/* DownloadAndFollowRow__Wrapper - full-bleed grey bar */
 .bk-footer__band {
   display: flex;
   justify-content: center;
@@ -194,7 +209,7 @@
   box-sizing: border-box;
 }
 
-/* DownloadAndFollowRow__Grid — copyright | download+badges | social */
+/* DownloadAndFollowRow__Grid - copyright | download+badges | social */
 .bk-footer__band-grid {
   padding: 16px;
   width: 100%;
@@ -267,7 +282,7 @@
   }
 }
 
-/* "Download App" — same row as badges */
+/* "Download App" - same row as badges */
 .bk-footer__download-title {
   font-family: Okra, var(--bk-font, sans-serif);
   font-weight: 600;
@@ -306,7 +321,7 @@
   flex-shrink: 0;
 }
 
-/* Social — 40px circles, 12px side margins (Blinkit) */
+/* Social - 40px circles, 12px side margins (Blinkit) */
 .bk-footer__social {
   display: inline-flex;
   align-items: center;
@@ -355,7 +370,7 @@
   }
 }
 
-/* —— Mobile accordion (Blinkit) —— */
+/* -- Mobile accordion (Blinkit) -- */
 .bk-footer__brand,
 .bk-footer__toggle {
   display: none;
@@ -365,29 +380,102 @@
   .bk-footer__brand {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
-    text-align: center;
+    text-align: left;
     padding: 36px 16px 28px;
-    background: #f7f7f7;
+    background: #f8fbfc;
   }
 
   .bk-footer__brand-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
     font-family: Okra, Helvetica, sans-serif;
     font-size: 28px;
     font-weight: 700;
     line-height: 1.2;
-    color: #8a8a8a;
+    color: #c9ced6;
     letter-spacing: -0.03em;
   }
 
+  .bk-footer__brand-heart-wrap {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    line-height: 0;
+  }
+
+  .bk-footer__brand-heart-wrap img {
+    width: 100%;
+    height: 100%;
+    transform: scale(1);
+    object-fit: contain;
+  }
+
+  /* Blinkit spicy-tailwind + data-pf=reset parity for brand media */
+  .bk-footer__brand .spicy-tailwind.tw-transition-opacity {
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 0.15s;
+  }
+
+  .bk-footer__brand .spicy-tailwind.tw-w-full {
+    width: 100%;
+  }
+
+  .bk-footer__brand .spicy-tailwind.tw-h-full {
+    height: 100%;
+  }
+
+  .bk-footer__brand img[data-pf='reset'],
+  .bk-footer__brand video[data-pf='reset'] {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .bk-footer__brand img[data-pf='reset'],
+  .bk-footer__brand svg[data-pf='reset'],
+  .bk-footer__brand video[data-pf='reset'],
+  .bk-footer__brand canvas[data-pf='reset'],
+  .bk-footer__brand audio[data-pf='reset'],
+  .bk-footer__brand iframe[data-pf='reset'],
+  .bk-footer__brand embed[data-pf='reset'],
+  .bk-footer__brand object[data-pf='reset'] {
+    display: block;
+    vertical-align: middle;
+  }
+
+  .bk-footer__brand *[data-pf='reset'],
+  .bk-footer__brand [data-pf='reset']::before,
+  .bk-footer__brand [data-pf='reset']::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+  }
+
+  .bk-footer__brand img {
+    border-style: none;
+  }
+
+  .bk-footer__brand-rule {
+    width: 100%;
+    height: 1px;
+    margin: 20px 0 16px;
+    background: #e8ecf0;
+    border: 0;
+  }
+
   .bk-footer__brand-mark {
-    margin-top: 8px;
+    margin-top: 0;
     font-family: Okra, Helvetica, sans-serif;
     font-size: 22px;
     font-weight: 700;
     line-height: 1;
-    color: #dedede;
+    color: #e2e6eb;
     letter-spacing: -0.03em;
     text-transform: lowercase;
   }
@@ -404,9 +492,10 @@
     border-top: 1px solid #eeeeee;
     background: #fff;
     font-family: Okra, Helvetica, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    color: #363636;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 20px;
+    color: #666666;
     text-align: left;
     cursor: pointer;
     box-sizing: border-box;
@@ -423,7 +512,7 @@
   .bk-footer__plus::after {
     content: '';
     position: absolute;
-    background: #1c1c1c;
+    background: #666666;
     border-radius: 1px;
   }
 
@@ -458,11 +547,12 @@
     border-bottom: 0;
   }
 
-  /* Keep Blinkit tokens — heading 18px / #000, see all 16px / #0c831f, links 14px / #666 */
+  /* Keep Blinkit tokens - heading 18px / #000, see all 16px / #0c831f, links 14px / #666 */
   .bk-footer__heading {
+    font-family: Okra, Helvetica, sans-serif;
     font-size: 18px;
     font-weight: 600;
-    color: #000000;
+    color: rgb(0, 0, 0);
     margin: 24px 0;
     line-height: 1.2;
   }
@@ -481,6 +571,7 @@
     color: #0c831f;
     font-weight: 400;
     line-height: 1.2;
+    font-family: Okra, Helvetica, sans-serif;
   }
 
   .bk-footer__col {
@@ -490,6 +581,7 @@
   .bk-footer__item {
     font-size: 14px;
     line-height: 18px;
+    color: #666666;
   }
 
   .bk-footer__link {
@@ -497,11 +589,13 @@
     font-size: 14px;
     line-height: 18px;
     font-weight: 400;
+    font-family: Okra, Helvetica, sans-serif;
   }
 
   .bk-footer__toggle {
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 20px;
     color: #666666;
   }
 

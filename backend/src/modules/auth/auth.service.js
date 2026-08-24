@@ -12,7 +12,7 @@ const MAX_OTP_ATTEMPTS = 5;
 const OTP_EXPIRY_MINUTES = 5;
 
 const generateOtp = () => {
-  // Free/static mode (default) — Blinkit.md allows SNS/MSG91/Firebase later
+  // Free/static mode (default) - Blinkit.md allows SNS/MSG91/Firebase later
   if (smsProvider.isStaticMode()) {
     return smsProvider.resolveStaticCode();
   }
@@ -76,7 +76,7 @@ const sendOtp = async ({ phone, email, purpose = OTP_PURPOSE.LOGIN }) => {
   const payload = { message: `If this ${channel} is valid, an OTP has been sent.` };
   if (delivery?.staticOtp) {
     payload.staticOtp = true;
-    payload.otp = otp; // free/static mode only — never enable with paid SMS/email
+    payload.otp = otp; // free/static mode only - never enable with paid SMS/email
   }
   return payload;
 };

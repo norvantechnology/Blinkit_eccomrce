@@ -112,7 +112,7 @@ async function main() {
   const store = await prisma.store.findUnique({ where: { slug: 'blinkit-store' } });
   const storeId = store.id;
 
-  console.log(`  ✓ Store ready — Tapi Grocery (id: ${storeId})`);
+  console.log(`  ✓ Store ready - Tapi Grocery (id: ${storeId})`);
 
   // Default store settings
   const defaultSettings = [
@@ -262,7 +262,7 @@ async function main() {
     console.log('  ✓ Store manager created (manager@blinkit.local / Manager@123)');
   }
 
-  // Sample customers (§16.1 / §19.2 — for M1 profile/address + email login testing)
+  // Sample customers (§16.1 / §19.2 - for M1 profile/address + email login testing)
   const customerPasswordHash = await bcrypt.hash('Customer@123', 12);
   const sampleCustomers = [
     { phone: '+919876543210', name: 'Rahul Sharma', email: 'rahul@example.com', languagePref: 'en' },

@@ -1,4 +1,4 @@
-/* Blinkit IconFont + wasabicons (CustomFont) — account nav + address actions */
+/* Blinkit IconFont + wasabicons (CustomFont) - account nav + address actions */
 
 @font-face {
   font-family: "IconFont";
@@ -34,7 +34,7 @@
   color: currentColor;
 }
 
-/* —— Nav icons: shared 20×20 column —— */
+/* -- Nav icons: shared 20×20 column -- */
 .profile-nav__ico.icon-location-on-map,
 .profile-nav__ico.icon-orders,
 .profile-nav__ico.icon-logout {

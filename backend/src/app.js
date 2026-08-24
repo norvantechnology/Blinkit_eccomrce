@@ -23,7 +23,7 @@ const app = express();
 
 app.set('trust proxy', true);
 
-// API docs — mount before helmet (Swagger UI needs inline assets)
+// API docs - mount before helmet (Swagger UI needs inline assets)
 app.use('/api-docs', swaggerRoutes);
 
 app.use(helmet());
@@ -60,13 +60,13 @@ apiRouter.use('/admin', adminRouter);
 
 // §8.3 User Profile & Addresses
 apiRouter.use('/users', usersRoutes);
-/** Public Google Places search (no auth) — used by location picker before login */
+/** Public Google Places search (no auth) - used by location picker before login */
 apiRouter.use('/places', placesRoutes);
 /** Public CMS content (privacy policy, etc.) */
 apiRouter.use('/content', contentRoutes);
 apiRouter.use('/addresses', addressesRoutes);
 
-// Uploads (S3) — user + admin mirrors
+// Uploads (S3) - user + admin mirrors
 apiRouter.use('/uploads', userUploadsRouter);
 
 app.use('/api/v1', apiRouter);

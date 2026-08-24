@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('accessToken')?.value;
   const refreshToken = request.cookies.get('refreshToken')?.value;
 
-  // Allow dashboard routes when refresh token exists — client will renew access token
+  // Allow dashboard routes when refresh token exists - client will renew access token
   if (!accessToken && !refreshToken) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);

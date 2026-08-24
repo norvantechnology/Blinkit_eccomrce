@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-/** BlinkitLogo__LogoContainer — 178×86; wordmark like blinkit (yellow + green). */
+/** BlinkitLogo__LogoContainer - 178×86; wordmark like blinkit (yellow + green). */
 export function BrandLogo({
   className,
   variant = 'header',

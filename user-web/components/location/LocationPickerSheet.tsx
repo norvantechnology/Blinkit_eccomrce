@@ -11,6 +11,8 @@ import { useLocationStore } from '@/store/locationStore';
 import { useUiStore } from '@/store/uiStore';
 import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
 import { addressesService, type Address } from '@/services/addresses.service';
+import { useI18n } from '@/lib/i18n/useI18n';
+import type { MessageKey } from '@/lib/i18n/messages';
 import '@/styles/blinkit-location-popup.css';
 import '@/styles/blinkit-iconfont.css';
 
@@ -21,10 +23,10 @@ const ICON = {
     'https://cdn.grofers.com/layout-engine/v2/2025-02/address_home_icon_v5/address_home_icon_v5_light.png',
 } as const;
 
-function labelTitle(label: Address['label']) {
-  if (label === 'home') return 'Home';
-  if (label === 'work') return 'Work';
-  return 'Other';
+function labelKey(label: Address['label']): MessageKey {
+  if (label === 'home') return 'location.home';
+  if (label === 'work') return 'location.work';
+  return 'location.other';
 }
 
 function iconSrc(label: Address['label']) {
@@ -33,7 +35,7 @@ function iconSrc(label: Address['label']) {
   return ICON.other;
 }
 
-/** Blinkit Change Location popup — same DOM/CSS as live desktop HTML. */
+/** Blinkit Change Location popup - same DOM/CSS as live desktop HTML. */
 export function LocationPickerSheet() {
   const router = useRouter();
   const open = useUiStore((s) => s.locationPickerOpen);
@@ -41,6 +43,9 @@ export function LocationPickerSheet() {
   const setOpen = useUiStore((s) => s.setLocationPickerOpen);
   const user = useAuthStore((s) => s.user);
   const setLocation = useLocationStore((s) => s.setLocation);
+  const { t } = useI18n();
+
+  const labelTitle = (label: Address['label']) => t(labelKey(label));
 
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState('');
@@ -135,7 +140,7 @@ export function LocationPickerSheet() {
           );
         } catch {
           setSuggestions([]);
-          setError('Could not search locations. Try again.');
+          setError(t('location.searchFailed'));
         } finally {
           setSearching(false);
         }
@@ -145,7 +150,7 @@ export function LocationPickerSheet() {
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported in this browser');
+      setError(t('location.geoUnsupported'));
       return;
     }
     setLoadingGps(true);
@@ -157,9 +162,9 @@ export function LocationPickerSheet() {
         void (async () => {
           try {
             const address = await reverseGeocode(lat, lng);
-            applyLocation(address, lat, lng, 'Current');
+            applyLocation(address, lat, lng, t('location.current'));
           } catch {
-            applyLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`, lat, lng, 'Current');
+            applyLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`, lat, lng, t('location.current'));
           } finally {
             setLoadingGps(false);
           }
@@ -167,7 +172,7 @@ export function LocationPickerSheet() {
       },
       () => {
         setLoadingGps(false);
-        setError('Could not get current location. Allow access or search manually.');
+        setError(t('location.geoFailed'));
       },
       { enableHighAccuracy: true, timeout: 12000 },
     );
@@ -227,7 +232,7 @@ export function LocationPickerSheet() {
       setDeleteTarget(null);
       closeAddressMenu();
     } catch {
-      setError('Could not delete address');
+      setError(t('addresses.deleteFailed'));
       setConfirmDelete(false);
       setDeleteTarget(null);
     }
@@ -303,12 +308,12 @@ export function LocationPickerSheet() {
           height={12}
           className="bk-loc-detect-pin"
         />
-        {loadingGps ? 'Detecting…' : 'Detect my location'}
+        {loadingGps ? t('location.detecting') : t('location.detect')}
       </button>
       <div className="oval-container">
         <div className="oval">
           <span className="separator-text">
-            <div className="or">OR</div>
+            <div className="or">{t('location.or')}</div>
           </span>
         </div>
       </div>
@@ -322,7 +327,7 @@ export function LocationPickerSheet() {
                 <input
                   type="text"
                   name="select-locality"
-                  placeholder="search delivery location"
+                  placeholder={t('location.search')}
                   autoComplete="off"
                   className="LocationSearchBox__InputSelect-sc-1k8u6a6-0 fZCGlI location-search-input-v1-native"
                   value={query}
@@ -337,8 +342,9 @@ export function LocationPickerSheet() {
     </div>
   );
 
-  const renderSavedList = (mode: 'desktop' | 'mobile') =>
-    user && saved.length > 0 ? (
+  const renderSavedList = (mode: 'desktop' | 'mobile') => {
+    if (user && saved.length > 0) {
+      return (
       <div className="address-container-v1">
         {saved.map((addr) => (
           <div
@@ -442,9 +448,15 @@ export function LocationPickerSheet() {
           </div>
         ))}
       </div>
-    ) : (
+      );
+    }
+
+    /* Mobile empty state stays blank (Blinkit). Desktop keeps the login/add prompt. */
+    if (mode === 'mobile') return null;
+
+    return (
       <p style={{ padding: '16px 0', fontSize: 13, color: '#999' }}>
-        {user ? 'No saved addresses yet.' : 'Log in to see saved addresses.'}
+        {user ? t('addresses.empty') : t('location.loginSaved')}
         <button
           type="button"
           onClick={goAddAddress}
@@ -461,18 +473,19 @@ export function LocationPickerSheet() {
             fontFamily: 'Okra, Helvetica, sans-serif',
           }}
         >
-          + Add new address
+          {t('location.addNew')}
         </button>
       </p>
     );
+  };
 
   const suggestionBlock =
     query.trim().length >= 2 ? (
       <div className="bk-loc-suggestions">
         {searching ? (
-          <p style={{ padding: 16, fontSize: 13, color: '#999' }}>Searching…</p>
+          <p style={{ padding: 16, fontSize: 13, color: '#999' }}>{t('location.searching')}</p>
         ) : suggestions.length === 0 ? (
-          <p style={{ padding: 16, fontSize: 13, color: '#999' }}>No locations found</p>
+          <p style={{ padding: 16, fontSize: 13, color: '#999' }}>{t('location.noneFound')}</p>
         ) : (
           suggestions.map((s) => (
             <button
@@ -532,7 +545,7 @@ export function LocationPickerSheet() {
                       className="welcome-to-grofers weight--semibold"
                       style={{ color: 'rgb(51, 51, 51)' }}
                     >
-                      Change Location
+                      {t('location.change')}
                     </div>
                     <button
                       type="button"
@@ -563,7 +576,7 @@ export function LocationPickerSheet() {
             <div className="ChangeLocationV1__LocationBottom-sc-1sww6op-2 iklVqv">
               <div className="ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4 fXRPjX">
                 <div className="ChangeLocationV1__LocationListTitle-sc-1sww6op-5 iHPeDK">
-                  Your saved addresses
+                  {t('location.saved')}
                 </div>
                 {renderSavedList('desktop')}
               </div>
@@ -574,7 +587,7 @@ export function LocationPickerSheet() {
     </div>
   );
 
-  /* Mobile — Blinkit LocationModal DOM parity */
+  /* Mobile - Blinkit LocationModal DOM parity */
   const mobilePanel = (
     <div className="bk-loc-mobile-root">
       <button
@@ -614,7 +627,7 @@ export function LocationPickerSheet() {
             <div className="LocationMobileTopV1__Container-sc-iandd-0 bOYZpk">
               <div className="LocationMobileTopV1__LocationCityTitle-sc-iandd-1 jhpDgF">
                 <div className="LocationMobileTopV1__LocationHeading-sc-iandd-3 eWmruh">
-                  Select your Location
+                  {t('location.select')}
                 </div>
               </div>
               <div className="LocationMobileTopV1__SearchContainer-sc-iandd-4 etGOdo">
@@ -630,7 +643,7 @@ export function LocationPickerSheet() {
                               <input
                                 type="text"
                                 name="select-locality"
-                                placeholder="search delivery location"
+                                placeholder={t('location.search')}
                                 autoComplete="off"
                                 className="LocationSearchBox__InputSelect-sc-1k8u6a6-0 fZCGlI"
                                 value={query}
@@ -659,7 +672,7 @@ export function LocationPickerSheet() {
                       src="/blinkit-parity/icons/location/current-location.svg"
                       alt=""
                     />
-                    {loadingGps ? 'Detecting…' : 'Use current location'}
+                    {loadingGps ? t('location.detecting') : t('location.useCurrent')}
                   </div>
                 </div>
               </div>
@@ -668,15 +681,17 @@ export function LocationPickerSheet() {
 
             {query.trim().length >= 2 ? (
               suggestionBlock
-            ) : (
+            ) : user && saved.length > 0 ? (
               <div className="ChangeLocationV1__LocationBottom-sc-1sww6op-2 iklVqv">
                 <div className="ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4 dlnKNt">
                   <div className="ChangeLocationV1__LocationListTitle-sc-1sww6op-5 iHPeDK">
-                    Your saved addresses
+                    {t('location.saved')}
                   </div>
                   {renderSavedList('mobile')}
                 </div>
               </div>
+            ) : (
+              <div className="ChangeLocationV1__LocationBottom-sc-1sww6op-2 iklVqv bk-loc-mobile-empty" />
             )}
           </div>
         </div>
@@ -697,17 +712,17 @@ export function LocationPickerSheet() {
           onClick={closeDeleteConfirm}
         />
       <div className="bk-loc-confirm__card">
-        <p className="bk-loc-confirm__text">Are you sure you want to delete this address?</p>
+        <p className="bk-loc-confirm__text">{t('addresses.deleteConfirmLong')}</p>
         <div className="bk-loc-confirm__row">
           <button type="button" className="bk-loc-confirm__btn" onClick={closeDeleteConfirm}>
-            No
+            {t('addresses.no')}
           </button>
           <button
             type="button"
             className="bk-loc-confirm__btn bk-loc-confirm__btn--yes"
             onClick={() => void confirmDeleteAddress()}
           >
-            Yes
+            {t('addresses.yes')}
           </button>
         </div>
       </div>
@@ -731,14 +746,14 @@ export function LocationPickerSheet() {
               className="bk-loc-action__btn bk-loc-action__btn--delete"
               onClick={() => setConfirmDelete(true)}
             >
-              Delete
+              {t('addresses.delete')}
             </button>
             <button
               type="button"
               className="bk-loc-action__btn bk-loc-action__btn--edit"
               onClick={(e) => editAddress(e as unknown as MouseEvent, menuAddr)}
             >
-              Edit
+              {t('addresses.edit')}
             </button>
           </div>
           <div className="bk-loc-action__group">
@@ -747,7 +762,7 @@ export function LocationPickerSheet() {
               className="bk-loc-action__btn bk-loc-action__btn--cancel"
               onClick={closeAddressMenu}
             >
-              Cancel
+              {t('settings.cancel')}
             </button>
           </div>
         </div>

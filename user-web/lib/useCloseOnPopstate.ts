@@ -32,7 +32,7 @@ export function useCloseOnPopstate(open: boolean, onClose: () => void) {
     window.addEventListener('popstate', onPop);
     return () => {
       window.removeEventListener('popstate', onPop);
-      // Closed without dismiss — drop the dummy entry (unless navigating away).
+      // Closed without dismiss - drop the dummy entry (unless navigating away).
       if (pushed.current && !skipUnwind.current) {
         pushed.current = false;
         closingViaUi.current = true;
@@ -42,7 +42,7 @@ export function useCloseOnPopstate(open: boolean, onClose: () => void) {
     };
   }, [open]);
 
-  /** Close via X / overlay click — unwind dummy history entry. */
+  /** Close via X / overlay click - unwind dummy history entry. */
   const dismiss = useCallback(() => {
     if (pushed.current) {
       closingViaUi.current = true;

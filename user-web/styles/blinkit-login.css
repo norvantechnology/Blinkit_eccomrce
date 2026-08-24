@@ -2,12 +2,12 @@
 @import "./blinkit-tokens.css";
 
 /**
- * Blinkit login modal — exact from live blinkit.com
+ * Blinkit login modal - exact from live blinkit.com
  * Source: tools/blinkit-login-capture/out/extracted/login-global.css + login-styled.css
  * Breakpoints: tablet 1020 / desktop 1260
  */
 
-/* —— Overlay —— */
+/* -- Overlay -- */
 .modal-overlay--login,
 .ReactModal__Overlay--login {
   position: fixed;
@@ -28,7 +28,7 @@
   }
 }
 
-/* —— Modal shell —— */
+/* -- Modal shell -- */
 .modal-content--login {
   position: absolute;
   top: 50%;
@@ -72,7 +72,7 @@
   }
 }
 
-/* —— Back icon (CustomFont "&" → wasabicons back SVG) —— */
+/* -- Back icon (CustomFont "&" → wasabicons back SVG) -- */
 /* Blinkit uses font-size:20px but the glyph paints ~14px; our SVG filled the box and looked oversized */
 .LoginModal__BackIcon {
   cursor: pointer;
@@ -114,7 +114,7 @@
   }
 }
 
-/* —— Login layout —— */
+/* -- Login layout -- */
 .login {
   margin: auto;
   font-family: Okra, Helvetica, sans-serif;
@@ -144,7 +144,7 @@
   position: relative;
 }
 
-/* Blinkit .login__lottie — product animation (mobile only) */
+/* Blinkit .login__lottie - product animation (mobile only) */
 .login__lottie {
   display: none;
 }
@@ -187,7 +187,7 @@
   text-decoration: underline;
 }
 
-/* —— PhoneNumberLogin__LoginContainer —— */
+/* -- PhoneNumberLogin__LoginContainer -- */
 .PhoneNumberLogin__LoginContainer {
   z-index: 1000;
   display: flex;
@@ -221,7 +221,7 @@
   }
 }
 
-/* —— Logo 64×64 —— */
+/* -- Logo 64×64 -- */
 .PhoneNumberLogin__ImageContainer {
   display: flex;
   justify-content: center;
@@ -245,7 +245,7 @@
   object-fit: contain;
 }
 
-/* —— Typography —— */
+/* -- Typography -- */
 .login-help {
   display: block;
   font-family: Okra, Helvetica, sans-serif;
@@ -272,7 +272,7 @@
   letter-spacing: normal;
 }
 
-/* —— Form —— */
+/* -- Form -- */
 .login-form {
   margin: 12px 24px 0;
   display: flex;
@@ -398,7 +398,7 @@
   font-family: Okra, Helvetica, sans-serif;
 }
 
-/* Blinkit .login-phone__input — exact responsive rules
+/* Blinkit .login-phone__input - exact responsive rules
    !important on box model: Tailwind preflight forces border-box on * */
 .modal-content--login .login-phone__input,
 .modal-content--login .login-phone__input.input,
@@ -475,7 +475,7 @@
   box-shadow: none;
 }
 
-/* —— Continue button —— */
+/* -- Continue button -- */
 .modal-content--login .PhoneNumberLogin__LoginButton,
 .PhoneNumberLogin__LoginButton {
   margin-top: 18px;
@@ -534,7 +534,7 @@
   width: 100%;
 }
 
-/* —— Terms footer —— */
+/* -- Terms footer -- */
 .PhoneNumberLogin__LinksWrapper {
   background-color: #fbfbfb;
   width: 100%;
@@ -556,7 +556,7 @@
   color: #333;
 }
 
-/* —— OTP / profile steps —— */
+/* -- OTP / profile steps -- */
 .modal-content--login .login-step-secondary {
   display: flex;
   flex-direction: column;
@@ -607,7 +607,7 @@
   text-align: center;
 }
 
-/* Blinkit OTP helpers — visibility toggled by breakpoint */
+/* Blinkit OTP helpers - visibility toggled by breakpoint */
 .otp-only-desktop {
   display: none !important;
 }
@@ -657,6 +657,17 @@
   align-items: center;
 }
 
+.otp-static-hint {
+  margin: 12px 0 0;
+  padding: 0 16px;
+  text-align: center;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #0c831f;
+}
+
 .otp {
   position: relative;
   margin-top: 24px;
@@ -680,7 +691,7 @@
   width: 100%;
 }
 
-/* Blinkit .otp__input + .input — exact focus/border (outline:0, border #ccc) */
+/* Blinkit .otp__input + .input - exact focus/border (outline:0, border #ccc) */
 .otp__input.input,
 .otp__input {
   box-sizing: border-box;
@@ -712,7 +723,7 @@
 .otp__input.input:focus,
 .otp__input.input:focus-visible {
   outline: 0 !important;
-  /* Soft focus — thin dark border, not bold/thick */
+  /* Soft focus - thin dark border, not bold/thick */
   border: 1px solid #666666 !important;
   box-shadow: none !important;
 }
@@ -731,7 +742,7 @@
   text-align: center;
 }
 
-/* Blinkit .otp-resend — green when enabled, #ccc when disabled */
+/* Blinkit .otp-resend - green when enabled, #ccc when disabled */
 .otp-resend {
   color: #0c831f;
   cursor: pointer;
@@ -777,7 +788,7 @@
   margin-top: 18px;
 }
 
-/* Blinkit OTP screen — same on mobile + laptop */
+/* Blinkit OTP screen - same on mobile + laptop */
 .LoginModal__BackIcon.OtpVerification__BackIcon {
   left: 8px;
   top: 10px;

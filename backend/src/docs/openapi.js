@@ -621,7 +621,7 @@ function buildOpenApiSpec(req) {
       '/places/search': {
         get: {
           tags: ['Places'],
-          summary: 'Public address search (Google Places or 503 — UI falls back to OSM)',
+          summary: 'Public address search (Google Places or 503 - UI falls back to OSM)',
           parameters: [{ name: 'q', in: 'query', required: true, schema: { type: 'string' } }],
           responses: { 200: { description: 'Search results' }, 503: { description: 'Maps not configured' } },
         },

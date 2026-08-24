@@ -1,9 +1,9 @@
 /**
- * Stub OpenSearch — enable later if product search needs it.
+ * Stub OpenSearch - enable later if product search needs it.
  */
 const search = {
   async search(_index, _query) {
-    console.log('[search] Stub — OpenSearch not configured');
+    console.log('[search] Stub - OpenSearch not configured');
     return { hits: { hits: [], total: { value: 0 } } };
   },
 

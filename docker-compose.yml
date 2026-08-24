@@ -41,7 +41,7 @@ services:
     ports:
       - "4000:4000"
     environment:
-      # No .env — config from Secrets Manager at boot.
+      # No .env - config from Secrets Manager at boot.
       # Live: EC2 instance role. Local: export AWS_* before compose, or mount ~/.aws.
       AWS_REGION: ap-south-1
       NODE_ENV: production

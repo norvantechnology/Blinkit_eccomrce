@@ -12,7 +12,7 @@ type Props = {
 };
 
 /**
- * Blinkit OTP — one real <input class="otp__input input"> per digit.
+ * Blinkit OTP - one real <input class="otp__input input"> per digit.
  * Focus: outline 0, caret transparent, border stays #ccc (same as Blinkit).
  */
 export function OtpInput({ value, onChange, disabled, error, length = 6 }: Props) {

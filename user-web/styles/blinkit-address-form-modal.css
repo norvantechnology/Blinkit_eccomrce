@@ -1,5 +1,5 @@
 /**
- * Blinkit Enter complete address modal — exact from layout chunk (sc-cc1wzf / sc-12jjkjl / sc-abdg41 / sc-13bkdgz / sc-i6hou3)
+ * Blinkit Enter complete address modal - exact from layout chunk (sc-cc1wzf / sc-12jjkjl / sc-abdg41 / sc-13bkdgz / sc-i6hou3)
  * Breakpoint: 1020px mobile (Blinkit --tablet-breakpoint)
  */
 
@@ -129,7 +129,7 @@
   position: relative;
 }
 
-/* Green search icon — Blinkit .jRqnbc::before (CustomFont "!" → magnifier) */
+/* Green search icon - Blinkit .jRqnbc::before (CustomFont "!" → magnifier) */
 .styles__LocationSelect-sc-cc1wzf-15::before,
 .jRqnbc::before {
   /* Blinkit uses content: "!"; wasabicons maps the same search glyph at \e929 */
@@ -484,7 +484,7 @@
   text-overflow: ellipsis;
 }
 
-/* Right form column — exact Blinkit .TQTwd / FormSection */
+/* Right form column - exact Blinkit .TQTwd / FormSection */
 .styles__FormSection-sc-cc1wzf-20,
 .TQTwd {
   flex: 1 1 0%;
@@ -511,7 +511,7 @@
   }
 }
 
-/* Inner column — Blinkit inline: width 100%; height 100%; flex column */
+/* Inner column - Blinkit inline: width 100%; height 100%; flex column */
 .bk-addr-form-col {
   width: 100%;
   height: 100%;
@@ -775,7 +775,7 @@
   color: white;
 }
 
-/* Sticky save footer — exact Blinkit */
+/* Sticky save footer - exact Blinkit */
 .StickyFooterComponent__StickyFooter-sc-13bkdgz-0,
 .gzMuRY {
   position: sticky;
@@ -818,7 +818,7 @@
   padding: 0 24px;
 }
 
-/* Mobile sheet uses same form bits — Blinkit card-on-dim (mobile only) */
+/* Mobile sheet uses same form bits - Blinkit card-on-dim (mobile only) */
 .bk-addr-mobile-root {
   position: fixed;
   inset: 0;
@@ -959,7 +959,7 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Form content + footer in normal flow — no huge blank gap after phone field */
+/* Form content + footer in normal flow - no huge blank gap after phone field */
 .bk-addr-mobile-sheet .AddressForm__AddressFormWrapper-sc-12jjkjl-5,
 .bk-addr-mobile-sheet .tJywa {
   flex: none;
@@ -1031,7 +1031,7 @@
     height: 100%;
   }
 
-  /* Map search bar — disabled look while address form is open (Blinkit) */
+  /* Map search bar - disabled look while address form is open (Blinkit) */
   .bk-addr-mobile-card--form .styles__LocationSelectorWrapper-sc-cc1wzf-14,
   .bk-addr-mobile-card--form .dkBIpa {
     z-index: 5;
@@ -1264,7 +1264,7 @@
     color: #828282;
   }
 
-  /* Inputs — Blinkit field size / color / type */
+  /* Inputs - Blinkit field size / color / type */
   .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > input,
   .bk-addr-mobile-sheet .TextInput__StyledTextInput-sc-abdg41-0 > textarea,
   .bk-addr-mobile-sheet .cNThDN > input,
@@ -1372,7 +1372,7 @@
   }
 }
 
-/* —— Laptop address modal polish (≥1020) —— */
+/* -- Laptop address modal polish (≥1020) -- */
 @media (min-width: 1020px) {
   /* A little more space above "Save address as *" */
   .bk-addr-overlay .AddressForm__AddressFormWrapper-sc-12jjkjl-5,
@@ -1407,7 +1407,7 @@
     margin-top: -6px;
   }
 
-  /* Area / Sector — label inside grey box (Blinkit read-only field) */
+  /* Area / Sector - label inside grey box (Blinkit read-only field) */
   .bk-addr-overlay .bk-addr-area-field.cNThDN > input:disabled,
   .bk-addr-overlay .bk-addr-area-field .TextInput__StyledTextInput-sc-abdg41-0 > input:disabled {
     border: none;
@@ -1437,7 +1437,7 @@
     padding: 0;
   }
 
-  /* Save Address — slightly larger label */
+  /* Save Address - slightly larger label */
   .bk-addr-overlay .StickyFooterComponent__SaveAddressButton-sc-13bkdgz-1,
   .bk-addr-overlay .jBTrwA {
     font-size: 16px;

@@ -1,12 +1,12 @@
 /**
- * Blinkit page shells — spacing / type from captured main.css + styled-components.
+ * Blinkit page shells - spacing / type from captured main.css + styled-components.
  * Sources:
  *   tools/blinkit-login-capture/out/extracted/account-from-main.css
  *   area-category.css / footer-exact / header-exact
  * Breakpoints: 1020 mobile, 1260 large (not Tailwind 1024/1280).
  */
 
-/* —— Page / feed shell —— */
+/* -- Page / feed shell -- */
 .bk-page {
   max-width: 1300px;
   margin-left: auto;
@@ -60,7 +60,7 @@
   }
 }
 
-/* —— Home hero / promos / categories —— */
+/* -- Home hero / promos / categories -- */
 .bk-home__hero {
   overflow: hidden;
   border-radius: 16px;
@@ -226,7 +226,7 @@
   overflow: hidden;
 }
 
-/* —— Account (my-profile_rn / profile-nav / my-addresses) —— */
+/* -- Account (my-profile_rn / profile-nav / my-addresses) -- */
 .bk-account {
   width: 100%;
   background: #fff;
@@ -522,12 +522,12 @@
   font-family: inherit;
 }
 
-/* Footer visibility — desktop always; mobile accordion lives in Footer */
+/* Footer visibility - desktop always; mobile accordion lives in Footer */
 .bk-footer-host {
   display: block;
 }
 
-/* Blinkit Feed loader (laptop) — components__Spin + Feed__LoaderContainer */
+/* Blinkit Feed loader (laptop) - components__Spin + Feed__LoaderContainer */
 @keyframes spin {
   to {
     transform: rotate(360deg);

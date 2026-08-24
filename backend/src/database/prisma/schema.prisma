@@ -1,4 +1,4 @@
-// Blinkit-clone — Milestone 1 schema (§6.1 + §6.2)
+// Blinkit-clone - Milestone 1 schema (§6.1 + §6.2)
 // PostGIS geography columns use Unsupported(); GIST indexes applied via migration SQL.
 
 generator client {
@@ -48,7 +48,7 @@ model Store {
   slug               String   @unique
   logoUrl            String?  @map("logo_url")
   address            String
-  /// PostGIS geography(Point,4326) — use raw SQL for spatial queries
+  /// PostGIS geography(Point,4326) - use raw SQL for spatial queries
   location           Unsupported("geography(Point,4326)")
   contactPhone       String   @map("contact_phone")
   contactEmail       String   @map("contact_email")
@@ -128,7 +128,7 @@ model UserDevice {
   deviceId         String         @map("device_id")
   fcmToken         String?        @map("fcm_token")
   platform         DevicePlatform @default(web)
-  /// Hashed refresh token (§7.1 — stored against user_devices)
+  /// Hashed refresh token (§7.1 - stored against user_devices)
   refreshTokenHash String?        @map("refresh_token_hash")
   lastActiveAt     DateTime?      @map("last_active_at")
   isRevoked        Boolean        @default(false) @map("is_revoked")
@@ -146,7 +146,7 @@ model Address {
   userId      String       @map("user_id") @db.Uuid
   label       AddressLabel @default(home)
   fullAddress String       @map("full_address")
-  /// PostGIS geography(Point,4326) — use raw SQL for spatial queries
+  /// PostGIS geography(Point,4326) - use raw SQL for spatial queries
   location    Unsupported("geography(Point,4326)")
   landmark    String?
   isDefault   Boolean      @default(false) @map("is_default")

@@ -16,15 +16,15 @@ const sendPasswordResetEmail = async (email, resetToken) => {
     return { success: true, provider: 'console' };
   }
 
-  // SES not wired yet — log link so resets still work in live without SES
+  // SES not wired yet - log link so resets still work in live without SES
   if (!env.aws.sesFromEmail) {
-    logger.info(`[EMAIL] SES not configured — reset link for ${email}: ${resetUrl}`);
+    logger.info(`[EMAIL] SES not configured - reset link for ${email}: ${resetUrl}`);
     return { success: true, provider: 'console' };
   }
 
   return aws.ses.sendEmail({
     to: email,
-    subject: 'Tapi Grocery Admin — Password Reset',
+    subject: 'Tapi Grocery Admin - Password Reset',
     body: `Reset your password using this link (valid 15 minutes): ${resetUrl}`,
   });
 };
@@ -35,7 +35,7 @@ const sendPasswordResetEmail = async (email, resetToken) => {
  */
 const sendOtpEmail = async (email, otp) => {
   if (smsProvider.isStaticMode()) {
-    logger.info(`[STATIC OTP] email=${email} otp=${otp} (free mode — no email billed)`);
+    logger.info(`[STATIC OTP] email=${email} otp=${otp} (free mode - no email billed)`);
     return { success: true, provider: 'static', staticOtp: true };
   }
 

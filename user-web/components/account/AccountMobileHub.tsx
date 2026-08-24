@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
+import { useI18n } from '@/lib/i18n/useI18n';
+import type { MessageKey } from '@/lib/i18n/messages';
 
 type HubItem = {
   href?: string;
-  label: string;
+  labelKey: MessageKey;
   icon: string;
   onClick?: () => void;
 };
@@ -32,7 +34,7 @@ function formatPhone(raw?: string) {
   return raw.replace(/^\+91\s?/, '');
 }
 
-function HubOption({ item }: { item: HubItem }) {
+function HubOption({ item, label }: { item: HubItem; label: string }) {
   const body = (
     <>
       <span className="ua-hub__icon-box" aria-hidden>
@@ -45,7 +47,7 @@ function HubOption({ item }: { item: HubItem }) {
           unoptimized
         />
       </span>
-      <span className="ua-hub__label">{item.label}</span>
+      <span className="ua-hub__label">{label}</span>
     </>
   );
 
@@ -64,11 +66,12 @@ function HubOption({ item }: { item: HubItem }) {
   );
 }
 
-/** Mobile `/account` hub — icons match provided screenshot shapes. */
+/** Mobile `/account` hub - icons match provided screenshot shapes. */
 export function AccountMobileHub() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const { t, locale } = useI18n();
   const phone = formatPhone(user?.phone ?? undefined) || user?.email || '';
 
   const handleLogout = async () => {
@@ -79,25 +82,25 @@ export function AccountMobileHub() {
   };
 
   const infoItems: HubItem[] = [
-    { href: '/account/orders', label: 'Order History', icon: ICO.orders },
-    { href: '/account/addresses', label: 'Address Book', icon: ICO.address },
-    { href: '/account/wallet', label: 'Wallet Details', icon: ICO.wallet },
-    { href: '/account/prescriptions', label: 'My Prescriptions', icon: ICO.prescriptions },
-    { href: '/account/gifts', label: 'E-Gift Cards', icon: ICO.gift },
+    { href: '/account/orders', labelKey: 'account.orderHistory', icon: ICO.orders },
+    { href: '/account/addresses', labelKey: 'account.addressBook', icon: ICO.address },
+    { href: '/account/wallet', labelKey: 'account.wallet', icon: ICO.wallet },
+    { href: '/account/prescriptions', labelKey: 'account.prescriptions', icon: ICO.prescriptions },
+    { href: '/account/gifts', labelKey: 'account.gifts', icon: ICO.gift },
   ];
 
   const accountItems: HubItem[] = [
-    { href: '/account/privacy', label: 'Account Privacy', icon: ICO.privacy },
-    { label: 'Logout', icon: ICO.logout, onClick: () => void handleLogout() },
+    { href: '/account/privacy', labelKey: 'account.privacy', icon: ICO.privacy },
+    { labelKey: 'account.logout', icon: ICO.logout, onClick: () => void handleLogout() },
   ];
 
   return (
-    <div className="ua-hub">
+    <div className="ua-hub" key={locale} lang={locale}>
       <div className="ua-hub__phone">{phone}</div>
-      <div className="ua-hub__section-label">Your Information</div>
+      <div className="ua-hub__section-label">{t('account.hub')}</div>
       <div className="ua-hub__list">
         {[...infoItems, ...accountItems].map((item) => (
-          <HubOption key={item.label} item={item} />
+          <HubOption key={`${locale}-${item.labelKey}`} item={item} label={t(item.labelKey)} />
         ))}
       </div>
     </div>

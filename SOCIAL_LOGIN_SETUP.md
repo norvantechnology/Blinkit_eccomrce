@@ -23,7 +23,7 @@ Code for both providers is implemented. You must create developer credentials an
 
 ---
 
-## A) Google Sign-In — manual steps
+## A) Google Sign-In - manual steps
 
 1. Open [Google Cloud Console](https://console.cloud.google.com/).
 2. Create or select a project (e.g. **Tapi Grocery**).
@@ -59,7 +59,7 @@ Code for both providers is implemented. You must create developer credentials an
 
 ---
 
-## B) Apple Sign-In — manual steps
+## B) Apple Sign-In - manual steps
 
 You need a paid **Apple Developer Program** membership ($99/year).
 
@@ -81,7 +81,7 @@ You need a paid **Apple Developer Program** membership ($99/year).
 5. Enable **Sign In with Apple** → **Configure**:
    - Primary App ID: select `com.tapigrocery.app`.
    - Domains and Subdomains:
-     - `localhost` (for local; Apple is strict — many teams only use a real domain for Apple)
+     - `localhost` (for local; Apple is strict - many teams only use a real domain for Apple)
      - `main.d14bykpxg1lhlf.amplifyapp.com`
    - Return URLs (must match exactly):
      - `https://main.d14bykpxg1lhlf.amplifyapp.com/login`

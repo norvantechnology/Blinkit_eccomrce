@@ -1,4 +1,4 @@
-/* Blinkit header — exact rules from live styled-components (Wayback Aug 2026)
+/* Blinkit header - exact rules from live styled-components (Wayback Aug 2026)
    Source: Header__*, BlinkitLogo__, LocationBar__, SearchBar__, ProfileButton__, CartButton__
    Breakpoints: 1020px mobile, 1260px large desktop
 */
@@ -11,7 +11,7 @@
   font-family: var(--bk-font, Okra, sans-serif);
 }
 
-/* Location picker open — header drops under full-page overlay (z 2002) */
+/* Location picker open - header drops under full-page overlay (z 2002) */
 .bk-header.bk-header--location-open {
   z-index: 1;
 }
@@ -27,7 +27,7 @@
   z-index: 2003;
 }
 
-/* Blinkit .header__overlay — dark page behind account menu */
+/* Blinkit .header__overlay - dark page behind account menu */
 .header__overlay {
   background-color: rgba(50, 50, 50, 0.7);
   bottom: 0;
@@ -63,7 +63,7 @@
   box-sizing: border-box;
 }
 
-/* Show/hide owned only by these modifiers — avoids double header */
+/* Show/hide owned only by these modifiers - avoids double header */
 .bk-header__row--desktop {
   display: none;
 }
@@ -183,7 +183,7 @@
   margin: 0 4px;
 }
 
-/* BlinkitLogo — yellow + green wordmark
+/* BlinkitLogo - yellow + green wordmark
  * Blinkit uses 178px for "blinkit"; tapigrocery needs a wider slot so the
  * vertical divider + delivery block sit to the right (same layout rhythm). */
 .bk-logo {
@@ -231,7 +231,7 @@
   color: #0c831f;
 }
 
-/* LocationBar — Blinkit gcLVHe: 320px @ desktop so search sits further right */
+/* LocationBar - Blinkit gcLVHe: 320px @ desktop so search sits further right */
 .bk-location {
   justify-content: center;
   align-items: flex-start;
@@ -373,7 +373,7 @@
   }
 }
 
-/* Filled triangle carets (location + account) — Blinkit fqbcdJ 6px */
+/* Filled triangle carets (location + account) - Blinkit fqbcdJ 6px */
 .bk-location__arrow,
 .bk-profile__arrow {
   width: 0;
@@ -528,14 +528,14 @@
   font-family: Okra-Regular, var(--bk-font, Okra, sans-serif);
 }
 
-/* Profile anchor — positions Blinkit account-dropdown */
+/* Profile anchor - positions Blinkit account-dropdown */
 .bk-profile-anchor {
   position: relative;
   flex-shrink: 0;
   z-index: 2003;
 }
 
-/* Blinkit account dropdown — compact Okra sizes + screenshot colours */
+/* Blinkit account dropdown - compact Okra sizes + screenshot colours */
 .account-dropdown--container {
   display: flex;
   flex-direction: column;

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Blinkit My Orders — cards match live UI (check, status, ₹·date, thumbs).
+ * Blinkit My Orders - cards match live UI (check, status, ₹·date, thumbs).
  * Demo list until user-orders API is wired.
  */
 

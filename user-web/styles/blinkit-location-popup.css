@@ -1,9 +1,9 @@
 /**
- * Blinkit Change Location desktop popup — exact from layout chunk + main.css
+ * Blinkit Change Location desktop popup - exact from layout chunk + main.css
  * HTML: containers__DesktopContainer / ChangeLocationV1 / LocationSelectorDesktopV1 / AddressListItem
  */
 
-/* Overlay — Blinkit LocationDropDown__LocationOverlay: covers full page incl. header */
+/* Overlay - Blinkit LocationDropDown__LocationOverlay: covers full page incl. header */
 .LocationDropDown__LocationOverlay-sc-bx29pc-1,
 .bk-loc-overlay {
   background-color: rgba(50, 50, 50, 0.7);
@@ -25,7 +25,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Panel shell — user CSS: .hAbKnj */
+/* Panel shell - user CSS: .hAbKnj */
 .containers__DesktopContainer-sc-95cgcs-0,
 .hAbKnj {
   background-color: #ffffff;
@@ -383,7 +383,7 @@
   line-height: 1;
 }
 
-/* Desktop pencil / trash SVGs — hide font glyph */
+/* Desktop pencil / trash SVGs - hide font glyph */
 .bk-loc-desktop-ico {
   border: 1px solid rgba(214, 214, 214, 0.9);
   background: #fff;
@@ -402,7 +402,7 @@
   pointer-events: none;
 }
 
-/* Mobile ⋯ — SVG dots (no font glyph) */
+/* Mobile ⋯ - SVG dots (no font glyph) */
 .eiMFKo {
   border: none;
   background: transparent;
@@ -485,7 +485,7 @@
   font-family: Okra, Helvetica, sans-serif;
 }
 
-/* —— Mobile LocationModal (Blinkit DOM / CSS parity) —— */
+/* -- Mobile LocationModal (Blinkit DOM / CSS parity) -- */
 .bk-loc-mobile-root {
   display: none;
 }
@@ -518,14 +518,16 @@
     max-height: 70vh;
     transform: none;
     border-radius: 0;
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
     box-shadow: none;
     overflow: visible;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     background-color: #f4f6fc !important;
+    color: #666;
+    font-size: 12px;
     z-index: 2003;
     font-family: Okra, Helvetica, sans-serif;
     outline: none;
@@ -533,7 +535,7 @@
   }
 
   .containers__MobileContainer-sc-95cgcs-1.hzvHjC {
-    background-color: rgb(244, 246, 252) !important;
+    background-color: #f4f6fc !important;
   }
 
   .bk-loc-mobile-root .COygo {
@@ -544,8 +546,9 @@
     max-height: 70vh;
     min-height: 0;
     overflow: hidden;
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
+    background-color: #f4f6fc;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
   }
 
   .bk-loc-mobile-root > .LocationModal > div:not(.eNYZkv) {
@@ -553,25 +556,28 @@
     height: 100%;
     min-height: 0;
     overflow: hidden;
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
+    background-color: #f4f6fc;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
   }
 
-  /* Top block — inherits sheet #f4f6fc */
+  /* Top block - Blinkit mobile (#f4f6fc sheet) */
   .LocationMobileTopV1__Container-sc-iandd-0,
   .bOYZpk {
-    background-color: transparent;
-    padding: 16px 16px 8px;
+    background-color: #f4f6fc;
+    padding: 16px 0 8px;
     position: relative;
     flex-shrink: 0;
   }
 
   .LocationMobileTopV1__LocationCityTitle-sc-iandd-1,
   .jhpDgF {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    padding: 0 12px;
+    box-sizing: border-box;
   }
 
-  /* Close sits just above sheet (Blinkit — ~8px gap, fully outside) */
+  /* Close sits just above sheet (Blinkit - ~8px gap, fully outside) */
   .bk-loc-mobile-root .LocationModal > .LocationMobileTopV1__BackButtonIcon-sc-iandd-2,
   .bk-loc-mobile-root .LocationModal > .eNYZkv {
     position: absolute;
@@ -600,9 +606,12 @@
     color: #1c1c1c;
   }
 
+  /* Blinkit .etGOdo */
   .LocationMobileTopV1__SearchContainer-sc-iandd-4,
   .etGOdo {
     width: 100%;
+    padding: 0 12px;
+    box-sizing: border-box;
   }
 
   .LocationInputV1__AddressSearchContainer-sc-vt691u-0,
@@ -637,7 +646,7 @@
     margin: 0;
     border: 0;
     background-color: transparent;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23666' stroke-width='1.5'%3E%3Ccircle cx='6.5' cy='6.5' r='4.5'/%3E%3Cpath d='M10 10l2.8 2.8' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23999' stroke-width='1.5'%3E%3Ccircle cx='6.5' cy='6.5' r='4.5'/%3E%3Cpath d='M10 10l2.8 2.8' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: center;
     background-size: 14px 14px;
@@ -647,13 +656,15 @@
 
   .bk-loc-mobile-root .LocationSearchBox__InputSelect-sc-1k8u6a6-0,
   .bk-loc-mobile-root .fZCGlI {
-    height: 36px;
-    padding-left: 40px;
+    height: 40px;
+    padding-left: 36px;
     padding-right: 12px;
-    border: 0.5px solid #dddddd;
+    border: 1px solid #cccccc;
     border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
-    font-size: 13px;
+    box-shadow: none;
+    font-family: Okra, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
     line-height: 18px;
     color: #666;
     background: #fff;
@@ -662,32 +673,36 @@
   .bk-loc-mobile-root .LocationSearchBox__InputSelect-sc-1k8u6a6-0::placeholder,
   .bk-loc-mobile-root .fZCGlI::placeholder {
     color: #999;
+    font-weight: 400;
     font-size: 14px;
   }
 
   .LocationInputV1__LocationDetectButton-sc-vt691u-2,
   .ghSsRI {
     display: flex;
+    -webkit-box-align: center;
     align-items: center;
     gap: 8px;
-    margin-top: 12px;
-    padding: 12px;
-    background: #f8f8f8;
-    border-radius: 8px;
-    border: none;
+    color: rgb(38, 126, 62);
     box-sizing: border-box;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 20px;
+    padding: 12px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    background: rgb(255, 255, 255);
+    border-radius: 12px;
+    border: none;
+    box-shadow: none;
     cursor: pointer;
     font-family: Okra, Helvetica, sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    color: #318616;
   }
 
   .LocationInputV1__LocationDetectButton-sc-vt691u-2 img,
   .ghSsRI img {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     display: block;
     flex-shrink: 0;
   }
@@ -711,10 +726,14 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  .bk-loc-mobile-root .bk-loc-mobile-empty {
+    background: #f4f6fc;
+  }
+
   .ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4.dlnKNt,
   .dlnKNt {
     height: unset;
-    padding: 0 16px 20px;
+    padding: 0 12px 20px;
   }
 
   .bk-loc-mobile-root .ChangeLocationV1__LocationListTitle-sc-1sww6op-5,

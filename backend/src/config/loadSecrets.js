@@ -14,7 +14,7 @@ let loaded = false;
 async function loadSecrets() {
   if (loaded) return;
   if (process.env.SKIP_SECRETS_MANAGER === '1') {
-    console.warn('[secrets] SKIP_SECRETS_MANAGER=1 — using existing process.env');
+    console.warn('[secrets] SKIP_SECRETS_MANAGER=1 - using existing process.env');
     loaded = true;
     return;
   }

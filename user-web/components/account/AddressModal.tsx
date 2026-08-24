@@ -238,7 +238,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const mapSrc = useMemo(() => {
     const delta = 0.008;
     const bbox = `${lng - delta}%2C${lat - delta}%2C${lng + delta}%2C${lat + delta}`;
-    // No OSM marker — Blinkit uses fixed .center-marker over the map
+    // No OSM marker - Blinkit uses fixed .center-marker over the map
     return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik`;
   }, [lat, lng]);
 

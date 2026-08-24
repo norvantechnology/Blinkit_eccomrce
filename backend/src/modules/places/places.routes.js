@@ -6,7 +6,7 @@ const rateLimiter = require('../../middlewares/rateLimiter');
 
 const router = Router();
 
-/** Public address search — Google Places when MAPS_API_KEY is set (guest + logged-in). */
+/** Public address search - Google Places when MAPS_API_KEY is set (guest + logged-in). */
 const searchLimiter = rateLimiter({
   max: 60,
   windowSeconds: 600,

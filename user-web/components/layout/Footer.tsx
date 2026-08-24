@@ -3,16 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 import '@/styles/blinkit-footer.css';
 
-/** Blinkit Useful Links — 3 nested columns (FooterLinks__List) */
+/** Blinkit Useful Links - 3 nested columns (FooterLinks__List) */
 const USEFUL_LINKS = [
   ['Blog', 'Privacy', 'Terms', 'FAQs', 'Security', 'Contact'],
   ['Partner', 'Franchise', 'Seller', 'Warehouse', 'Deliver', 'Resources'],
   ['Recipes', 'Bistro', 'District', 'Tapi Support', 'Community'],
 ];
 
-/** Blinkit mobile Categories — 2-column flow (column-count) */
+/** Blinkit mobile Categories - 2-column flow (column-count) */
 const FOOTER_CATEGORIES = [
   'Bath & Body',
   'Hair',
@@ -75,14 +76,30 @@ function NestedColumns({ columns }: { columns: string[][] }) {
 
 export function Footer() {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
 
   return (
     <div className={cn('bk-footer', open && 'is-open')}>
       <div className="bk-footer__brand">
         <div className="bk-footer__brand-title">
-          Your last minute app <span aria-hidden>❤️</span>
+          <span>{t('footer.slogan')}</span>
+          <span className="bk-footer__brand-heart-wrap" aria-hidden>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/blinkit-parity/icons/footer/heart.svg"
+              alt=""
+              width={28}
+              height={28}
+              data-pf="reset"
+              className="spicy-tailwind tw-w-full tw-h-full tw-transition-opacity"
+              style={{ transform: 'scale(1)' }}
+            />
+          </span>
         </div>
-        <div className="bk-footer__brand-mark">tapi grocery</div>
+        <div className="bk-footer__brand-rule" aria-hidden />
+        <div className="bk-footer__brand-mark" data-pf="reset">
+          tapi grocery
+        </div>
       </div>
 
       <button
@@ -91,23 +108,23 @@ export function Footer() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <span>Your last minute app - tapi grocery</span>
+        <span>{t('footer.sloganToggle')}</span>
         <span className={cn('bk-footer__plus', open && 'is-open')} aria-hidden />
       </button>
 
       <div className="bk-footer__panel">
         <footer className="bk-footer__inner">
-          <div className="bk-footer__links-grid">
+          <div className="bk-footer__links-grid hyzNyz">
             <div>
-              <div className="bk-footer__heading">Useful Links</div>
+              <div className="bk-footer__heading aonOx">{t('footer.usefulLinks')}</div>
               <NestedColumns columns={USEFUL_LINKS} />
             </div>
 
             <div>
               <div className="bk-footer__heading-row">
-                <div className="bk-footer__heading">Categories</div>
+                <div className="bk-footer__heading aonOx">{t('footer.categories')}</div>
                 <Link href="/" className="bk-footer__see-all">
-                  see all
+                  {t('footer.seeAll')}
                 </Link>
               </div>
               <ul className="bk-footer__cats">
@@ -124,11 +141,11 @@ export function Footer() {
         <div className="bk-footer__band">
           <div className="bk-footer__band-grid">
             <div className="bk-footer__band-item bk-footer__band-item--start">
-              © Tapi Grocery, 2016-2026
+              {t('footer.copyright')}
             </div>
 
             <div className="bk-footer__band-item bk-footer__band-item--center">
-              <div className="bk-footer__download-title">Download App</div>
+              <div className="bk-footer__download-title">{t('footer.downloadApp')}</div>
               <div className="bk-footer__flex bk-footer__flex--badges">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -162,11 +179,7 @@ export function Footer() {
           </div>
         </div>
 
-        <p className="bk-footer__disclaimer">
-          “Tapi Grocery” is owned & managed by this single-store quick-commerce project and is not
-          related, linked or interconnected in whatsoever manner or nature, to “GROFFR.COM” which is
-          a real estate services business.
-        </p>
+        <p className="bk-footer__disclaimer">{t('footer.disclaimer')}</p>
       </div>
     </div>
   );

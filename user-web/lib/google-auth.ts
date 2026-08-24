@@ -1,4 +1,4 @@
-/** Google Identity Services (GIS) — returns a Google ID token for backend verify. */
+/** Google Identity Services (GIS) - returns a Google ID token for backend verify. */
 
 declare global {
   interface Window {
@@ -117,7 +117,7 @@ export async function requestGoogleIdToken(clientId: string): Promise<string> {
         notification.isSkippedMoment() ||
         notification.isDismissedMoment()
       ) {
-        // One Tap blocked — show GIS button so the user can complete sign-in
+        // One Tap blocked - show GIS button so the user can complete sign-in
         host = document.createElement('div');
         host.setAttribute('role', 'dialog');
         host.setAttribute('aria-label', 'Continue with Google');

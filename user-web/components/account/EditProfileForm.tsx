@@ -41,7 +41,7 @@ export function EditProfileForm({ onSaved }: Props) {
     setSaved(false);
     try {
       if (password.trim().length > 0 && password.trim().length < 6) {
-        throw new Error('Password must be at least 6 characters');
+        throw new Error(t('settings.passwordTooShort'));
       }
 
       let merged = await usersService.updateMe({
@@ -61,9 +61,9 @@ export function EditProfileForm({ onSaved }: Props) {
       onSaved?.();
     } catch (err) {
       setError(
-        err instanceof Error && err.message.startsWith('Password')
+        err instanceof Error && err.message === t('settings.passwordTooShort')
           ? err.message
-          : getApiErrorMessage(err, 'Could not save profile'),
+          : getApiErrorMessage(err, t('settings.saveFailed')),
       );
     } finally {
       setSaving(false);
@@ -104,7 +104,7 @@ export function EditProfileForm({ onSaved }: Props) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
-            placeholder="name@example.com"
+            placeholder={t('settings.emailPlaceholder')}
             className="bk-profile-edit__input"
           />
         </div>

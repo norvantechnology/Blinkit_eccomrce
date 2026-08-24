@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-/** Blinkit Feed loader — green arc spinner (components__Spin + Feed__LoaderContainer). */
+/** Blinkit Feed loader - green arc spinner (components__Spin + Feed__LoaderContainer). */
 export function BlinkitPageLoader({ className }: { className?: string }) {
   return (
     <div

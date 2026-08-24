@@ -1,2 +1,2 @@
-// Payment gateway integration — Milestone 3
+// Payment gateway integration - Milestone 3
 module.exports = {};

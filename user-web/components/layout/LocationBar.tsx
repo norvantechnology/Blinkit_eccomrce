@@ -7,8 +7,28 @@ import { useLocationStore } from '@/store/locationStore';
 import { useUiStore } from '@/store/uiStore';
 import { addressesService } from '@/services/addresses.service';
 import { blinkitTokens } from '@/lib/design-tokens';
+import { useI18n } from '@/lib/i18n/useI18n';
+import type { MessageKey } from '@/lib/i18n/messages';
 
-/** LocationBar — Blinkit gcLVHe / bdWwbr / fqbcdJ measurements. */
+function localizeLabel(label: string | undefined, t: (key: MessageKey) => string) {
+  if (!label) return undefined;
+  const map: Record<string, MessageKey> = {
+    Home: 'location.home',
+    Work: 'location.work',
+    Other: 'location.other',
+    Hotel: 'location.hotel',
+    Current: 'location.current',
+    घर: 'location.home',
+    कार्यालय: 'location.work',
+    अन्य: 'location.other',
+    होटल: 'location.hotel',
+    वर्तमान: 'location.current',
+  };
+  const key = map[label];
+  return key ? t(key) : label;
+}
+
+/** LocationBar - Blinkit gcLVHe / bdWwbr / fqbcdJ measurements. */
 export function LocationBar({
   className,
   compact = false,
@@ -28,6 +48,7 @@ export function LocationBar({
   const setDefaultStoreLocation = useLocationStore((s) => s.setDefaultStoreLocation);
   const locationPickerOpen = useUiStore((s) => s.locationPickerOpen);
   const setLocationPickerOpen = useUiStore((s) => s.setLocationPickerOpen);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!hydrated) return;
@@ -77,7 +98,7 @@ export function LocationBar({
         }
       : null);
 
-  const addressLine = displayLocation?.fullAddress || 'Select location';
+  const addressLine = displayLocation?.fullAddress || t('location.selectLocation');
 
   const openPicker = () => {
     if (locationPickerOpen) {
@@ -120,14 +141,17 @@ export function LocationBar({
         ) : (
           <>
             <p className="bk-location__title">
-              Delivery in {displayLocation?.etaMinutes ?? blinkitTokens.defaultStore.etaMinutes}{' '}
-              minutes
+              {t('location.deliveryIn', {
+                n: displayLocation?.etaMinutes ?? blinkitTokens.defaultStore.etaMinutes,
+              })}
             </p>
             <div className="bk-location__subrow">
               <span className="bk-location__sub">
                 {displayLocation?.label ? (
                   <>
-                    <span className="bk-location__label">{displayLocation.label}</span>
+                    <span className="bk-location__label">
+                      {localizeLabel(displayLocation.label, t)}
+                    </span>
                     <span className="bk-location__sep"> - </span>
                   </>
                 ) : null}

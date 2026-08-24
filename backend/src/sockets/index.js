@@ -1,2 +1,2 @@
-// Socket.IO setup — Milestone 3
+// Socket.IO setup - Milestone 3
 module.exports = {};

@@ -1,10 +1,10 @@
 /**
- * Blinkit account / addresses — main.css + live UserAddressesV2 DOM.
+ * Blinkit account / addresses - main.css + live UserAddressesV2 DOM.
  * Breakpoints: 1020 (tablet) / 1260 (desktop).
  * Shell: 994px card · sidebar 200px (1020–1259) / 258px (≥1260) · margin 24px.
  */
 
-/* —— Shell ——
+/* -- Shell --
  * Header is sticky (in flow). Do NOT add Blinkit’s fixed-header 86px offset.
  */
 .my-profile_rn {
@@ -77,7 +77,7 @@
   flex-shrink: 0;
 }
 
-/* Tablet: sidebar 200px (matches Blinkit inspect — profile-nav details = 200px) */
+/* Tablet: sidebar 200px (matches Blinkit inspect - profile-nav details = 200px) */
 @media screen and (min-width: 1020px) and (max-width: 1259px) {
   .my-profile__left {
     display: block;
@@ -131,7 +131,7 @@
   }
 }
 
-/* —— profile-nav —— */
+/* -- profile-nav -- */
 .profile-nav {
   color: #666;
   width: 100%;
@@ -299,7 +299,7 @@ a.profile-nav__list-item:first-child,
 
 /* Addresses CSS: styles/blinkit-addresses.css (exact from Blinkit wallet chunk) */
 
-/* —— My Orders —— */
+/* -- My Orders -- */
 .bk-orders {
   width: 100%;
   box-sizing: border-box;
@@ -427,7 +427,7 @@ a.profile-nav__list-item:first-child,
   }
 }
 
-/* —— Mobile account hub — screenshot-matched icons + spacing —— */
+/* -- Mobile account hub - screenshot-matched icons + spacing -- */
 .bk-account-hub-root {
   background: #fff;
   min-height: calc(100vh - var(--header__height--mobile, 68px));

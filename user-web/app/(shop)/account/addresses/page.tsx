@@ -7,18 +7,20 @@ import { addressesService, type Address } from '@/services/addresses.service';
 import { getApiErrorMessage } from '@/lib/auth';
 import { blinkitTokens } from '@/lib/design-tokens';
 import { useLocationStore } from '@/store/locationStore';
+import { useI18n } from '@/lib/i18n/useI18n';
+import type { MessageKey } from '@/lib/i18n/messages';
 
-/** Live Blinkit CDN icons (v5 light) — same URLs as blinkit.com */
+/** Live Blinkit CDN icons (v5 light) - same URLs as blinkit.com */
 const ICON = {
   home: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=90/layout-engine/v2/2025-02/address_home_icon_v5/address_home_icon_v5_light.png',
   work: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=90/layout-engine/v2/2025-02/address_work_icon_v5/address_work_icon_v5_light.png',
   other: '/blinkit-parity/icons/address/address-other.png',
 } as const;
 
-function labelTitle(label: Address['label']) {
-  if (label === 'home') return 'Home';
-  if (label === 'work') return 'Work';
-  return 'Other';
+function labelKey(label: Address['label']): MessageKey {
+  if (label === 'home') return 'location.home';
+  if (label === 'work') return 'location.work';
+  return 'location.other';
 }
 
 function iconSrc(label: Address['label']) {
@@ -33,6 +35,7 @@ function AddressesPageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const setLocation = useLocationStore((s) => s.setLocation);
+  const { t } = useI18n();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -57,12 +60,12 @@ function AddressesPageContent() {
       setAddresses(list);
       return list;
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Could not load addresses'));
+      setError(getApiErrorMessage(err, t('addresses.loadFailed')));
       return [] as Address[];
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
@@ -121,7 +124,7 @@ function AddressesPageContent() {
   const syncHeaderLocation = (addr: Address) => {
     if (!addr.isDefault) return;
     setLocation({
-      label: labelTitle(addr.label),
+      label: addr.label === 'home' ? 'Home' : addr.label === 'work' ? 'Work' : 'Other',
       fullAddress: addr.fullAddress,
       lat: addr.lat ?? blinkitTokens.defaultStore.lat,
       lng: addr.lng ?? blinkitTokens.defaultStore.lng,
@@ -158,18 +161,18 @@ function AddressesPageContent() {
       syncHeaderLocation({ ...updated, isDefault: true });
       await load();
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Could not set default'));
+      setError(getApiErrorMessage(err, t('addresses.defaultFailed')));
     }
   };
 
   const handleDelete = async (id: string) => {
     setMenuId(null);
-    if (!window.confirm('Delete this address?')) return;
+    if (!window.confirm(t('addresses.deleteConfirm'))) return;
     try {
       await addressesService.remove(id);
       await load();
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Could not delete address'));
+      setError(getApiErrorMessage(err, t('addresses.deleteFailed')));
     }
   };
 
@@ -179,20 +182,20 @@ function AddressesPageContent() {
         <div className="no-address">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            alt="No Saved Addresses"
+            alt={t('addresses.emptyTitle')}
             src="/blinkit-parity/images/no-saved-addresses.png"
             width={224}
             height={224}
           />
-          <div className="no-address__heading">You have no saved addresses</div>
-          <div className="no-address__sub-heading">Tell us where you want your orders delivered</div>
+          <div className="no-address__heading">{t('addresses.emptyTitle')}</div>
+          <div className="no-address__sub-heading">{t('addresses.emptyBody')}</div>
           <button
             type="button"
             className="btn"
             data-test-id="add-new-address-button"
             onClick={openAdd}
           >
-            Add New Address
+            {t('addresses.addNew')}
           </button>
         </div>
         {error ? <div className="ua-error">{error}</div> : null}
@@ -209,7 +212,7 @@ function AddressesPageContent() {
   return (
     <div className="UserAddressesV2__UserAddressesWrapper-sc-bnlqpe-3 icnSoU">
       <div className="UserAddressesV2__MyAddresses-sc-bnlqpe-1 ZgErW my-addresses">
-        <div className="UserAddressesV2__MyAddressTitle-sc-bnlqpe-5 bVQOWk">My addresses</div>
+        <div className="UserAddressesV2__MyAddressTitle-sc-bnlqpe-5 bVQOWk">{t('addresses.title')}</div>
 
         <div className="UserAddressesV2__MyAddressLableContainer-sc-bnlqpe-4 fA-DOkf">
           <div className="UserAddressesV2__AddAddressLinkContainer-sc-bnlqpe-6 gcOdsi">
@@ -234,7 +237,7 @@ function AddressesPageContent() {
                   style={{ fontSize: 12 }}
                 />
               </div>
-              Add new address
+              {t('addresses.add')}
             </div>
           </div>
         </div>
@@ -257,7 +260,7 @@ function AddressesPageContent() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={iconSrc(addr.label)}
-                    alt={labelTitle(addr.label)}
+                    alt={t(labelKey(addr.label))}
                     width={40}
                     height={40}
                     loading="lazy"
@@ -271,7 +274,7 @@ function AddressesPageContent() {
                 <div className="AddressCard__AddressDetails-sc-1v9p7y9-4 kaAnRm">
                   <div className="AddressCard__AddressLabel-sc-1v9p7y9-5 fgjWho">
                     <span className="AddressCard__AddressLabelText-sc-1v9p7y9-6 mxNpW">
-                      {labelTitle(addr.label)}
+                      {t(labelKey(addr.label))}
                     </span>
                   </div>
                   <span className="AddressCard__DisplayAddress-sc-1v9p7y9-8 caIBbB">
@@ -296,11 +299,11 @@ function AddressesPageContent() {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button type="button" onClick={() => openEdit(addr)}>
-                        Edit
+                        {t('addresses.edit')}
                       </button>
                       {!addr.isDefault ? (
                         <button type="button" onClick={() => handleDefault(addr.id)}>
-                          Set as default
+                          {t('addresses.default')}
                         </button>
                       ) : null}
                       <button
@@ -308,7 +311,7 @@ function AddressesPageContent() {
                         className="is-danger"
                         onClick={() => handleDelete(addr.id)}
                       >
-                        Delete
+                        {t('addresses.delete')}
                       </button>
                     </div>
                   ) : null}
@@ -330,12 +333,13 @@ function AddressesPageContent() {
 }
 
 export default function AddressesPage() {
+  const { t } = useI18n();
   return (
     <Suspense
       fallback={
         <div className="UserAddressesV2__UserAddressesWrapper-sc-bnlqpe-3 icnSoU">
           <div className="UserAddressesV2__MyAddresses-sc-bnlqpe-1 ZgErW my-addresses">
-            <div className="UserAddressesV2__MyAddressTitle-sc-bnlqpe-5 bVQOWk">My addresses</div>
+            <div className="UserAddressesV2__MyAddressTitle-sc-bnlqpe-5 bVQOWk">{t('addresses.title')}</div>
             <div className="UserAddressesV2__AddressCardsContainer-sc-bnlqpe-0 hQbPyu">
               <div
                 className="AddressCard__CardContainer-sc-1v9p7y9-3 jYQcBy blinkit-shimmer"

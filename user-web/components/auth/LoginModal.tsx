@@ -38,6 +38,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendIn, setResendIn] = useState(0);
+  const [staticOtpHint, setStaticOtpHint] = useState<string | null>(null);
   const verifyingRef = useRef(false);
 
   const formattedPhone = useMemo(() => formatPhoneForApi(phoneDigits), [phoneDigits]);
@@ -93,12 +94,14 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
     setError('');
     setLoading(true);
     try {
-      await authService.sendOtp(otpChannel());
+      const result = await authService.sendOtp(otpChannel());
+      setStaticOtpHint(result.staticOtp && result.otp ? String(result.otp) : null);
       setStep('otp');
       setOtpCode('');
       setResendIn(30);
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Could not send OTP'));
+      setStaticOtpHint(null);
+      setError(getApiErrorMessage(err, t('login.sendOtpFailed')));
     } finally {
       setLoading(false);
     }
@@ -120,7 +123,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
       const result = await authService.verifyOtp(otpChannel(), normalized);
       finishAuth(result.user, result.tokens);
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Invalid OTP'));
+      setError(getApiErrorMessage(err, t('login.invalidOtp')));
       setOtpCode('');
     } finally {
       verifyingRef.current = false;
@@ -147,7 +150,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
       });
       goHome();
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Could not save profile'));
+      setError(getApiErrorMessage(err, t('login.saveProfileFailed')));
     } finally {
       setLoading(false);
     }
@@ -158,6 +161,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
     setChannel(next);
     setError('');
     setOtpCode('');
+    setStaticOtpHint(null);
     setStep('identifier');
   };
 
@@ -283,13 +287,13 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
                 </form>
 
                 <div className="PhoneNumberLogin__LinksWrapper">
-                  <span>By continuing, you agree to our&nbsp;</span>
+                  <span>{t('login.termsPrefix')}&nbsp;</span>
                   <a target="_blank" href="/terms" className="PhoneNumberLogin__Links">
-                    Terms of service
+                    {t('login.terms')}
                   </a>
-                  <span>&nbsp;&amp;&nbsp;</span>
+                  <span>&nbsp;{t('login.and')}&nbsp;</span>
                   <a target="_blank" href="/privacy" className="PhoneNumberLogin__Links">
-                    Privacy policy
+                    {t('login.privacy')}
                   </a>
                 </div>
               </div>
@@ -319,6 +323,12 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
                     error={Boolean(error)}
                   />
 
+                  {staticOtpHint ? (
+                    <p className="otp-static-hint" role="status">
+                      {t('login.staticOtp', { code: staticOtpHint })}
+                    </p>
+                  ) : null}
+
                   {resendIn > 0 ? (
                     <p className="otp-resend otp-resend--disabled">
                       {t('login.resendIn', { n: resendIn })}
@@ -338,7 +348,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
 
                 {error ? (
                   <div className="modal-error" role="alert">
-                    Verification Failed.
+                    {t('login.verifyFailed')}
                   </div>
                 ) : null}
               </div>
@@ -347,11 +357,11 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
             {step === 'profile' && (
               <form className="login-step-secondary" onSubmit={handleProfile}>
                 <h2 className="login-head__text">{t('login.profileTitle')}</h2>
-                <p className="login-help weight--semibold">Tell us your name to continue</p>
+                <p className="login-help weight--semibold">{t('login.profilePrompt')}</p>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Full name"
+                  placeholder={t('login.fullName')}
                   required
                   className="login-name__input input"
                   autoFocus
@@ -365,7 +375,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
                   )}
                   disabled={loading || !name.trim()}
                 >
-                  {loading ? 'Saving…' : 'Continue'}
+                  {loading ? t('login.saving') : t('login.continue')}
                 </button>
               </form>
             )}

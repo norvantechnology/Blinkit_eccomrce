@@ -5,9 +5,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
+import { useI18n } from '@/lib/i18n/useI18n';
+import type { MessageKey } from '@/lib/i18n/messages';
 
 /**
- * Blinkit profile-nav — uniform 20px icon column for alignment parity.
+ * Blinkit profile-nav - uniform 20px icon column for alignment parity.
  * Glyphs: IconFont (location/orders/logout) + wasabicons (prescriptions/gift/privacy).
  */
 export function AccountSidebar() {
@@ -15,6 +17,7 @@ export function AccountSidebar() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const { t } = useI18n();
 
   const phone = user?.phone
     ? user.phone.startsWith('+')
@@ -38,37 +41,37 @@ export function AccountSidebar() {
 
   const items: Array<{
     href: string;
-    label: string;
+    key: MessageKey;
     ico: string;
     active: boolean;
   }> = [
     {
       href: '/account/addresses',
-      label: 'My Addresses',
+      key: 'account.addresses',
       ico: 'icon-location-on-map',
       active: isAddresses,
     },
     {
       href: '/account/orders',
-      label: 'My Orders',
+      key: 'account.orders',
       ico: 'icon-orders',
       active: isOrders,
     },
     {
       href: '/account/prescriptions',
-      label: 'My Prescriptions',
+      key: 'account.prescriptions',
       ico: 'icon-food-menu-line',
       active: pathname.startsWith('/account/prescriptions'),
     },
     {
       href: '/account/gifts',
-      label: 'E-Gift Cards',
+      key: 'account.gifts',
       ico: 'icon-new_gift_card',
       active: pathname.startsWith('/account/gifts'),
     },
     {
       href: '/account/privacy',
-      label: 'Account privacy',
+      key: 'account.privacy',
       ico: 'icon-lock-line',
       active: isPrivacy,
     },
@@ -81,7 +84,7 @@ export function AccountSidebar() {
       </div>
       <nav className="profile-nav__list">
         <ul className="list-unstyled">
-          {items.map(({ href, label, ico, active }) => (
+          {items.map(({ href, key, ico, active }) => (
             <Link
               key={href}
               className={cn('profile-nav__list-item', active && 'active')}
@@ -89,7 +92,7 @@ export function AccountSidebar() {
             >
               <li className="item-text">
                 <span className={cn('profile-nav__ico', ico)} aria-hidden />
-                <span className="profile-nav__label">{label}</span>
+                <span className="profile-nav__label">{t(key)}</span>
               </li>
             </Link>
           ))}
@@ -107,7 +110,7 @@ export function AccountSidebar() {
               }}
             >
               <span className="profile-nav__ico icon-logout" aria-hidden />
-              <span className="profile-nav__label">Logout</span>
+              <span className="profile-nav__label">{t('account.logout')}</span>
             </div>
           </li>
         </ul>

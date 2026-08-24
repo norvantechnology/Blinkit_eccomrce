@@ -1,16 +1,16 @@
-# Blinkit-Clone (Single Store) — Full Technical Specification (v2)
+# Blinkit-Clone (Single Store) - Full Technical Specification (v2)
 
-> **Purpose of this document:** Single source of truth for the backend (Node.js), **customer User Web App (Next.js)**, admin panel (Next.js), database, AWS infrastructure, and Firebase integration for a single-store quick-commerce platform — architected for future multi-store reuse by config change only. Any AI or developer picking up this repo should be able to build and deploy the entire system from this file alone.
+> **Purpose of this document:** Single source of truth for the backend (Node.js), **customer User Web App (Next.js)**, admin panel (Next.js), database, AWS infrastructure, and Firebase integration for a single-store quick-commerce platform - architected for future multi-store reuse by config change only. Any AI or developer picking up this repo should be able to build and deploy the entire system from this file alone.
 
 > **v2 changelog:** Added AWS service architecture (RDS, S3, ElastiCache, OpenSearch, SES, SQS, CloudFront, etc.), Firebase integration (FCM + optional Phone Auth), PostGIS geospatial schema for nearest-store/delivery-radius logic, missing tables for smart features (activity tracking, translations, substitutions, notification templates), search architecture, caching strategy, deployment/CI-CD, backup & DR, and closed all requirement gaps identified in v1.
 
-> **v2.2 changelog (2026-08-06):** Added **§21 Implementation Status** — live tracker of Milestone 1 completion (DB tables, API endpoints, admin panel, Docker, tests, env vars, known deviations).
+> **v2.2 changelog (2026-08-06):** Added **§21 Implementation Status** - live tracker of Milestone 1 completion (DB tables, API endpoints, admin panel, Docker, tests, env vars, known deviations).
 
-> **v2.3 changelog (2026-08-06):** Updated §21 after M1 gap-closure — GIST automation, global audit + 5-day purge, refresh hashes on `user_devices`/`admin_users`, S3 client, PermissionGate, seed staff/customers. Deferred optional keys → [`DO_THAT_LATER.md`](./DO_THAT_LATER.md).
+> **v2.3 changelog (2026-08-06):** Updated §21 after M1 gap-closure - GIST automation, global audit + 5-day purge, refresh hashes on `user_devices`/`admin_users`, S3 client, PermissionGate, seed staff/customers. Deferred optional keys → [`DO_THAT_LATER.md`](./DO_THAT_LATER.md).
 
-> **v2.4 changelog (2026-08-08):** Brought **User Web App (Next.js)** into owned scope — pixel-perfect parity with Blinkit customer web (`blinkit.com`). Added §5A folder structure, §19A screen/UI pixel-parity spec, updated §1–§3, §13, §15–§17, §21, and monorepo layout. Native iOS/Android apps remain out of scope.
+> **v2.4 changelog (2026-08-08):** Brought **User Web App (Next.js)** into owned scope - pixel-perfect parity with Blinkit customer web (`blinkit.com`). Added §5A folder structure, §19A screen/UI pixel-parity spec, updated §1–§3, §13, §15–§17, §21, and monorepo layout. Native iOS/Android apps remain out of scope.
 
-> **v2.5 changelog (2026-08-08):** Locked **User Web M1 Blinkit-parity account UI** — Account dropdown, account sidebar layout, My Addresses list, and two-column **Enter complete address** modal (map + form). Storefront brand wordmark = **Tapi Grocery** (slug remains `blinkit-store`). Updated §5A tree, §19A.2, §21.5A, README / audit / user-web README.
+> **v2.5 changelog (2026-08-08):** Locked **User Web M1 Blinkit-parity account UI** - Account dropdown, account sidebar layout, My Addresses list, and two-column **Enter complete address** modal (map + form). Storefront brand wordmark = **Tapi Grocery** (slug remains `blinkit-store`). Updated §5A tree, §19A.2, §21.5A, README / audit / user-web README.
 
 > **v2.7 changelog (2026-08-08):** Locked frontend hosting to **AWS Amplify only** (no CloudFront / ECS for `user-web` or `admin-panel`). Backend deploy = EC2 Docker. Single GitHub Actions workflow deploys all three in order. CloudFront remains optional later for S3 image CDN only.
 
@@ -19,16 +19,16 @@
 ## 1. Project Scope (Strict)
 
 - Build **only** what is listed in the client's feature list (Website Features + Admin Panel sections, §16).
-- **No extra features.** No multi-store logic in the UI/business flow — but data model must isolate store-specific config so onboarding a second store later = updating config/env, not rewriting code.
+- **No extra features.** No multi-store logic in the UI/business flow - but data model must isolate store-specific config so onboarding a second store later = updating config/env, not rewriting code.
 - Scope owned by this team: **Backend (Node.js) + User Web App (Next.js) + Admin Panel (Next.js) + Database + AWS Infra**.
-- **User Web App UI requirement:** Pixel-perfect, same-to-same visual and interaction parity with the live **Blinkit customer web application** ([blinkit.com](https://blinkit.com)) — layout, spacing, typography, colors, components, and responsive breakpoints. See **§19A**.
+- **User Web App UI requirement:** Pixel-perfect, same-to-same visual and interaction parity with the live **Blinkit customer web application** ([blinkit.com](https://blinkit.com)) - layout, spacing, typography, colors, components, and responsive breakpoints. See **§19A**.
 - Backend exposes REST APIs consumed by both the **User Web App** and the **Admin Panel**.
 - **Not** in scope: native iOS/Android apps (User Web + Admin Web only).
 
 ### 1.1 Single-Store, Multi-Store-Ready Principle
 - One `stores` table exists but only **one row is active** for this deployment (`is_active = true`).
-- All store-scoped resources (products, orders, inventory, riders) carry a `store_id` FK, defaulted to the single store via config/env (`DEFAULT_STORE_ID`), so no UI/API changes are needed to onboard store #2 — just seed a new row, point DNS, redeploy with new env values.
-- No cross-store switching UI, no store-selection logic anywhere in the app layer — that would be an extra feature. The isolation exists **only** at the schema level for future reuse.
+- All store-scoped resources (products, orders, inventory, riders) carry a `store_id` FK, defaulted to the single store via config/env (`DEFAULT_STORE_ID`), so no UI/API changes are needed to onboard store #2 - just seed a new row, point DNS, redeploy with new env values.
+- No cross-store switching UI, no store-selection logic anywhere in the app layer - that would be an extra feature. The isolation exists **only** at the schema level for future reuse.
 
 ---
 
@@ -37,24 +37,24 @@
 | Layer | Technology |
 |---|---|
 | Backend | Node.js (Express.js), REST APIs |
-| User Web App | Next.js (App Router) — customer storefront; **pixel-perfect Blinkit web UI** |
-| Admin Panel | Next.js (App Router) — internal operations dashboard |
+| User Web App | Next.js (App Router) - customer storefront; **pixel-perfect Blinkit web UI** |
+| Admin Panel | Next.js (App Router) - internal operations dashboard |
 | Database | PostgreSQL 15+ with **PostGIS** extension, hosted on **AWS RDS** |
 | ORM | Prisma |
-| Cache / Queue | **AWS ElastiCache (Redis)** — OTP, sessions, rate limiting, BullMQ job queues |
-| Search | **AWS OpenSearch Service** — instant search, voice search, suggestions, typo-tolerant product search |
+| Cache / Queue | **AWS ElastiCache (Redis)** - OTP, sessions, rate limiting, BullMQ job queues |
+| Search | **AWS OpenSearch Service** - instant search, voice search, suggestions, typo-tolerant product search |
 | Auth | JWT (access + refresh) issued by our backend; OTP via SMS provider or **Firebase Phone Auth**; OAuth (Google/Apple) |
 | File Storage | **AWS S3** (product images, invoices, review images, KYC docs) |
-| CDN (images only, optional later) | **Not required for app hosting.** S3 public URLs or Amplify-served assets are enough for M1–M2; CloudFront in front of S3 is optional later for image CDN only — **never** used to host `user-web` / `admin-panel` |
+| CDN (images only, optional later) | **Not required for app hosting.** S3 public URLs or Amplify-served assets are enough for M1–M2; CloudFront in front of S3 is optional later for image CDN only - **never** used to host `user-web` / `admin-panel` |
 | Realtime | Socket.IO (self-hosted) for live order tracking, rider location |
 | Push Notifications | **Firebase Cloud Messaging (FCM)** |
-| SMS | AWS SNS (SMS) or third-party SMS gateway (MSG91/Twilio) — whichever the client's telecom region needs |
+| SMS | AWS SNS (SMS) or third-party SMS gateway (MSG91/Twilio) - whichever the client's telecom region needs |
 | Email | **AWS SES** |
 | WhatsApp | WhatsApp Business Cloud API |
 | Payments | Razorpay/Stripe-style gateway (UPI, Card, Net Banking, Wallet, COD) |
 | Compute (Backend) | **EC2** (Docker Compose) for current deploy; ECS Fargate + ALB is the longer-term option in IaC |
-| Compute (User Web App) | **AWS Amplify Hosting only** (Next.js SSR — chosen because it is simplest; no CloudFront / ECS for the storefront) |
-| Compute (Admin Panel) | **AWS Amplify Hosting only** (Next.js SSR — same as user-web; no CloudFront / ECS for admin) |
+| Compute (User Web App) | **AWS Amplify Hosting only** (Next.js SSR - chosen because it is simplest; no CloudFront / ECS for the storefront) |
+| Compute (Admin Panel) | **AWS Amplify Hosting only** (Next.js SSR - same as user-web; no CloudFront / ECS for admin) |
 | Background Jobs | BullMQ workers on ECS Fargate, backed by ElastiCache Redis |
 | Secrets | **AWS Secrets Manager** |
 | Monitoring/Logs | **AWS CloudWatch** (logs, alarms, dashboards) + optional Sentry for error tracking |
@@ -80,7 +80,7 @@ flowchart TB
     ACM[ACM - TLS Certs]
   end
 
-  subgraph Hosting["Chosen hosting — easy path"]
+  subgraph Hosting["Chosen hosting - easy path"]
     AMP_UW[Amplify Hosting: user-web]
     AMP_AD[Amplify Hosting: admin-panel]
     EC2_API[EC2 + Docker: Backend API]
@@ -115,7 +115,7 @@ flowchart TB
 | Relational data, geospatial nearest-store filtering | RDS PostgreSQL + PostGIS | Managed, automated backups, PostGIS gives `ST_DWithin` queries for delivery radius / nearest area filtering |
 | OTP, sessions, rate limiting, job queue | ElastiCache Redis | Sub-ms latency, managed failover |
 | Instant/voice search, typo tolerance, autosuggest | OpenSearch | Postgres LIKE/ILIKE doesn't scale for autosuggest at product-catalog volume |
-| Images, invoices, KYC/rider docs | S3 (CloudFront optional later) | Durable object storage; **no CloudFront required** to ship — Amplify hosts the apps, not CloudFront |
+| Images, invoices, KYC/rider docs | S3 (CloudFront optional later) | Durable object storage; **no CloudFront required** to ship - Amplify hosts the apps, not CloudFront |
 | Push notifications | Firebase Cloud Messaging | Cross-platform (Android/iOS/Web) push is Firebase's core strength; avoids building our own push infra |
 | Phone OTP (optional) | Firebase Phone Auth | Can replace custom SMS-OTP build-out if client prefers Firebase-managed OTP; otherwise SNS/SMS gateway + our own `otp_verifications` table |
 | Email | SES | Cheap, scalable transactional email with our own domain |
@@ -234,7 +234,7 @@ backend/
 
 ---
 
-## 5. Admin Panel Folder Structure (Next.js — App Router)
+## 5. Admin Panel Folder Structure (Next.js - App Router)
 
 ```
 admin-panel/
@@ -338,7 +338,7 @@ admin-panel/
 
 ---
 
-## 5A. User Web App Folder Structure (Next.js — App Router)
+## 5A. User Web App Folder Structure (Next.js - App Router)
 
 Customer storefront in `user-web/`. UI must match Blinkit web pixel-for-pixel (§19A). Consumes the same `/api/v1` user APIs as documented in §8.1–§8.11.
 
@@ -350,7 +350,7 @@ user-web/
 │   │
 │   ├── (shop)/
 │   │   ├── layout.tsx                  # header: logo, location bar, search, Account, cart
-│   │   ├── page.tsx                    # home shell — banners/categories placeholders (§16.1 full → M2)
+│   │   ├── page.tsx                    # home shell - banners/categories placeholders (§16.1 full → M2)
 │   │   ├── account/
 │   │   │   ├── layout.tsx              # Blinkit account shell (sidebar + content)
 │   │   │   ├── page.tsx                # redirects → /account/addresses
@@ -414,7 +414,7 @@ user-web/
 
 ---
 
-## 6. Database Schema (PostgreSQL + PostGIS, via Prisma) — Optimized
+## 6. Database Schema (PostgreSQL + PostGIS, via Prisma) - Optimized
 
 Design principles: normalized core catalog/order data, `store_id` on every store-scoped table for future multi-store reuse, indexed foreign keys, soft-deletes (`deleted_at`) on user-facing entities, `created_at`/`updated_at` everywhere, **geography columns via PostGIS** for distance queries, partitioning on high-write time-series tables.
 
@@ -660,9 +660,9 @@ fraud_flags                           -- basic rule-based fraud detection
 - `products(store_id, category_id)`, `product_variants(sku)` unique.
 - `coupons.code` unique, `otp_verifications(phone, purpose)`.
 - GIST indexes on all `geography` columns (`stores.location`, `addresses.location`, `riders.current_location`, `orders.delivery_location`) for `ST_DWithin` "nearest area" queries.
-- Monthly **range partitioning** on `orders`, `order_status_history`, `notifications`, `audit_logs`, `user_activity_logs` — keeps hot-table indexes small as volume grows; old partitions can be archived to S3.
-- Materialized views for admin **Reports & Analytics** (`mv_daily_sales`, `mv_product_performance`), refreshed on a schedule via BullMQ cron job — avoids heavy aggregate queries hitting live tables.
-- Full product catalog **mirrored into OpenSearch** (`searchIndexSync.job.js`) for instant search/autosuggest/voice search — Postgres remains system of record, OpenSearch is a read-optimized projection.
+- Monthly **range partitioning** on `orders`, `order_status_history`, `notifications`, `audit_logs`, `user_activity_logs` - keeps hot-table indexes small as volume grows; old partitions can be archived to S3.
+- Materialized views for admin **Reports & Analytics** (`mv_daily_sales`, `mv_product_performance`), refreshed on a schedule via BullMQ cron job - avoids heavy aggregate queries hitting live tables.
+- Full product catalog **mirrored into OpenSearch** (`searchIndexSync.job.js`) for instant search/autosuggest/voice search - Postgres remains system of record, OpenSearch is a read-optimized projection.
 - RDS Proxy (or PgBouncer) in front of RDS for connection pooling under ECS Fargate's scale-out concurrency.
 
 ---
@@ -670,9 +670,9 @@ fraud_flags                           -- basic rule-based fraud detection
 ## 7. Authentication, Authorization & Security
 
 ### 7.1 User Web App Auth
-- OTP login via phone (primary) — two supported implementations, pick one per client preference:
+- OTP login via phone (primary) - two supported implementations, pick one per client preference:
   - **Option A (self-managed):** SNS/SMS-gateway sends OTP, hashed + stored in `otp_verifications`, rate-limited via Redis, 5-min expiry, max-attempt lockout.
-  - **Option B (Firebase-managed):** Firebase Phone Auth handles OTP delivery/verification client-side; backend verifies the Firebase ID token via Firebase Admin SDK and issues its own JWT — no `otp_verifications` writes needed.
+  - **Option B (Firebase-managed):** Firebase Phone Auth handles OTP delivery/verification client-side; backend verifies the Firebase ID token via Firebase Admin SDK and issues its own JWT - no `otp_verifications` writes needed.
 - Optional email/password, Google/Apple OAuth.
 - JWT access token (short-lived, ~15 min) + refresh token (long-lived, rotated, stored hashed against `user_devices`).
 
@@ -685,11 +685,11 @@ fraud_flags                           -- basic rule-based fraud detection
 
 ### 7.3 General Security
 - HTTPS/TLS everywhere via ACM certs on ALB/CloudFront; helmet.js headers; CORS allow-list.
-- **VPC isolation:** RDS, ElastiCache, and OpenSearch live in private subnets — no public internet access; only ECS tasks in the same VPC can reach them via security groups.
+- **VPC isolation:** RDS, ElastiCache, and OpenSearch live in private subnets - no public internet access; only ECS tasks in the same VPC can reach them via security groups.
 - Rate limiting per IP/user (Redis token bucket) on auth & OTP endpoints; ALB-level throttling/WAF rules for basic DDoS/bot protection.
 - Input validation (Joi/Zod) on every endpoint.
-- Payment tokenization via gateway SDK — card data never touches our DB.
-- **Secrets Manager** for DB credentials, JWT secrets, third-party API keys — no plaintext secrets in ECS task definitions or repo.
+- Payment tokenization via gateway SDK - card data never touches our DB.
+- **Secrets Manager** for DB credentials, JWT secrets, third-party API keys - no plaintext secrets in ECS task definitions or repo.
 - Fraud detection: rule-based checks (velocity of orders, mismatched geo, repeated failed payments) written to `fraud_flags`, reviewed in Admin Panel.
 - GDPR/DPDP: account deletion flow removes/anonymizes PII; audit trail retained per policy; `user_activity_logs` auto-purged after a configurable retention window.
 
@@ -823,13 +823,13 @@ GET    /support/faqs
 
 ---
 
-### 8.12 Admin — Dashboard
+### 8.12 Admin - Dashboard
 ```
 GET /admin/dashboard/summary            -- users, orders, revenue, active riders, live orders
 GET /admin/dashboard/live-orders
 ```
 
-### 8.13 Admin — User Management
+### 8.13 Admin - User Management
 ```
 GET    /admin/customers
 GET    /admin/customers/:id
@@ -852,7 +852,7 @@ DELETE /admin/roles/:id
 GET    /admin/permissions
 ```
 
-### 8.14 Admin — Catalog
+### 8.14 Admin - Catalog
 ```
 GET/POST/PATCH/DELETE  /admin/categories
 GET/POST/PATCH/DELETE  /admin/categories/:id/subcategories
@@ -867,7 +867,7 @@ PATCH                   /admin/inventory/:variantId/adjust
 POST                    /admin/products/:id/substitutes    { substituteProductId }
 ```
 
-### 8.15 Admin — Orders
+### 8.15 Admin - Orders
 ```
 GET    /admin/orders
 GET    /admin/orders/:id
@@ -881,14 +881,14 @@ GET    /admin/orders/disputes
 PATCH  /admin/orders/disputes/:id
 ```
 
-### 8.16 Admin — Promotions
+### 8.16 Admin - Promotions
 ```
 GET/POST/PATCH/DELETE  /admin/coupons
 GET/POST/PATCH/DELETE  /admin/banners
 GET/POST/PATCH/DELETE  /admin/deals
 ```
 
-### 8.17 Admin — Payments
+### 8.17 Admin - Payments
 ```
 GET    /admin/payments/reconciliation
 GET    /admin/payments/refunds
@@ -899,7 +899,7 @@ GET    /admin/fraud-flags
 PATCH  /admin/fraud-flags/:id
 ```
 
-### 8.18 Admin — Reports
+### 8.18 Admin - Reports
 ```
 GET /admin/reports/sales
 GET /admin/reports/revenue
@@ -909,7 +909,7 @@ GET /admin/reports/product-performance
 GET /admin/reports/inventory
 ```
 
-### 8.19 Admin — Store Settings, Languages & Audit
+### 8.19 Admin - Store Settings, Languages & Audit
 ```
 GET    /admin/store-settings
 PATCH  /admin/store-settings            -- single-store config: name, address, fees, timings
@@ -943,9 +943,9 @@ Socket.IO runs as its own ECS Fargate service behind the ALB (sticky sessions) a
 ## 10. Notifications Strategy
 
 - **Push:** Firebase Cloud Messaging, keyed off `user_devices.fcm_token`.
-- **SMS/WhatsApp:** order placed, out-for-delivery, delivered, OTP (if not using Firebase Phone Auth) — via SNS/SMS gateway and WhatsApp Business API.
-- **Email:** invoices, account-related — via AWS SES.
-- All notification sends resolved against `notification_templates` (per channel + locale) and queued via BullMQ (`notification.job.js`) — decouples API response time from provider latency, and retries on transient failures.
+- **SMS/WhatsApp:** order placed, out-for-delivery, delivered, OTP (if not using Firebase Phone Auth) - via SNS/SMS gateway and WhatsApp Business API.
+- **Email:** invoices, account-related - via AWS SES.
+- All notification sends resolved against `notification_templates` (per channel + locale) and queued via BullMQ (`notification.job.js`) - decouples API response time from provider latency, and retries on transient failures.
 
 ---
 
@@ -978,7 +978,7 @@ Socket.IO runs as its own ECS Fargate service behind the ALB (sticky sessions) a
 
 ### 13.1 CI/CD Pipeline
 
-**Chosen path (easy):** one GitHub Actions workflow deploys all three apps in order. Frontends use **Amplify only** — not CloudFront, not ECS.
+**Chosen path (easy):** one GitHub Actions workflow deploys all three apps in order. Frontends use **Amplify only** - not CloudFront, not ECS.
 
 ```mermaid
 flowchart LR
@@ -1005,7 +1005,7 @@ Workflow file: [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) 
 - RDS: automated daily snapshots + point-in-time recovery (transaction log backups), retained per client policy (e.g. 7–30 days).
 - S3: versioning enabled on the product-images/invoices bucket; lifecycle rule moves old invoice PDFs to S3 Glacier after 1 year.
 - Multi-AZ RDS deployment for production to survive AZ failure.
-- Redis: ElastiCache automatic failover (Multi-AZ) — cache is rebuildable from Postgres, so it is not itself backed up, only monitored for availability.
+- Redis: ElastiCache automatic failover (Multi-AZ) - cache is rebuildable from Postgres, so it is not itself backed up, only monitored for availability.
 - Quarterly DR restore drill: restore latest RDS snapshot into a scratch environment and verify API boot + smoke tests.
 
 ### 13.4 Monitoring & Alerting
@@ -1102,18 +1102,18 @@ flowchart LR
 
 | Milestone | Deliverables | Maps to |
 |---|---|---|
-| **Milestone 1** | Project Setup (incl. AWS VPC/RDS/S3/Secrets Manager provisioning), Authentication (incl. Firebase Phone Auth or SNS-OTP decision), User Profile, Address Management — **backend + User Web auth/profile/addresses UI (Blinkit-parity shell) + Admin auth shell** | §8.1–§8.3, §7, §5A, §19A.1–§19A.2 — auth module, users, addresses, DB §6.1–6.2, AWS infra §3 |
-| **Milestone 2** | Product Catalogue, Search (OpenSearch + voice/image search), Cart, Wishlist — **backend + User Web home/catalog/search/cart/wishlist (pixel-parity)** + Admin catalog CRUD APIs | §8.4–§8.6, §19A.3–§19A.5 — catalog + cart + search modules, DB §6.3–6.4, §11, Admin catalog CRUD §8.14 |
-| **Milestone 3** | Checkout, Payments, Orders, Live Tracking (Socket.IO), Notifications (FCM/SES/SNS) — **backend + User Web checkout/orders/tracking/payments UI** | §8.7–§8.8, §9, §10, §19A.6–§19A.8 — orders/payments modules, DB §6.5–6.7, geospatial rider assignment |
-| **Milestone 4** | Admin Panel, Reports (materialized views), Promotions, User Management, RBAC, Fraud Flags — plus User Web coupons/wallet/support/reviews polish to §16.1 | §8.12–§8.19, §19, §19A.9 — full admin panel, RBAC §7.2, promotions §6.8, fraud §6.11 |
+| **Milestone 1** | Project Setup (incl. AWS VPC/RDS/S3/Secrets Manager provisioning), Authentication (incl. Firebase Phone Auth or SNS-OTP decision), User Profile, Address Management - **backend + User Web auth/profile/addresses UI (Blinkit-parity shell) + Admin auth shell** | §8.1–§8.3, §7, §5A, §19A.1–§19A.2 - auth module, users, addresses, DB §6.1–6.2, AWS infra §3 |
+| **Milestone 2** | Product Catalogue, Search (OpenSearch + voice/image search), Cart, Wishlist - **backend + User Web home/catalog/search/cart/wishlist (pixel-parity)** + Admin catalog CRUD APIs | §8.4–§8.6, §19A.3–§19A.5 - catalog + cart + search modules, DB §6.3–6.4, §11, Admin catalog CRUD §8.14 |
+| **Milestone 3** | Checkout, Payments, Orders, Live Tracking (Socket.IO), Notifications (FCM/SES/SNS) - **backend + User Web checkout/orders/tracking/payments UI** | §8.7–§8.8, §9, §10, §19A.6–§19A.8 - orders/payments modules, DB §6.5–6.7, geospatial rider assignment |
+| **Milestone 4** | Admin Panel, Reports (materialized views), Promotions, User Management, RBAC, Fraud Flags - plus User Web coupons/wallet/support/reviews polish to §16.1 | §8.12–§8.19, §19, §19A.9 - full admin panel, RBAC §7.2, promotions §6.8, fraud §6.11 |
 | **Milestone 5** | Testing (incl. User Web visual/regression vs Blinkit reference), Optimization, Documentation, Deployment Prep (CI/CD for API + `user-web` + `admin-panel`, Terraform, monitoring) | Test suite, §12 caching, §13 CI/CD & DR, API docs, CloudWatch dashboards, §19A visual QA |
 | **Final Handover** | Source Code, APIs, Database, Terraform IaC, Documentation, Credentials (AWS/Firebase), Acceptance | Full repo handover (backend + user-web + admin-panel), Postman/OpenAPI, ER diagram, console access, UAT sign-off |
 
 ---
 
-## 16. Client Feature List (Reference — Verbatim Scope Source)
+## 16. Client Feature List (Reference - Verbatim Scope Source)
 
-### 16.1 Website Features (User Web App — Next.js in this repo, pixel-perfect Blinkit UI)
+### 16.1 Website Features (User Web App - Next.js in this repo, pixel-perfect Blinkit UI)
 Authentication & Account Management: mobile OTP login, optional email login, Google/Apple social login, registration, logout, profile management, multiple saved addresses, GPS location detection, address search via maps, language selection, delete account.
 
 Home Screen: current delivery location, search bar, categories, featured banners, flash deals, recommended products, recently purchased items, trending products, new arrivals, offers & coupons, continue shopping.
@@ -1132,7 +1132,7 @@ Order Management: history, reorder, invoice download, cancel, return, report mis
 
 Wishlist: save favorites, move to cart.
 
-Notifications: order updates, offers, flash sales, delivery updates, wallet updates, referral rewards — via push, SMS, email, WhatsApp.
+Notifications: order updates, offers, flash sales, delivery updates, wallet updates, referral rewards - via push, SMS, email, WhatsApp.
 
 Coupons & Offers: promo codes, first-order discounts.
 
@@ -1169,9 +1169,9 @@ Security Features: OTP authentication, JWT/session management, device management
 
 To stay strictly within client scope:
 - No multi-store switching UI/logic in this deployment (schema-level readiness only, per §1.1).
-- No features beyond §16 (Website Features, Admin Panel) — anything not named there is out of scope until the client requests it.
-- No **native** iOS/Android apps — **User Web App (Next.js)** and **Admin Panel (Next.js)** only.
-- Do **not** invent a custom storefront look — User Web must match Blinkit customer web (§19A). Admin Panel remains its own enterprise UI (§19), not Blinkit storefront styling.
+- No features beyond §16 (Website Features, Admin Panel) - anything not named there is out of scope until the client requests it.
+- No **native** iOS/Android apps - **User Web App (Next.js)** and **Admin Panel (Next.js)** only.
+- Do **not** invent a custom storefront look - User Web must match Blinkit customer web (§19A). Admin Panel remains its own enterprise UI (§19), not Blinkit storefront styling.
 - "Dark mode" and "offline caching for browsing" (§16.2 Additional Smart Features) are **User Web App client concerns** (implement in `user-web/` when prioritized); backend only supplies data/APIs.
 
 ---
@@ -1217,7 +1217,7 @@ WHATSAPP_API_KEY=
 
 ---
 
-## 19. Admin Panel — Screen-by-Screen UI Specification
+## 19. Admin Panel - Screen-by-Screen UI Specification
 
 For every page: what data is displayed, how it can be filtered/searched, what actions are available, which form fields are collected, and which RBAC permission key gates it. This is what "done" looks like for each `page.tsx`.
 
@@ -1232,7 +1232,7 @@ For every page: what data is displayed, how it can be filtered/searched, what ac
 | `users/customers/page.tsx` | Table: name, phone, email, total orders, total spend, status (active/blocked), joined date | Search by name/phone, filter by status, date joined | View profile (orders, addresses, wallet), Block/Unblock | `customers.view`, `customers.manage` |
 | `users/delivery-partners/page.tsx` | Table: name, phone, vehicle type, status (available/busy/offline), documents verified (y/n), rating | Search, filter by status/verification | View profile, Approve/reject documents, Add rider (form: name, phone, vehicle type, documents upload), Edit, Deactivate | `riders.view`, `riders.manage` |
 | `users/store-managers/page.tsx` | Table: name, email, role, last login, status | Search, filter by role | Add staff (form: name, email, role dropdown, temp password), Edit role, Deactivate | `staff.view`, `staff.manage` |
-| `users/admin-roles/page.tsx` | Table: role name, description, # permissions assigned, # admins using it | — | Create role (name, description, permission checkboxes grouped by module), Edit permissions, Delete role (blocked if in use) | `roles.manage` |
+| `users/admin-roles/page.tsx` | Table: role name, description, # permissions assigned, # admins using it | - | Create role (name, description, permission checkboxes grouped by module), Edit permissions, Delete role (blocked if in use) | `roles.manage` |
 
 ### 19.3 Catalog / Product Management
 | Screen | Shows | Filters | Actions | Permission |
@@ -1241,7 +1241,7 @@ For every page: what data is displayed, how it can be filtered/searched, what ac
 | `catalog/sub-categories/page.tsx` | Same as categories, scoped to a parent | Filter by parent category | Same CRUD as categories | `categories.manage` |
 | `catalog/brands/page.tsx` | Table: logo, name, product count, active toggle | Search | Create/Edit brand (name, logo upload), Delete | `brands.manage` |
 | `catalog/products/page.tsx` | Table: image, name, category, brand, price range across variants, total stock, active toggle | Search by name/SKU, filter by category/brand/stock status(in-stock/low/out) | Create product (opens `products/[id]`), Bulk activate/deactivate, Export CSV | `products.view`, `products.manage` |
-| `catalog/products/[id]/page.tsx` | Tabs: **Details** (name, description, nutritional info, ingredients, shelf life, storage, manufacturer), **Variants** (SKU, weight/size, MRP, selling price, discount%, active), **Images** (drag-reorder gallery, upload to S3), **Inventory** (stock per variant), **Translations** (per-locale name/description), **Substitutes** (link related out-of-stock alternatives), **Reviews** (moderate/approve) | — | Save details, Add/edit/delete variant, Upload/delete/reorder images, Adjust stock, Add translation, Link substitute product, Approve/hide review | `products.manage` |
+| `catalog/products/[id]/page.tsx` | Tabs: **Details** (name, description, nutritional info, ingredients, shelf life, storage, manufacturer), **Variants** (SKU, weight/size, MRP, selling price, discount%, active), **Images** (drag-reorder gallery, upload to S3), **Inventory** (stock per variant), **Translations** (per-locale name/description), **Substitutes** (link related out-of-stock alternatives), **Reviews** (moderate/approve) | - | Save details, Add/edit/delete variant, Upload/delete/reorder images, Adjust stock, Add translation, Link substitute product, Approve/hide review | `products.manage` |
 | `catalog/inventory/page.tsx` | Table: product, variant, available qty, reserved qty, low-stock threshold, status badge (in-stock/low/out) | Filter by category, low-stock only toggle | Manual stock adjustment (qty delta + reason, writes `inventory` + audit log), Bulk CSV import | `inventory.manage` |
 | `catalog/variants/page.tsx` | Flat table of all SKUs across products for quick price/stock edits | Search by SKU/product name | Inline edit price/discount, bulk price update | `products.manage` |
 
@@ -1249,7 +1249,7 @@ For every page: what data is displayed, how it can be filtered/searched, what ac
 | Screen | Shows | Filters | Actions | Permission |
 |---|---|---|---|---|
 | `orders/page.tsx` | Table: order#, customer, items count, total, status badge, payment method, placed at | Filter by status, date range, payment method; search by order#/customer phone | Open order detail, Export | `orders.view` |
-| `orders/[id]/page.tsx` | Customer & address, item list with prices, fee breakdown, payment status, status timeline (from `order_status_history`), assigned rider + live map, order issues if any | — | Update status, Assign/reassign rider (shows nearest-available list via PostGIS), Cancel (with reason), Initiate refund, Resolve/reject reported issue | `orders.manage` |
+| `orders/[id]/page.tsx` | Customer & address, item list with prices, fee breakdown, payment status, status timeline (from `order_status_history`), assigned rider + live map, order issues if any | - | Update status, Assign/reassign rider (shows nearest-available list via PostGIS), Cancel (with reason), Initiate refund, Resolve/reject reported issue | `orders.manage` |
 | `orders/refunds/page.tsx` | Table: order#, customer, amount, reason, status, requested at | Filter by status | Approve → triggers gateway refund, Reject (with note) | `orders.refund` |
 | `orders/cancellations/page.tsx` | Table: order#, customer, cancel reason, cancelled by (user/admin/system), refund status | Filter by date | View detail | `orders.view` |
 | `orders/returns/page.tsx` | Table: order#, item, reason, status, requested at | Filter by status | Approve/reject return, mark item received, trigger refund | `orders.manage` |
@@ -1265,7 +1265,7 @@ For every page: what data is displayed, how it can be filtered/searched, what ac
 ### 19.6 Payments
 | Screen | Shows | Filters | Actions | Permission |
 |---|---|---|---|---|
-| `payments/reconciliation/page.tsx` | Table: order#, gateway reference, amount, method, status, paid at — matched against gateway settlement report | Date range, method, status | Mark reconciled, flag mismatch | `payments.view` |
+| `payments/reconciliation/page.tsx` | Table: order#, gateway reference, amount, method, status, paid at - matched against gateway settlement report | Date range, method, status | Mark reconciled, flag mismatch | `payments.view` |
 | `payments/refunds/page.tsx` | Table: order#, amount, status, processed at | Filter by status | Retry failed refund, view gateway response | `payments.refund` |
 | `payments/wallet/page.tsx` | Table: user, balance, last transaction | Search by user | Manual adjust (amount + reason, writes `wallet_transactions` + audit log) | `wallet.manage` |
 
@@ -1283,14 +1283,14 @@ For every page: what data is displayed, how it can be filtered/searched, what ac
 | Screen | Shows | Filters | Actions | Permission |
 |---|---|---|---|---|
 | `support/tickets/page.tsx` | Table: ticket#, customer, subject, related order, status, assigned agent | Filter by status/assignee | Open thread, reply, assign to agent, change status | `support.manage` |
-| `settings/store-details/page.tsx` | Single-store config form: name, logo, address + map picker (lat/lng), contact phone/email, delivery radius, min order value, timezone, currency, fee settings (delivery/platform/handling defaults) | — | Save (single record update — this is the only file touched when cloning for a new store) | `store.manage` |
-| `settings/roles-permissions/page.tsx` | Same as `users/admin-roles/page.tsx`, cross-linked | — | See §19.2 | `roles.manage` |
+| `settings/store-details/page.tsx` | Single-store config form: name, logo, address + map picker (lat/lng), contact phone/email, delivery radius, min order value, timezone, currency, fee settings (delivery/platform/handling defaults) | - | Save (single record update - this is the only file touched when cloning for a new store) | `store.manage` |
+| `settings/roles-permissions/page.tsx` | Same as `users/admin-roles/page.tsx`, cross-linked | - | See §19.2 | `roles.manage` |
 | `settings/languages/page.tsx` | Table of active locales, translation completeness % per locale | Filter by locale | Add locale, bulk edit translations for categories/products | `store.manage` |
 | `audit-logs/page.tsx` | Table: admin, action, entity, entity id, IP, timestamp, diff (meta jsonb expandable) | Filter by admin, entity type, date range | Read-only, Export | `audit.view` |
 
 ---
 
-## 19A. User Web App — Pixel-Perfect Blinkit UI Specification
+## 19A. User Web App - Pixel-Perfect Blinkit UI Specification
 
 ### 19A.0 Design mandate (non-negotiable)
 
@@ -1302,7 +1302,7 @@ For every page: what data is displayed, how it can be filtered/searched, what ac
 | **Allowed differences** | Branding assets we legally own (logo/name if client rebrands), single-store content, our API-driven data; **visual chrome stays Blinkit-identical** unless client supplies alternate brand kit. **Current brand:** wordmark **Tapi Grocery** (yellow “Tapi” + green “Grocery”); DB store name `Tapi Grocery`, slug `blinkit-store` |
 | **Breakpoints** | Match Blinkit web: mobile ≤1020px header denser; desktop ≥1260px fuller header widths (location ~320px, cart/profile columns as on reference) |
 | **Tokens (baseline from Blinkit web)** | Yellow brand CTAs (~`#F8CB46` family), near-black text (`#1F1F1F` / `#000`), muted placeholders (`#999`), search field bg `rgb(248,248,248)` + border `rgb(232,232,232)`, radius ~12px on search, cart button green when active / grey disabled, font stack akin to **Okra** (license-safe substitute if needed, metrics matched) |
-| **Motion** | Search rotating placeholders; cart icon micro-animation; skeleton shimmers for location/home shelves — match reference timing |
+| **Motion** | Search rotating placeholders; cart icon micro-animation; skeleton shimmers for location/home shelves - match reference timing |
 | **QA** | Side-by-side screenshots at 375 / 768 / 1020 / 1260 / 1440 widths; ≤2px spacing drift on chrome; Lighthouse a11y + keyboard for primary flows |
 
 Every `user-web` screen below maps to §16.1 and consumes §8 user APIs. "Done" = feature-complete **and** visual parity with Blinkit reference for that screen.
@@ -1310,7 +1310,7 @@ Every `user-web` screen below maps to §16.1 and consumes §8 user APIs. "Done" 
 ### 19A.1 Auth & session
 | Screen | Shows | Actions | APIs |
 |---|---|---|---|
-| Login / OTP sheet | Phone input, OTP verify, optional email/Google/Apple — Blinkit-style modal/sheet | Send OTP, verify, social login | §8.1 |
+| Login / OTP sheet | Phone input, OTP verify, optional email/Google/Apple - Blinkit-style modal/sheet | Send OTP, verify, social login | §8.1 |
 | Register / profile complete | Name/email if required post-OTP | Save profile | §8.1, §8.3 |
 
 ### 19A.2 Location & addresses
@@ -1318,20 +1318,20 @@ Every `user-web` screen below maps to §16.1 and consumes §8 user APIs. "Done" 
 |---|---|---|---|---|
 | Location bar (header) | “Delivery in N minutes” + truncated address; shimmer while loading | Opens location / address flow | §8.3 | **Done** |
 | Account dropdown (header) | “My Account”, phone/email, Saved Addresses, Account Privacy, Log Out; placeholder rows (Orders, Prescriptions, E-Gift, FAQ) | Navigate / logout | §8.1 | **Done** |
-| Account shell | Left sidebar: phone, My Addresses (active), placeholder nav, Logout; right content panel | Nav + logout | — | **Done** |
+| Account shell | Left sidebar: phone, My Addresses (active), placeholder nav, Logout; right content panel | Nav + logout | - | **Done** |
 | My Addresses list | Title “My addresses”, green “+ Add new address”, rows with Home/Work/Other icon, label, full address, ⋮ (Edit / Set default / Delete) | Open add/edit modal, default, delete | §8.3 | **Done** |
 | Enter complete address modal | Two columns: map + search + “Go to current location” + “Delivering your order to”; form: Save as Home/Work/Hotel/Other, flat, floor, area, landmark, name, phone, green **Save Address** | Search (maps or manual), GPS, save | §8.3 | **Done** |
 
 **M1 implementation notes (intentional):**
 - API `label` enum remains `home` \| `work` \| `other` (§6.2). UI **Hotel** maps to `other` on save.
 - Modal **name / phone** fields mirror Blinkit UX and prefill from `/users/me`; they are not separate address columns (compose into profile separately via §8.3 profile PATCH if user edits name).
-- Without `MAPS_API_KEY`, search returns 503 — UI falls back to manual area entry + OpenStreetMap embed + browser GPS.
+- Without `MAPS_API_KEY`, search returns 503 - UI falls back to manual area entry + OpenStreetMap embed + browser GPS.
 - `/account` redirects to `/account/addresses` (Blinkit “My Addresses” as primary account landing). Account privacy / language / delete live under `/account/settings`.
 
 ### 19A.3 Home
 | Screen | Shows | Actions | APIs |
 |---|---|---|---|
-| `page.tsx` (home) | Header chrome + banners, category grid, flash deals, recommended, recently purchased, trending, new arrivals, offers — shelf layout like Blinkit | Tap category/product/banner; ADD to cart | §8.4, §8.6 |
+| `page.tsx` (home) | Header chrome + banners, category grid, flash deals, recommended, recently purchased, trending, new arrivals, offers - shelf layout like Blinkit | Tap category/product/banner; ADD to cart | §8.4, §8.6 |
 
 ### 19A.4 Search & discovery
 | Screen | Shows | Actions | APIs |
@@ -1367,7 +1367,7 @@ Every `user-web` screen below maps to §16.1 and consumes §8 user APIs. "Done" 
 | Reviews | Rate product/order, image upload | Submit review | §8.5 / reviews APIs | M4 |
 
 ### 19A.9 Visual QA checklist (M5 gate)
-- [ ] Header: logo | location+ETA | search | profile | cart — matches Blinkit at desktop & mobile
+- [ ] Header: logo | location+ETA | search | profile | cart - matches Blinkit at desktop & mobile
 - [ ] Product card: image, brand, name, weight, MRP/sell/discount, ADD / stepper
 - [ ] Home shelves scroll and shimmer like reference
 - [ ] Cart sticky bar & bill summary match reference
@@ -1377,7 +1377,7 @@ Every `user-web` screen below maps to §16.1 and consumes §8 user APIs. "Done" 
 
 ---
 
-## 20. Backend — Layered Architecture & Controller Logic
+## 20. Backend - Layered Architecture & Controller Logic
 
 ### 20.1 Standard Request Lifecycle (applies to every module)
 
@@ -1399,19 +1399,19 @@ flowchart LR
 ```
 
 **Layer responsibilities (strict separation, every module follows this):**
-- **Controller** — parses `req`, calls one Service method, shapes the HTTP response. No business logic, no direct Prisma calls.
-- **Service** — owns business rules, orchestrates multiple repositories, triggers side effects (cache invalidation, queue jobs, OpenSearch sync). This is where "logic" lives.
-- **Repository** — thin Prisma wrapper per entity (`findById`, `create`, `updateStock`, etc.). No business rules.
-- **Validator** — Joi/Zod schema per route, runs before the controller via `validateRequest` middleware.
+- **Controller** - parses `req`, calls one Service method, shapes the HTTP response. No business logic, no direct Prisma calls.
+- **Service** - owns business rules, orchestrates multiple repositories, triggers side effects (cache invalidation, queue jobs, OpenSearch sync). This is where "logic" lives.
+- **Repository** - thin Prisma wrapper per entity (`findById`, `create`, `updateStock`, etc.). No business rules.
+- **Validator** - Joi/Zod schema per route, runs before the controller via `validateRequest` middleware.
 
-Every module folder (`modules/orders/`, `modules/products/`, etc.) contains exactly these four files plus `*.routes.js`, so the pattern is identical everywhere — a new developer (or AI) only has to learn it once.
+Every module folder (`modules/orders/`, `modules/products/`, etc.) contains exactly these four files plus `*.routes.js`, so the pattern is identical everywhere - a new developer (or AI) only has to learn it once.
 
-### 20.2 Auth Module — Controller ↔ Service Flow
+### 20.2 Auth Module - Controller ↔ Service Flow
 - `POST /auth/otp/send` → `auth.controller.sendOtp` → `auth.service.sendOtp`:
   1. Rate-limit check (Redis, key `otp:send:{phone}`, max 3/10min).
   2. Generate 6-digit OTP, hash it (bcrypt), store in `otp_verifications` with 5-min expiry.
   3. Call `sms-provider` integration (SNS or gateway) to deliver OTP.
-  4. Return generic success (never reveal if phone is registered — enumeration protection).
+  4. Return generic success (never reveal if phone is registered - enumeration protection).
 - `POST /auth/otp/verify` → `auth.service.verifyOtp`:
   1. Fetch latest unexpired `otp_verifications` row for phone, compare hash, increment `attempts` on failure (lock after 5).
   2. On success: find-or-create `users` row.
@@ -1420,25 +1420,25 @@ Every module folder (`modules/orders/`, `modules/products/`, etc.) contains exac
   5. Return tokens + user profile.
 - `POST /auth/firebase/verify` (Firebase Phone Auth path) → skips steps 1–2 above; verifies the Firebase ID token via `config/firebase.js` Admin SDK instead, then continues at step 2 (find-or-create user).
 
-### 20.3 RBAC Authorization — How `authorize()` Actually Works
+### 20.3 RBAC Authorization - How `authorize()` Actually Works
 1. `authenticate` middleware decodes JWT → attaches `req.admin = { id, roleId }`.
 2. `authorize('orders.refund')` middleware: looks up `req.admin.roleId` → `role_permissions` → `permissions.key` (cached in Redis per role, invalidated when `settings/roles-permissions` is edited) → checks `orders.refund` is present.
 3. If absent → 403 before the controller ever runs.
 4. On success, controller executes; every mutating controller additionally calls `auditLogger` middleware post-response to write `audit_logs` (action, entity, entity_id, diff).
-5. Admin Panel mirrors the same permission keys client-side (`lib/rbac.ts`, `PermissionGate` component) purely for UX (hiding buttons) — the backend check is the actual security boundary; the frontend check is never trusted alone.
+5. Admin Panel mirrors the same permission keys client-side (`lib/rbac.ts`, `PermissionGate` component) purely for UX (hiding buttons) - the backend check is the actual security boundary; the frontend check is never trusted alone.
 
 ### 20.4 Cart Module Logic
 - `POST /cart/items` → `cart.service.addItem`:
   1. Fetch or create `carts` row for `user_id + store_id`.
   2. Check `inventory.quantity_available - quantity_reserved >= requestedQty` for the variant; if not, return `409 OUT_OF_STOCK` with substitute suggestions (`product_related` where `type=substitute`).
   3. Upsert `cart_items` (increment quantity if line already exists).
-  4. Recalculate cart totals on the fly (not stored — computed at read time in `cart.service.getCart`, combining `product_variants.selling_price`, active `deals`, and any applied coupon).
+  4. Recalculate cart totals on the fly (not stored - computed at read time in `cart.service.getCart`, combining `product_variants.selling_price`, active `deals`, and any applied coupon).
   5. Cache computed cart summary in Redis (`cart:{userId}`) for fast repeated reads, invalidated on any cart mutation.
 
-### 20.5 Checkout & Order Placement — Core Transaction
-`POST /orders` → `orders.service.placeOrder` (wrapped in a single Prisma `$transaction` — this is the most business-critical flow in the system):
-1. Re-validate cart contents against **live** inventory (race-condition guard) — lock rows via `SELECT ... FOR UPDATE` on `inventory`.
-2. Reserve stock: `inventory.quantity_reserved += qty` for each line (not yet decremented from `quantity_available` until delivery — supports cancellation without a stale-stock bug).
+### 20.5 Checkout & Order Placement - Core Transaction
+`POST /orders` → `orders.service.placeOrder` (wrapped in a single Prisma `$transaction` - this is the most business-critical flow in the system):
+1. Re-validate cart contents against **live** inventory (race-condition guard) - lock rows via `SELECT ... FOR UPDATE` on `inventory`.
+2. Reserve stock: `inventory.quantity_reserved += qty` for each line (not yet decremented from `quantity_available` until delivery - supports cancellation without a stale-stock bug).
 3. Validate coupon (if any) via `coupons.service.validate`: checks `is_active`, `valid_from/to`, `min_order_value`, `usage_limit_per_user` (count against `orders` for this user+coupon), `total_usage_limit`.
 4. Compute fee breakdown: subtotal (sum of `unit_price * qty`), `delivery_fee`/`platform_fee`/`handling_fee` from `store_settings`, `tax_amount`, minus coupon discount, minus `wallet_amount_used` (validated against `wallets.balance`).
 5. Create `orders` row (`status = placed`) + `order_items` (snapshotting `product_name_snapshot` and `unit_price` so historical orders are immutable to later price changes).
@@ -1451,8 +1451,8 @@ Every module folder (`modules/orders/`, `modules/products/`, etc.) contains exac
 
 ### 20.6 Payment Webhook Handling
 `POST /payments/verify` → `payments.service.handleWebhook`:
-1. Verify gateway signature (HMAC) before trusting payload — reject unsigned/invalid requests immediately.
-2. Look up `payments` row by `gateway_reference`; idempotency check (ignore if already `success`/`failed` — gateways retry webhooks).
+1. Verify gateway signature (HMAC) before trusting payload - reject unsigned/invalid requests immediately.
+2. Look up `payments` row by `gateway_reference`; idempotency check (ignore if already `success`/`failed` - gateways retry webhooks).
 3. On success: `payments.status = success`, `orders.status` stays `placed` → triggers `order-accepted` flow eligibility (store staff can now action it); on failure: release reserved inventory (`quantity_reserved -= qty`), refund wallet debit if any, notify user to retry.
 
 ### 20.7 Order Status Progression & Rider Assignment
@@ -1463,7 +1463,7 @@ Every module folder (`modules/orders/`, `modules/products/`, etc.) contains exac
 4. Emits `order:status_update` on the `/tracking` Socket.IO namespace for that `orderId`.
 
 `POST /admin/orders/:id/assign-rider` → `riders.service.suggestNearest`:
-1. PostGIS query: `riders` where `status = available` ordered by `ST_Distance(current_location, orders.delivery_location)` limit 5 — returned to admin as a ranked pick-list (assignment itself stays a manual admin action per the client's "assign stores (single)" requirement — no fully-automatic dispatch was requested, so none is built).
+1. PostGIS query: `riders` where `status = available` ordered by `ST_Distance(current_location, orders.delivery_location)` limit 5 - returned to admin as a ranked pick-list (assignment itself stays a manual admin action per the client's "assign stores (single)" requirement - no fully-automatic dispatch was requested, so none is built).
 2. On confirm: creates `rider_assignments` row, updates `orders.status = rider_assigned`, notifies rider via FCM.
 3. Rider app (external) posts live pings → `order_locations` service also mirrors latest ping into Redis `order:{id}:rider_location` and emits `order:rider_location` over Socket.IO.
 
@@ -1475,31 +1475,31 @@ Every module folder (`modules/orders/`, `modules/products/`, etc.) contains exac
 4. On gateway failure: `refunds.status = rejected`, notifies admin for manual follow-up.
 
 ### 20.9 Inventory & Substitution Logic
-- `inventory.service.checkAvailability(variantId, qty)` — single source of truth called by cart, checkout, and the product-detail "Add" button state; never duplicated per-caller.
-- When `quantity_available` crosses `low_stock_threshold`, a BullMQ job flags the admin dashboard (badge count) and, if it hits zero, `products.service.getSubstitutes` (via `product_related` type=`substitute`) is what powers both the User Web App's "out of stock alternative" prompt and the admin catalog page's substitute picker — same service, two callers.
+- `inventory.service.checkAvailability(variantId, qty)` - single source of truth called by cart, checkout, and the product-detail "Add" button state; never duplicated per-caller.
+- When `quantity_available` crosses `low_stock_threshold`, a BullMQ job flags the admin dashboard (badge count) and, if it hits zero, `products.service.getSubstitutes` (via `product_related` type=`substitute`) is what powers both the User Web App's "out of stock alternative" prompt and the admin catalog page's substitute picker - same service, two callers.
 
 ### 20.10 Notification Dispatch
-Every module that needs to notify a user calls one shared `notifications.service.send({ userId, templateKey, channel, data })` — it never calls FCM/SES/SNS/WhatsApp directly. That service:
+Every module that needs to notify a user calls one shared `notifications.service.send({ userId, templateKey, channel, data })` - it never calls FCM/SES/SNS/WhatsApp directly. That service:
 1. Resolves the template from `notification_templates` by `key + channel + locale (user.language_pref)`.
 2. Enqueues a BullMQ job (`notification.job.js`) rather than sending synchronously, so a slow provider never blocks the API response.
 3. The worker sends via the matching `integrations/` client and writes a `notifications` row (`sent_at`) for the in-app notification list.
 
 ### 20.11 Search Index Sync
-`products.service` never writes to OpenSearch directly. Every create/update/delete on `products`, `product_variants`, or `inventory` emits an event consumed by `searchIndexSync.job.js`, which upserts/deletes the corresponding OpenSearch document — keeping Postgres as the single write-authority and OpenSearch a purely derived, rebuildable index (it can be fully re-indexed from Postgres at any time with zero data loss).
+`products.service` never writes to OpenSearch directly. Every create/update/delete on `products`, `product_variants`, or `inventory` emits an event consumed by `searchIndexSync.job.js`, which upserts/deletes the corresponding OpenSearch document - keeping Postgres as the single write-authority and OpenSearch a purely derived, rebuildable index (it can be fully re-indexed from Postgres at any time with zero data loss).
 
 ---
 
 ## 21. Implementation Status (Current)
 
-> **Last updated:** 2026-08-08 (v2.6 — **Milestone 1 closed**)  
+> **Last updated:** 2026-08-08 (v2.6 - **Milestone 1 closed**)  
 > **Active milestone:** **Milestone 2** (catalog / search / cart / wishlist)  
-> **Audit report:** [`MILESTONE_1_AUDIT.md`](./MILESTONE_1_AUDIT.md) — M1 final pass  
+> **Audit report:** [`MILESTONE_1_AUDIT.md`](./MILESTONE_1_AUDIT.md) - M1 final pass  
 > **Deferred tasks:** [`DO_THAT_LATER.md`](./DO_THAT_LATER.md)  
 > **Repo root README:** [`README.md`](./README.md)
 
-This section tracks what is **built in the repo today** vs what remains per the spec above. When in doubt, this section reflects the actual codebase — not planned work.
+This section tracks what is **built in the repo today** vs what remains per the spec above. When in doubt, this section reflects the actual codebase - not planned work.
 
-### 21.1 Milestone 1 — Summary
+### 21.1 Milestone 1 - Summary
 
 | Spec reference | Requirement | Status | Notes |
 |---|---|---|---|
@@ -1510,23 +1510,23 @@ This section tracks what is **built in the repo today** vs what remains per the 
 | §8.1 | Apple OAuth | **Stub** | `POST /auth/oauth/apple` → `501` (deferred) |
 | §8.2 | Admin auth endpoints | **Done** | login, refresh, logout, forgot/reset password |
 | §8.3 | User profile & addresses | **Done** | CRUD + default address + maps search |
-| §8.3 | Maps address search | **Conditional** | Needs `MAPS_API_KEY` — see [`DO_THAT_LATER.md`](./DO_THAT_LATER.md) |
+| §8.3 | Maps address search | **Conditional** | Needs `MAPS_API_KEY` - see [`DO_THAT_LATER.md`](./DO_THAT_LATER.md) |
 | §7.1 | Refresh token storage | **Done** | Hashed on `user_devices` / `admin_users`; Redis mirror |
 | §7.2 | Admin RBAC middleware | **Done** | `authenticate`, `authorize` (+ `super_admin` bypass), Redis cache |
 | §7.2 | Admin panel RBAC nav | **Done** | Sidebar + `PermissionGate` (dynamic from nav-config) |
 | §7.2 / §20.3 | Audit logging | **Done** | Global on mutating `/admin` routes; purge after 5 days |
 | §6.1–§6.2 | PostGIS GIST indexes | **Done** | Via `npm run db:setup` / seed / Docker entrypoint |
-| S3 client | File storage config | **Done** | Real SDK when `S3_BUCKET` set; stub otherwise — see [`DO_THAT_LATER.md`](./DO_THAT_LATER.md) |
+| S3 client | File storage config | **Done** | Real SDK when `S3_BUCKET` set; stub otherwise - see [`DO_THAT_LATER.md`](./DO_THAT_LATER.md) |
 | §3 | AWS production infra (VPC/RDS) | **Deferred** | Host `DATABASE_URL` for local/dev (no VPC) |
 | §5 / §19 | Admin module CRUD screens | **Deferred → M4** | Placeholders only (roles UI, KPI dashboard, etc.) |
 | §5A / §19A | User Web App (Next.js, Blinkit pixel-parity) | **Done (M1 slice)** | Auth + Blinkit header/footer + Account dropdown/sidebar + My Addresses list + Enter-complete-address modal; catalog/cart → M2 |
-| — | Swagger API docs | **Done** | `/api-docs` (dynamic server URL) |
-| — | Docker / DB setup | **Done** | `docker-compose.yml`, `backend/Dockerfile`, `npm run db:setup` |
-| — | Integration tests | **Done** | 6 tests in `backend/tests/integration.test.js` |
+| - | Swagger API docs | **Done** | `/api-docs` (dynamic server URL) |
+| - | Docker / DB setup | **Done** | `docker-compose.yml`, `backend/Dockerfile`, `npm run db:setup` |
+| - | Integration tests | **Done** | 6 tests in `backend/tests/integration.test.js` |
 
-### 21.2 Database — Tables Implemented (Prisma)
+### 21.2 Database - Tables Implemented (Prisma)
 
-**Milestone 1 scope only — §6.1 + §6.2 (10 tables):**
+**Milestone 1 scope only - §6.1 + §6.2 (10 tables):**
 
 | Table | Prisma model | Seeded | Notes |
 |---|---|---|---|
@@ -1549,15 +1549,15 @@ This section tracks what is **built in the repo today** vs what remains per the 
 **Seed command:** `cd backend && npm run db:setup` (or `npm run db:seed`)
 
 **Default seed data:**
-- 1 store — name **Tapi Grocery**, slug `blinkit-store`
+- 1 store - name **Tapi Grocery**, slug `blinkit-store`
 - 5 roles: `super_admin`, `store_manager`, `catalog_manager`, `order_manager`, `support_agent`
 - 26 permissions (keys match §19 / admin nav RBAC)
 - Super admin: `admin@gmail.com` / `admin@123`
 - Support agent: `support@test.local` / `Support@123`
 - Store manager: `manager@blinkit.local` / `Manager@123`
-- 3 sample customers (Rahul, Priya, Amit) — email login password **`Customer@123`** when email is set
+- 3 sample customers (Rahul, Priya, Amit) - email login password **`Customer@123`** when email is set
 
-### 21.3 API Endpoints — Implemented
+### 21.3 API Endpoints - Implemented
 
 Base: `/api/v1`. Health: `GET /health`.
 
@@ -1569,7 +1569,7 @@ Base: `/api/v1`. Health: `GET /health`.
 | POST | `/auth/otp/verify` | Done |
 | POST | `/auth/register` | Done |
 | POST | `/auth/login/email` | Done |
-| POST | `/auth/oauth/google` | Done (needs `GOOGLE_CLIENT_ID` — see DO_THAT_LATER) |
+| POST | `/auth/oauth/google` | Done (needs `GOOGLE_CLIENT_ID` - see DO_THAT_LATER) |
 | POST | `/auth/oauth/apple` | Stub → 501 |
 | POST | `/auth/firebase/verify` | Stub → 501 |
 | POST | `/auth/refresh-token` | Done |
@@ -1598,7 +1598,7 @@ Base: `/api/v1`. Health: `GET /health`.
 | PATCH | `/addresses/:id` | Done |
 | DELETE | `/addresses/:id` | Done |
 | PATCH | `/addresses/:id/default` | Done |
-| GET | `/addresses/search?q=` | Done (needs `MAPS_API_KEY` — see DO_THAT_LATER) |
+| GET | `/addresses/search?q=` | Done (needs `MAPS_API_KEY` - see DO_THAT_LATER) |
 
 #### Admin (Milestone 1 partial)
 
@@ -1608,7 +1608,7 @@ Base: `/api/v1`. Health: `GET /health`.
 
 All other §8.12–§8.19 admin module endpoints → **Milestone 4** (not implemented).
 
-### 21.4 Backend Architecture — Implemented
+### 21.4 Backend Architecture - Implemented
 
 ```
 backend/src/
@@ -1636,7 +1636,7 @@ backend/src/
 
 **Audit:** Mutating `/admin` requests → `audit_logs`; purged hourly after `AUDIT_RETENTION_DAYS` (default **5**).
 
-### 21.5 Admin Panel — Implemented
+### 21.5 Admin Panel - Implemented
 
 | Feature | Status | Notes |
 |---|---|---|
@@ -1645,11 +1645,11 @@ backend/src/
 | Auto token refresh | Done | `SessionKeepAlive` + axios interceptor |
 | RBAC sidebar | Done | Filtered + **`PermissionGate`** from nav-config |
 | Dashboard page | Partial | Placeholder KPIs; cards/links gated by `PermissionGate` |
-| All other nav pages | Placeholder | "Coming soon" — full CRUD in Milestone 4 |
+| All other nav pages | Placeholder | "Coming soon" - full CRUD in Milestone 4 |
 | API docs proxy | Done | http://localhost:3000/api-docs → backend |
 | Mobile-responsive layout | Done | Drawer sidebar, touch targets |
 
-### 21.5A User Web App — Implemented
+### 21.5A User Web App - Implemented
 
 | Feature | Status | Notes |
 |---|---|---|
@@ -1657,14 +1657,14 @@ backend/src/
 | Brand | **Done** | **Tapi Grocery** wordmark; seed store name `Tapi Grocery`, slug `blinkit-store` |
 | Blinkit header chrome | **Done** | Logo \| location+ETA \| search placeholders \| Account \| My Cart (grey empty) |
 | Account dropdown | **Done** | My Account, phone, Saved Addresses, Privacy, Log Out + Soon placeholders |
-| Phone OTP login | **Done** | `/login` + `LoginModal` — send/verify OTP, complete profile name; static OTP free mode |
+| Phone OTP login | **Done** | `/login` + `LoginModal` - send/verify OTP, complete profile name; static OTP free mode |
 | Email login | **Done** | LoginModal “Continue with email”; sample `Customer@123` |
 | Google / Apple UI | **Done** | Google GIS + Apple JS → backend verify; needs env credentials ([`SOCIAL_LOGIN_SETUP.md`](./SOCIAL_LOGIN_SETUP.md)) |
 | Session + refresh | **Done** | Cookies + `SessionKeepAlive` + axios interceptor (15 min access) |
 | Account shell | **Done** | `account/layout.tsx` + `AccountSidebar` (Blinkit left nav) |
-| My Addresses list | **Done** | `/account/addresses` — icons, ⋮ menu (edit/default/delete), “+ Add new address” |
-| Address modal | **Done** | `AddressModal` — map/search/GPS + form; OSM fallback when Maps key missing; GPS reverse-geocode |
-| Account privacy | **Done** | `/account/settings` — name, email, password, language (en/hi applied to auth/account chrome), delete account |
+| My Addresses list | **Done** | `/account/addresses` - icons, ⋮ menu (edit/default/delete), “+ Add new address” |
+| Address modal | **Done** | `AddressModal` - map/search/GPS + form; OSM fallback when Maps key missing; GPS reverse-geocode |
+| Account privacy | **Done** | `/account/settings` - name, email, password, language (en/hi applied to auth/account chrome), delete account |
 | Logout | **Done** | Header dropdown + sidebar |
 | Language selection | **Done** | Pref stored + applied (en/hi) on login/settings chrome |
 | Delete account | **Done** | Soft-delete + revoke all device refresh tokens |
@@ -1684,7 +1684,7 @@ backend/src/
 | `/account/addresses` | Address list + modal |
 | `/account/settings` | Account privacy |
 
-**Local URL:** http://localhost:3001 — env: `user-web/.env.local` → `NEXT_PUBLIC_API_URL`
+**Local URL:** http://localhost:3001 - env: `user-web/.env.local` → `NEXT_PUBLIC_API_URL`
 
 ### 21.6 DevOps & Local Infrastructure
 
@@ -1694,7 +1694,7 @@ backend/src/
 | Redis 7 | Done | Port **6379** |
 | Backend Docker image | Done | `backend/Dockerfile` |
 | DB setup script | Done | `npm run db:setup` (push + GIST + seed) |
-| S3 client | Done | `config/storage.js` — needs real bucket credentials later |
+| S3 client | Done | `config/storage.js` - needs real bucket credentials later |
 | AWS RDS/VPC/ECS | Deferred | Host `DATABASE_URL` for now |
 | Terraform / CI-CD | Not started | Milestone 5 |
 
@@ -1709,10 +1709,10 @@ backend/src/
 | `JWT_*` | Signing + expiry |
 | `DEFAULT_STORE_ID` | Single-store scope (from seed) |
 | `SUPER_ADMIN_*` | Seed admin credentials |
-| `GOOGLE_CLIENT_ID` | Google OAuth — set with frontend `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
-| `APPLE_CLIENT_ID` | Apple Services ID — set with frontend `NEXT_PUBLIC_APPLE_CLIENT_ID` |
-| `MAPS_API_KEY` | Address search — **optional until set** |
-| `S3_BUCKET` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Real S3 uploads — **optional until set** |
+| `GOOGLE_CLIENT_ID` | Google OAuth - set with frontend `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
+| `APPLE_CLIENT_ID` | Apple Services ID - set with frontend `NEXT_PUBLIC_APPLE_CLIENT_ID` |
+| `MAPS_API_KEY` | Address search - **optional until set** |
+| `S3_BUCKET` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Real S3 uploads - **optional until set** |
 | `AUDIT_RETENTION_DAYS` | Audit log purge (default `5`) |
 | `API_BASE_URL` | Force Swagger server URL (optional) |
 
@@ -1750,9 +1750,9 @@ Run: `cd backend && npm test` (requires PostGIS + Redis).
 
 | Milestone | Scope |
 |---|---|
-| **M2** | Catalog, OpenSearch, cart, wishlist — API + User Web home/search/PDP/cart (§6.3–§6.4, §8.4–§8.6, §19A.3–§19A.5) |
-| **M3** | Checkout, payments, orders, Socket.IO tracking — API + User Web (§6.5–§6.7, §8.7–§8.8, §19A.6–§19A.7) |
-| **M4** | Full admin CRUD, reports, promotions, fraud — §8.12–§8.19, §6.8+; User Web wallet/support/reviews polish §19A.8 |
+| **M2** | Catalog, OpenSearch, cart, wishlist - API + User Web home/search/PDP/cart (§6.3–§6.4, §8.4–§8.6, §19A.3–§19A.5) |
+| **M3** | Checkout, payments, orders, Socket.IO tracking - API + User Web (§6.5–§6.7, §8.7–§8.8, §19A.6–§19A.7) |
+| **M4** | Full admin CRUD, reports, promotions, fraud - §8.12–§8.19, §6.8+; User Web wallet/support/reviews polish §19A.8 |
 | **M5** | CI/CD (3 apps), Terraform, CloudWatch, User Web visual regression vs Blinkit (§19A.9) |
 | **Handover** | Production credentials, UAT sign-off |
 
@@ -1760,11 +1760,11 @@ Run: `cd backend && npm test` (requires PostGIS + Redis).
 
 1. **AWS VPC/RDS (§3):** Host Postgres URL for local/dev; no VPC. S3 client is ready; bucket credentials deferred → [`DO_THAT_LATER.md`](./DO_THAT_LATER.md).
 2. **Apple / Firebase auth:** Explicit `501` stubs until client chooses Option B / Apple Sign-In.
-3. **Admin access token:** 8 h (with silent refresh) — user app remains 15 min.
+3. **Admin access token:** 8 h (with silent refresh) - user app remains 15 min.
 4. **`audit_logs` monthly partitioning:** Table is non-partitioned; purge-by-age used for M1 (full partitioning → M5).
 5. **Admin panel §19 CRUD screens:** Shell/navigation + PermissionGate only; full UI in Milestone 4.
-6. **User Web App M1 (§5A / §19A.1–§19A.2):** Done — Account dropdown, account sidebar, My Addresses list, Enter-complete-address modal match Blinkit reference layout. Brand wordmark is **Tapi Grocery** (allowed §19A difference). Hotel UI tag → API `other`. Full catalogue/cart shelves remain M2; visual QA vs live Blinkit continues through M5 (§19A.9).
-7. **Optional API keys:** `GOOGLE_CLIENT_ID`, `MAPS_API_KEY`, S3 credentials — see [`DO_THAT_LATER.md`](./DO_THAT_LATER.md).
+6. **User Web App M1 (§5A / §19A.1–§19A.2):** Done - Account dropdown, account sidebar, My Addresses list, Enter-complete-address modal match Blinkit reference layout. Brand wordmark is **Tapi Grocery** (allowed §19A difference). Hotel UI tag → API `other`. Full catalogue/cart shelves remain M2; visual QA vs live Blinkit continues through M5 (§19A.9).
+7. **Optional API keys:** `GOOGLE_CLIENT_ID`, `MAPS_API_KEY`, S3 credentials - see [`DO_THAT_LATER.md`](./DO_THAT_LATER.md).
 
 ---
 

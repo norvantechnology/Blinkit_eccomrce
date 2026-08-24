@@ -1,7 +1,7 @@
 /**
  * SMS / OTP delivery.
  * Blinkit.md §3 / §7.1 options: AWS SNS, MSG91/Twilio, or Firebase Phone Auth.
- * For now (zero bill): static OTP mode — no SMS provider charged.
+ * For now (zero bill): static OTP mode - no SMS provider charged.
  * Set OTP_SMS_PROVIDER=sns later to enable AWS SNS (paid).
  */
 const aws = require('../../config/aws');
@@ -22,7 +22,7 @@ const resolveStaticCode = () =>
 
 const sendOtp = async (phone, otp) => {
   if (isStaticMode()) {
-    logger.info(`[STATIC OTP] phone=${phone} otp=${otp} (free mode — no SMS billed)`);
+    logger.info(`[STATIC OTP] phone=${phone} otp=${otp} (free mode - no SMS billed)`);
     return { success: true, provider: 'static', staticOtp: true };
   }
 
@@ -33,8 +33,8 @@ const sendOtp = async (phone, otp) => {
     });
   }
 
-  // MSG91 / Twilio not wired yet — fall back to static log
-  logger.info(`[OTP] provider unset — logging only phone=${phone} otp=${otp}`);
+  // MSG91 / Twilio not wired yet - fall back to static log
+  logger.info(`[OTP] provider unset - logging only phone=${phone} otp=${otp}`);
   return { success: true, provider: 'console', staticOtp: true };
 };
 

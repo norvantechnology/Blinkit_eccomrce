@@ -1,2 +1,2 @@
-// Payments service — Milestone 4
+// Payments service - Milestone 4
 export {};

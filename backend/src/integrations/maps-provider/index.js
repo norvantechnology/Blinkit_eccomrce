@@ -9,7 +9,7 @@ const PLACE_DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/js
 const DEFAULT_BIAS = { lat: 12.9352, lng: 77.6245 };
 
 /**
- * Google Places Autocomplete — requires MAPS_API_KEY with Places API enabled.
+ * Google Places Autocomplete - requires MAPS_API_KEY with Places API enabled.
  * Uses geocode type for area/street search (Blinkit “search delivery location”).
  */
 const searchAddresses = async (query, options = {}) => {

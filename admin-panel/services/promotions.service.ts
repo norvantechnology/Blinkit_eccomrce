@@ -1,2 +1,2 @@
-// Promotions service — Milestone 4
+// Promotions service - Milestone 4
 export {};

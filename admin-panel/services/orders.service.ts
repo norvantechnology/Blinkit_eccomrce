@@ -1,2 +1,2 @@
-// Orders service — Milestone 3
+// Orders service - Milestone 3
 export {};

@@ -15,21 +15,21 @@ import { useAuthStore } from '@/store/authStore';
 const STATS = [
   {
     label: 'Total users',
-    value: '—',
+    value: '-',
     note: 'Milestone 4',
     icon: Users,
     permission: 'customers.view',
   },
   {
     label: 'Orders today',
-    value: '—',
+    value: '-',
     note: 'Milestone 3',
     icon: ShoppingCart,
     permission: 'orders.view',
   },
   {
     label: 'Revenue',
-    value: '—',
+    value: '-',
     note: 'Milestone 4',
     icon: IndianRupee,
     permission: 'reports.view',

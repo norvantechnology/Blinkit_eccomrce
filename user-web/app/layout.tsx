@@ -6,12 +6,12 @@ import { SessionKeepAlive } from '@/components/layout/SessionKeepAlive';
 
 /**
  * Site font = Blinkit Okra (woff2 in /blinkit-parity/fonts/okra via okra-fonts.css).
- * Do not apply a Google font className on <body> — it overrides Okra.
+ * Do not apply a Google font className on <body> - it overrides Okra.
  */
 
 export const metadata: Metadata = {
-  title: 'Tapi Grocery — groceries in minutes',
-  description: 'Tapi Grocery — single-store quick commerce',
+  title: 'Tapi Grocery - groceries in minutes',
+  description: 'Tapi Grocery - single-store quick commerce',
 };
 
 export const viewport: Viewport = {

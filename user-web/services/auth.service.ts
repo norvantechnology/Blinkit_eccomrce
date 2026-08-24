@@ -6,8 +6,17 @@ export type AuthResult = { user: UserProfile; tokens: AuthTokens };
 
 export type OtpChannel = { phone: string; email?: never } | { email: string; phone?: never };
 
+export type SendOtpResult = {
+  message?: string;
+  otp?: string;
+  staticOtp?: boolean;
+};
+
 export const authService = {
-  sendOtp: (channel: OtpChannel) => apiClient.post('/auth/otp/send', channel),
+  sendOtp: async (channel: OtpChannel): Promise<SendOtpResult> => {
+    const { data } = await apiClient.post('/auth/otp/send', channel);
+    return (data?.data || {}) as SendOtpResult;
+  },
 
   verifyOtp: async (channel: OtpChannel, otp: string): Promise<AuthResult> => {
     const { data } = await apiClient.post('/auth/otp/verify', {

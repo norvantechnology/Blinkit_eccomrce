@@ -1,6 +1,9 @@
-import Link from 'next/link';
+'use client';
 
-/** Blinkit homepage category tiles — inner rounded photo on pastel square. */
+import Link from 'next/link';
+import { useI18n } from '@/lib/i18n/useI18n';
+
+/** Blinkit homepage category tiles - inner rounded photo on pastel square. */
 export const HOME_CATEGORIES = [
   { name: 'Paan Corner', image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=240&h=240&fit=crop&q=80', bg: '#FFF4E0' },
   { name: 'Dairy, Bread & Eggs', image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=240&h=240&fit=crop&q=80', bg: '#E8F3FC' },
@@ -49,17 +52,16 @@ const PROMO_BANNERS = [
 ] as const;
 
 export function HomeContent() {
+  const { t } = useI18n();
   return (
     <div className="bk-page bk-page--home">
       <section className="bk-home__hero">
         <div className="bk-home__hero-inner">
           <div className="min-w-0 flex-1 lg:max-w-[46%]">
-            <h1 className="bk-home__hero-title">Stock up on daily essentials</h1>
-            <p className="bk-home__hero-sub">
-              Get farm-fresh goodness & a range of exotic fruits, vegetables, eggs & more
-            </p>
+            <h1 className="bk-home__hero-title">{t('home.heroTitle')}</h1>
+            <p className="bk-home__hero-sub">{t('home.heroSub')}</p>
             <Link href="/#categories" className="bk-home__hero-cta">
-              Shop Now
+              {t('home.shopNow')}
             </Link>
           </div>
           <div className="w-full shrink-0 overflow-hidden rounded-2xl lg:w-[48%]">
@@ -100,7 +102,7 @@ export function HomeContent() {
                   banner.dark ? 'bg-[#1a1a1a] text-white' : 'bg-white text-[#1f1f1f]'
                 }`}
               >
-                Order Now
+                {t('home.orderNow')}
               </span>
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}

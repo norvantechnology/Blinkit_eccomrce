@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import '@/styles/blinkit-chrome.css';
 
 /**
- * Blinkit header — CSS media queries own show/hide (do NOT mix Tailwind hidden/flex
+ * Blinkit header - CSS media queries own show/hide (do NOT mix Tailwind hidden/flex
  * with .bk-header__row { display:flex } or both layouts render).
  */
 export function Header() {
@@ -46,7 +46,7 @@ export function Header() {
         />
       ) : null}
 
-      {/* Mobile account — back + location + search icon + search bar (Blinkit) */}
+      {/* Mobile account - back + location + search icon + search bar (Blinkit) */}
       {isAccount && (
         <div className="bk-header__row bk-header__row--mobile bk-header__row--account">
           <div className="bk-header__mobile-account">
@@ -56,7 +56,7 @@ export function Header() {
         </div>
       )}
 
-      {/* Mobile home — only ≤1020px */}
+      {/* Mobile home - only ≤1020px */}
       {!isAccount && (
         <div className="bk-header__row bk-header__row--mobile">
           <div className="bk-header__mobile-top">
@@ -70,7 +70,7 @@ export function Header() {
         </div>
       )}
 
-      {/* Desktop — only ≥1021px */}
+      {/* Desktop - only ≥1021px */}
       <div className="bk-header__row bk-header__row--desktop">
         <div className="bk-header__left">
           <BrandLogo />

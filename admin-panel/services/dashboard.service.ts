@@ -1,2 +1,2 @@
-// Dashboard service — Milestone 4
+// Dashboard service - Milestone 4
 export {};

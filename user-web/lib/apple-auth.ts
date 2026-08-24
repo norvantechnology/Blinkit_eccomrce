@@ -1,4 +1,4 @@
-/** Sign in with Apple JS — returns identity token (+ optional name/email on first grant). */
+/** Sign in with Apple JS - returns identity token (+ optional name/email on first grant). */
 
 declare global {
   interface Window {

@@ -1,2 +1,2 @@
-// Products service — Milestone 2
+// Products service - Milestone 2
 export {};

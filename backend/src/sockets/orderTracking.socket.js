@@ -1,2 +1,2 @@
-// Order tracking socket namespace — Milestone 3
+// Order tracking socket namespace - Milestone 3
 module.exports = {};

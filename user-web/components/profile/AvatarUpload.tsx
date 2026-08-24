@@ -7,6 +7,7 @@ import {
   type UploadFolder,
   type UploadedFile,
 } from '@/services/uploads.service';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 interface AvatarUploadProps {
   folder?: UploadFolder;
@@ -21,6 +22,7 @@ export function AvatarUpload({
   onUploaded,
   onClear,
 }: AvatarUploadProps) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export function AvatarUpload({
       setPreview(uploaded.url);
       onUploaded?.(uploaded);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      setError(err instanceof Error ? err.message : t('settings.uploadFailed'));
     } finally {
       setLoading(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -97,7 +99,7 @@ export function AvatarUpload({
           onClick={() => inputRef.current?.click()}
           disabled={loading}
         >
-          Change photo
+          {t('settings.changePhoto')}
         </button>
       ) : null}
 

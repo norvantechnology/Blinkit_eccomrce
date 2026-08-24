@@ -1,2 +1,2 @@
-// AWS Rekognition image search — Milestone 2
+// AWS Rekognition image search - Milestone 2
 module.exports = {};

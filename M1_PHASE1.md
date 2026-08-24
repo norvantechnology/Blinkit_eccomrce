@@ -1,4 +1,4 @@
-# Milestone 1 — Phase 1 complete
+# Milestone 1 - Phase 1 complete
 
 All M1 features are implemented in code. Add credentials to `.env` / Secrets Manager when ready.
 
@@ -6,7 +6,7 @@ All M1 features are implemented in code. Add credentials to `.env` / Secrets Man
 
 | Feature | Status | Notes |
 |---|---|---|
-| Mobile OTP login | **Done** | Static `123456` — `OTP_SMS_PROVIDER=static` |
+| Mobile OTP login | **Done** | Static `123456` - `OTP_SMS_PROVIDER=static` |
 | Email login | **Done** | Seed: `rahul@example.com` / `Customer@123` |
 | Google login | **Done** | Needs `GOOGLE_CLIENT_ID` + `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
 | Apple login | **Done** | Needs `APPLE_CLIENT_ID` + `NEXT_PUBLIC_APPLE_*` |
@@ -42,7 +42,7 @@ NEXT_PUBLIC_APPLE_REDIRECT_URI=https://YOUR-DOMAIN/login
 
 ---
 
-## Google Maps API — manual setup
+## Google Maps API - manual setup
 
 1. Same Google Cloud project as OAuth (or create one).
 2. **APIs & Services → Library** → enable:
@@ -78,4 +78,4 @@ cd user-web && npm run dev
 - Location search: OSM fallback works without `MAPS_API_KEY`
 - Language: Account privacy → Hindi → Save
 
-After you add keys to Secrets Manager + Amplify, redeploy once — Google/Apple login and Google Places search will activate automatically.
+After you add keys to Secrets Manager + Amplify, redeploy once - Google/Apple login and Google Places search will activate automatically.

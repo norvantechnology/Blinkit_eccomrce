@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 const LOTTIE_SRC = '/blinkit-parity/login/login_4.0_product_animation.json';
 
-/** Blinkit mobile login hero — login_4.0_product_animation (top 50%). */
+/** Blinkit mobile login hero - login_4.0_product_animation (top 50%). */
 export function LoginLottie() {
   const [enabled, setEnabled] = useState(false);
 

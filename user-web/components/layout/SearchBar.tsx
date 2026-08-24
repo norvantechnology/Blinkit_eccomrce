@@ -2,25 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
+import type { MessageKey } from '@/lib/i18n/messages';
 
-const PLACEHOLDERS = [
-  'Search "milk"',
-  'Search "bread"',
-  'Search "eggs"',
-  'Search "rice"',
-  'Search "sugar"',
-  'Search "chips"',
-  'Search "paneer"',
-  'Search "atta"',
+const PLACEHOLDER_KEYS: MessageKey[] = [
+  'search.p0',
+  'search.p1',
+  'search.p2',
+  'search.p3',
+  'search.p4',
+  'search.p5',
+  'search.p6',
+  'search.p7',
 ];
 
-/** SearchBar — Blinkit ZIGuc / fgHDQx (46px, radius 12, gap 8). */
+/** SearchBar - Blinkit ZIGuc / fgHDQx (46px, radius 12, gap 8). */
 export function SearchBar({ className }: { className?: string }) {
+  const { t } = useI18n();
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % PLACEHOLDERS.length);
+      setIndex((i) => (i + 1) % PLACEHOLDER_KEYS.length);
     }, 2000);
     return () => window.clearInterval(id);
   }, []);
@@ -34,7 +37,7 @@ export function SearchBar({ className }: { className?: string }) {
         </span>
         <span className="bk-search__placeholder">
           <span key={index} className="absolute inset-x-0 top-0 truncate animate-fade-in">
-            {PLACEHOLDERS[index]}
+            {t(PLACEHOLDER_KEYS[index])}
           </span>
         </span>
       </div>

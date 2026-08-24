@@ -38,7 +38,7 @@ export default function AccountPrivacyAdminPage() {
     try {
       const md = locale === 'en' ? markdownEn : markdownHi;
       await storeSettingsService.updatePrivacyPolicy(locale, md);
-      setMessage('Saved — live on user Account privacy page');
+      setMessage('Saved - live on user Account privacy page');
       await load();
     } catch {
       setError('Could not save');

@@ -14,9 +14,9 @@ python3 tools/blinkit-login-capture/capture.py --extract-only --apply
 
 After extract, open:
 
-- `out/extracted/TOKENS.md` — font sizes, padding, icons table
-- `out/extracted/design-tokens.json` — machine-readable
-- `out/extracted/blinkit-tokens.css` — CSS variables (`--bk-fs-*`, `--bk-pad-*`, …)
+- `out/extracted/TOKENS.md` - font sizes, padding, icons table
+- `out/extracted/design-tokens.json` - machine-readable
+- `out/extracted/blinkit-tokens.css` - CSS variables (`--bk-fs-*`, `--bk-pad-*`, …)
 
 ## Applied into user-web (`--apply`)
 
@@ -42,9 +42,9 @@ Footer uses Blinkit grid `1fr 2fr`, Okra 18/600 headings, 14px links (`gap:12` /
 
 ## Full spacing / pages
 
-- `out/extracted/SPACING.md` — header/footer/account/home padding & breakpoints
-- `out/extracted/account-from-main.css` — classic account CSS from Blinkit main.css
-- `out/extracted/all-styled-components.css` — multi-page styled dump
+- `out/extracted/SPACING.md` - header/footer/account/home padding & breakpoints
+- `out/extracted/account-from-main.css` - classic account CSS from Blinkit main.css
+- `out/extracted/all-styled-components.css` - multi-page styled dump
 - `out/extracted/blinkit-pages.css` → `user-web/styles/blinkit-pages.css`
 
 Capture pulls **home, account, addresses, orders, categories** HTML (Wayback). Blinkit is React (not jQuery); parity comes from HTML + CSS + JS styled-components.

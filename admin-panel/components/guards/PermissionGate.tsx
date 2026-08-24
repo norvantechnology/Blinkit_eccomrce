@@ -15,7 +15,7 @@ interface PermissionGateProps {
 
 /**
  * RBAC gate for UI actions/sections.
- * Backend authorize() remains the security boundary — this is UX only.
+ * Backend authorize() remains the security boundary - this is UX only.
  *
  * Usage:
  *   <PermissionGate permission="orders.refund">...</PermissionGate>

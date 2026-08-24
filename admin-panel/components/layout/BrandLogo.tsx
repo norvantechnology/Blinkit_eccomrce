@@ -13,7 +13,7 @@ const sizeMap = {
   lg: { mark: 'h-11 w-11 text-base', title: 'text-base', subtitle: 'text-[10px]' },
 };
 
-/** Tapi Grocery wordmark — yellow “Tapi” + green “Grocery” (matches user-web). */
+/** Tapi Grocery wordmark - yellow “Tapi” + green “Grocery” (matches user-web). */
 export function BrandLogo({
   size = 'md',
   showSubtitle = true,

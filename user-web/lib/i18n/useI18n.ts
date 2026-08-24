@@ -24,6 +24,16 @@ export function getStoredLocale(): Locale {
   }
 }
 
+/** True when the user (or a prior session) explicitly saved a language. */
+export function hasStoredLocale(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(STORAGE_KEY) != null;
+  } catch {
+    return false;
+  }
+}
+
 export function setStoredLocale(locale: Locale) {
   try {
     localStorage.setItem(STORAGE_KEY, locale);
@@ -50,6 +60,10 @@ export function useI18n() {
       const normalized = normalizeLocale(next);
       setStoredLocale(normalized);
       setLocaleState(normalized);
+      if (user) {
+        setUser({ ...user, languagePref: normalized });
+        setStoredUser({ ...user, languagePref: normalized });
+      }
       if (!user) return;
       try {
         const updated = await usersService.updateLanguage(normalized);

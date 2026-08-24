@@ -1,11 +1,11 @@
 /**
- * Stub Firebase Admin SDK — enable later with FIREBASE_* env if needed.
+ * Stub Firebase Admin SDK - enable later with FIREBASE_* env if needed.
  */
 const firebase = {
   initialized: false,
 
   init() {
-    console.log('[firebase] Stub mode — not configured');
+    console.log('[firebase] Stub mode - not configured');
   },
 
   async verifyIdToken(_idToken) {

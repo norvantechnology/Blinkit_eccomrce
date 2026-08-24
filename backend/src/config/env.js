@@ -1,6 +1,6 @@
 /**
  * Env after Secrets Manager bootstrap (see server.js → loadSecrets).
- * Sensitive values never hardcoded — only from process.env (populated by SM).
+ * Sensitive values never hardcoded - only from process.env (populated by SM).
  */
 const { JWT_EXPIRY, AUDIT_RETENTION_DAYS, SECRETS_MANAGER } = require('./constants');
 
@@ -40,7 +40,7 @@ module.exports = {
     clientId: process.env.GOOGLE_CLIENT_ID || '',
   },
   apple: {
-    /** Services ID (e.g. com.tapigrocery.web) — audience for Apple identity tokens */
+    /** Services ID (e.g. com.tapigrocery.web) - audience for Apple identity tokens */
     clientId: process.env.APPLE_CLIENT_ID || '',
   },
   apiBaseUrl: process.env.API_BASE_URL || '',

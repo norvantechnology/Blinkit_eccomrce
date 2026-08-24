@@ -1,2 +1,2 @@
-// Users service — Milestone 4
+// Users service - Milestone 4
 export {};
