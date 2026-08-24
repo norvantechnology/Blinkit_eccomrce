@@ -85,7 +85,7 @@
   position: absolute;
   outline: none;
   border: none;
-  background-color: #ffffff;
+  background-color: transparent;
   font-weight: 600;
   line-height: 1;
   display: inline-flex;

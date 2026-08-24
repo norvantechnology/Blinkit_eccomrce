@@ -18,7 +18,7 @@ interface LoginModalProps {
   onCloseHref?: string;
 }
 
-export function LoginModal({ redirectTo = '/account/addresses', onCloseHref = '/' }: LoginModalProps) {
+export function LoginModal({ redirectTo = '/', onCloseHref = '/' }: LoginModalProps) {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
   const { t } = useI18n();

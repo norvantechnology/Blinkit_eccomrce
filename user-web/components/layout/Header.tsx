@@ -86,7 +86,7 @@ export function Header() {
 
 function MobileProfileIcon() {
   const user = useAuthStore((s) => s.user);
-  const href = user ? '/account' : '/login?redirect=/account/addresses';
+  const href = user ? '/account' : '/login?redirect=/';
   return (
     <Link href={href} className="bk-profile bk-profile--icon" aria-label="Account">
       <BlinkitIcon name="profile" size={22} />

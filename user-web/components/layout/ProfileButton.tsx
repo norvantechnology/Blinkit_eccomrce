@@ -58,7 +58,7 @@ export function ProfileButton({ className }: { className?: string }) {
 
   if (!user) {
     return (
-      <Link href="/login?redirect=/account/addresses" className={cn('bk-profile', className)}>
+      <Link href="/login?redirect=/" className={cn('bk-profile', className)}>
         <span className="bk-profile__label">Login</span>
       </Link>
     );
