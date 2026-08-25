@@ -2,95 +2,121 @@ const env = require('../../config/env');
 const { AppError } = require('../../utils/errors');
 const logger = require('../../utils/logger');
 
-const PLACES_AUTOCOMPLETE_URL = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
-const PLACE_DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
+/** Places API (New) - legacy Place Autocomplete is disabled on new Google Cloud projects. */
+const PLACES_AUTOCOMPLETE_URL = 'https://places.googleapis.com/v1/places:autocomplete';
+const placeDetailsUrl = (placeId) =>
+  `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`;
 
 /** Default bias: Bangalore (Blinkit-style single store) */
 const DEFAULT_BIAS = { lat: 12.9352, lng: 77.6245 };
 
 /**
- * Google Places Autocomplete - requires MAPS_API_KEY with Places API enabled.
- * Uses geocode type for area/street search (Blinkit “search delivery location”).
+ * Google Places Autocomplete (New) - requires MAPS_API_KEY with Places API (New) enabled.
  */
 const searchAddresses = async (query, options = {}) => {
   const apiKey = env.mapsApiKey;
 
   if (!apiKey) {
     throw new AppError(
-      'Maps API is not configured. Set MAPS_API_KEY (Google Places API must be enabled).',
+      'Maps API is not configured. Set MAPS_API_KEY (Places API New must be enabled).',
       503,
     );
   }
 
-  const country = options.country || 'in';
+  const country = (options.country || 'in').toLowerCase();
   const bias = options.bias || DEFAULT_BIAS;
-  const params = new URLSearchParams({
+
+  const body = {
     input: query,
-    key: apiKey,
-    components: `country:${country}`,
-    types: 'geocode',
-    location: `${bias.lat},${bias.lng}`,
-    radius: '50000',
-    language: options.language || 'en',
-  });
+    includedRegionCodes: [country],
+    locationBias: {
+      circle: {
+        center: { latitude: bias.lat, longitude: bias.lng },
+        radius: 50000.0,
+      },
+    },
+    languageCode: options.language || 'en',
+  };
 
-  const autocompleteRes = await fetch(`${PLACES_AUTOCOMPLETE_URL}?${params}`);
-  const autocompleteData = await autocompleteRes.json();
+  let autocompleteData;
+  try {
+    const autocompleteRes = await fetch(PLACES_AUTOCOMPLETE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask':
+          'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat',
+      },
+      body: JSON.stringify(body),
+    });
+    autocompleteData = await autocompleteRes.json();
 
-  if (autocompleteData.status === 'REQUEST_DENIED') {
-    logger.error('Google Places API denied', { error: autocompleteData.error_message });
-    throw new AppError(
-      autocompleteData.error_message || 'Maps API request denied. Check MAPS_API_KEY.',
-      502,
-    );
+    if (!autocompleteRes.ok) {
+      const msg =
+        autocompleteData?.error?.message ||
+        autocompleteData?.message ||
+        `HTTP ${autocompleteRes.status}`;
+      logger.error('Google Places API (New) denied', { error: msg });
+      throw new AppError(msg || 'Maps API request denied. Check MAPS_API_KEY.', 502);
+    }
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    logger.error('Google Places autocomplete failed', { error: err.message });
+    throw new AppError('Maps search failed', 502);
   }
 
-  if (autocompleteData.status === 'ZERO_RESULTS') {
+  const suggestions = autocompleteData.suggestions || [];
+  if (suggestions.length === 0) {
     return [];
   }
 
-  if (autocompleteData.status !== 'OK') {
-    throw new AppError(`Maps search failed: ${autocompleteData.status}`, 502);
-  }
-
-  const predictions = autocompleteData.predictions || [];
-
   const results = await Promise.all(
-    predictions.slice(0, 6).map(async (prediction) => {
-      const details = await fetchPlaceDetails(prediction.place_id, apiKey);
+    suggestions.slice(0, 6).map(async (suggestion) => {
+      const prediction = suggestion.placePrediction;
+      if (!prediction?.placeId) return null;
+
+      const mainText =
+        prediction.structuredFormat?.mainText?.text ||
+        prediction.text?.text ||
+        '';
+      const secondaryText = prediction.structuredFormat?.secondaryText?.text || '';
+      const description = prediction.text?.text || mainText;
+
+      const details = await fetchPlaceDetails(prediction.placeId, apiKey);
       return {
-        placeId: prediction.place_id,
-        description: prediction.description,
-        mainText: prediction.structured_formatting?.main_text || prediction.description,
-        secondaryText: prediction.structured_formatting?.secondary_text || '',
-        fullAddress: details?.formattedAddress || prediction.description,
+        placeId: prediction.placeId,
+        description,
+        mainText: mainText || description,
+        secondaryText,
+        fullAddress: details?.formattedAddress || description,
         lat: details?.lat ?? null,
         lng: details?.lng ?? null,
       };
     }),
   );
 
-  return results.filter((r) => r.lat != null && r.lng != null);
+  return results.filter((r) => r && r.lat != null && r.lng != null);
 };
 
 const fetchPlaceDetails = async (placeId, apiKey) => {
-  const params = new URLSearchParams({
-    place_id: placeId,
-    key: apiKey,
-    fields: 'formatted_address,geometry',
+  const id = String(placeId).replace(/^places\//, '');
+  const res = await fetch(placeDetailsUrl(id), {
+    headers: {
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'id,formattedAddress,location,displayName',
+    },
   });
-
-  const res = await fetch(`${PLACE_DETAILS_URL}?${params}`);
   const data = await res.json();
 
-  if (data.status !== 'OK' || !data.result) {
+  if (!res.ok || !data.location) {
     return null;
   }
 
   return {
-    formattedAddress: data.result.formatted_address,
-    lat: data.result.geometry?.location?.lat,
-    lng: data.result.geometry?.location?.lng,
+    formattedAddress: data.formattedAddress || data.displayName?.text || '',
+    lat: data.location.latitude,
+    lng: data.location.longitude,
   };
 };
 

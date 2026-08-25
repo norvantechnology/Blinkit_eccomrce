@@ -260,6 +260,15 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
                     </div>
                   ) : (
                     <div className="login-email">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        className="login-email__icon"
+                        src="/blinkit-parity/icons/email.svg"
+                        alt=""
+                        width={18}
+                        height={18}
+                        aria-hidden
+                      />
                       <input
                         type="email"
                         className="login-email__input input"

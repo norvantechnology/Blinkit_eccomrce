@@ -327,6 +327,17 @@
   width: 100%;
 }
 
+.login-email__icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
 .login-email__input.input {
   background: #fff;
   border: 1px solid #ccc;
@@ -338,7 +349,7 @@
   font-weight: 500;
   height: 48px;
   outline: 0;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 42px;
   width: 100%;
 }
 
