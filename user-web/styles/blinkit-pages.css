@@ -1,8 +1,5 @@
 /**
  * Blinkit page shells - spacing / type from captured main.css + styled-components.
- * Sources:
- *   tools/blinkit-login-capture/out/extracted/account-from-main.css
- *   area-category.css / footer-exact / header-exact
  * Breakpoints: 1020 mobile, 1260 large (not Tailwind 1024/1280).
  */
 

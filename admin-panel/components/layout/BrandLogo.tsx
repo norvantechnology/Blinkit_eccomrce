@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { BRAND_ASSETS } from '@/lib/brand-assets';
 
 interface BrandLogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -8,12 +9,12 @@ interface BrandLogoProps {
 }
 
 const sizeMap = {
-  sm: { mark: 'h-8 w-8 text-sm', title: 'text-sm', subtitle: 'text-[9px]' },
-  md: { mark: 'h-9 w-9 text-sm', title: 'text-sm', subtitle: 'text-[10px]' },
-  lg: { mark: 'h-11 w-11 text-base', title: 'text-base', subtitle: 'text-[10px]' },
+  sm: { mark: 'h-8 w-auto max-h-8', title: 'text-sm', subtitle: 'text-[9px]', imgH: 32 },
+  md: { mark: 'h-9 w-auto max-h-9', title: 'text-sm', subtitle: 'text-[10px]', imgH: 36 },
+  lg: { mark: 'h-11 w-auto max-h-11', title: 'text-base', subtitle: 'text-[10px]', imgH: 44 },
 };
 
-/** Tapi Grocery wordmark - yellow “Tapi” + green “Grocery” (matches user-web). */
+/** Tapi Grocery wordmark from S3 brand kit. */
 export function BrandLogo({
   size = 'md',
   showSubtitle = true,
@@ -24,21 +25,15 @@ export function BrandLogo({
 
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
-      <div
-        className={cn(
-          'flex shrink-0 items-center justify-center rounded-2xl font-extrabold text-[#1f1f1f]',
-          s.mark,
-          'bg-[var(--brand-yellow)]',
-        )}
-      >
-        T
-      </div>
-      <div className="min-w-0">
-        <p className={cn('truncate font-extrabold tracking-tight leading-tight', s.title)}>
-          <span className="text-[var(--brand-yellow)]">Tapi</span>{' '}
-          <span className={inverted ? 'text-white' : 'text-[var(--primary)]'}>Grocery</span>
-        </p>
-        {showSubtitle && (
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={BRAND_ASSETS.wordmark}
+        alt="Tapi Grocery"
+        height={s.imgH}
+        className={cn('shrink-0 object-contain', s.mark)}
+      />
+      {showSubtitle && (
+        <div className="min-w-0">
           <p
             className={cn(
               'truncate font-semibold uppercase tracking-wider',
@@ -48,8 +43,8 @@ export function BrandLogo({
           >
             Admin Panel
           </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

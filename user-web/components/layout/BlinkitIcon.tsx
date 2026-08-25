@@ -1,4 +1,4 @@
-/** Blinkit parity icons from tools/blinkit-login-capture (wasabicons). */
+/** Blinkit parity icons (wasabicons). */
 export function BlinkitIcon({
   name,
   size,

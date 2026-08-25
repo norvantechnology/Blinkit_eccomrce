@@ -1,7 +1,6 @@
 /**
  * Blinkit footer parity - from styled-components on blinkit.com
  * (FooterLinks / DownloadAndFollowRow / GrofersDisclaimer / Footer)
- * Snapshot: tools/blinkit-login-capture/out/extracted/footer-exact-from-blinkit.css
  */
 
 /* Footer__FooterContainer */
@@ -471,13 +470,15 @@
 
   .bk-footer__brand-mark {
     margin-top: 0;
-    font-family: Okra, Helvetica, sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1;
-    color: #e2e6eb;
-    letter-spacing: -0.03em;
-    text-transform: lowercase;
+    line-height: 0;
+  }
+
+  .bk-footer__brand-mark-img {
+    display: block;
+    width: auto;
+    height: 48px;
+    max-width: 220px;
+    object-fit: contain;
   }
 
   .bk-footer__toggle {

@@ -1,4 +1,4 @@
-/** Blinkit customer-web baseline tokens - synced from tools/blinkit-login-capture/out/extracted/design-tokens.json */
+/** Blinkit customer-web baseline tokens. */
 export const blinkitTokens = {
   brandYellow: '#F8CB46',
   brandYellowHover: '#F0C033',

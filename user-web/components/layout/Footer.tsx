@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n/useI18n';
+import { BRAND_ASSETS } from '@/lib/brand-assets';
 import '@/styles/blinkit-footer.css';
 
 /** Blinkit Useful Links - 3 nested columns (FooterLinks__List) */
@@ -98,7 +99,15 @@ export function Footer() {
         </div>
         <div className="bk-footer__brand-rule" aria-hidden />
         <div className="bk-footer__brand-mark" data-pf="reset">
-          tapi grocery
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={BRAND_ASSETS.wordmark}
+            alt="tapi grocery"
+            width={149}
+            height={91}
+            data-pf="reset"
+            className="bk-footer__brand-mark-img"
+          />
         </div>
       </div>
 

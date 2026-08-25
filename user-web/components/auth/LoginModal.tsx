@@ -7,6 +7,7 @@ import { setSession, getApiErrorMessage, type UserProfile, type AuthTokens } fro
 import { useAuthStore } from '@/store/authStore';
 import { formatPhoneForApi, cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n/useI18n';
+import { BRAND_ASSETS } from '@/lib/brand-assets';
 import { OtpInput } from '@/components/auth/OtpInput';
 import { LoginLottie } from '@/components/auth/LoginLottie';
 import '@/styles/blinkit-login.css';
@@ -204,7 +205,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       alt="Tapi Grocery"
-                      src="/tapi-app-logo.svg"
+                      src={BRAND_ASSETS.appIcon}
                       loading="lazy"
                       className="ZImage__img"
                       width={64}

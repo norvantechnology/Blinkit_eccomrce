@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { BRAND_ASSETS } from '@/lib/brand-assets';
 
-/** BlinkitLogo__LogoContainer - 178×86; wordmark like blinkit (yellow + green). */
+/** BlinkitLogo__LogoContainer - wordmark from S3 brand kit. */
 export function BrandLogo({
   className,
   variant = 'header',
@@ -12,19 +13,28 @@ export function BrandLogo({
   if (variant === 'modal') {
     return (
       <div className={cn('flex flex-col items-center gap-2', className)}>
-        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#F8CB46] text-[15px] font-extrabold lowercase tracking-[-0.03em] text-[#0C831F]">
-          tapi
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={BRAND_ASSETS.appIcon}
+          alt="Tapi Grocery"
+          width={64}
+          height={64}
+          className="h-16 w-16 rounded-2xl object-cover"
+        />
       </div>
     );
   }
 
   return (
     <Link href="/" replace className={cn('bk-logo', className)} aria-label="Tapi Grocery home">
-      <span className="bk-logo__text">
-        <span className="bk-logo__tapi">tapi</span>
-        <span className="bk-logo__grocery">grocery</span>
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={BRAND_ASSETS.wordmark}
+        alt="Tapi Grocery"
+        width={149}
+        height={91}
+        className="bk-logo__img"
+      />
     </Link>
   );
 }

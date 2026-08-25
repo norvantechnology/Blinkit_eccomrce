@@ -106,7 +106,17 @@ async function main() {
     ON CONFLICT (slug) DO UPDATE SET
       name = EXCLUDED.name,
       contact_email = EXCLUDED.contact_email,
+      logo_url = 'https://tapi-grocery-assets-711266489084.s3.ap-south-1.amazonaws.com/uploads/brand/tapi-grocery.png',
       updated_at = NOW()
+  `;
+
+  // Ensure logo on first insert path too (raw insert omitted logo_url)
+  await prisma.$executeRaw`
+    UPDATE stores
+    SET logo_url = 'https://tapi-grocery-assets-711266489084.s3.ap-south-1.amazonaws.com/uploads/brand/tapi-grocery.png',
+        updated_at = NOW()
+    WHERE slug = 'blinkit-store'
+      AND (logo_url IS NULL OR logo_url = '')
   `;
 
   const store = await prisma.store.findUnique({ where: { slug: 'blinkit-store' } });

@@ -4,6 +4,15 @@ const backendUrl = process.env.BACKEND_URL || 'http://localhost:4000';
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'tapi-grocery-assets-711266489084.s3.ap-south-1.amazonaws.com',
+        pathname: '/uploads/**',
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
 import './globals.css';
+import { BRAND_ASSETS } from '@/lib/brand-assets';
 
 const jakarta = Plus_Jakarta_Sans({
   variable: '--font-jakarta',
@@ -17,6 +18,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Tapi Grocery Admin',
   description: 'Tapi Grocery single-store admin dashboard',
+  icons: {
+    icon: [{ url: BRAND_ASSETS.favicon, type: 'image/jpeg', sizes: '150x150' }],
+    apple: [{ url: BRAND_ASSETS.faviconLg, type: 'image/jpeg', sizes: '400x400' }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
