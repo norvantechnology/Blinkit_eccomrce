@@ -1,36 +1,41 @@
 @import "tailwindcss";
 
 /**
- * Tapi Grocery Admin - classic professional theme.
- * Clear 1px borders where structure needs them; no nested trays.
+ * Tapi Grocery Admin — fresh store-ops theme
+ * Soft mint canvas + white rounded surfaces + green/yellow brand accents.
  */
 :root {
-  --background: #f4f5f7;
-  --foreground: #1a1d21;
+  --background: #eef6f0;
+  --foreground: #14201a;
   --surface: #ffffff;
-  --surface-muted: #f3f4f6;
-  --surface-soft: #fafbfc;
+  --surface-muted: #e8f2ea;
+  --surface-soft: #f7fbf8;
   --sidebar-bg: #ffffff;
-  --sidebar-fg: #1a1d21;
-  --sidebar-muted: #6b7280;
+  --sidebar-fg: #14201a;
+  --sidebar-muted: #5f7368;
   --brand-yellow: #f8cb46;
   --brand-yellow-hover: #f0c033;
   --primary: #0c831f;
   --primary-hover: #097019;
-  --primary-light: #e6f4ea;
-  --primary-muted: #eef8f0;
+  --primary-light: #d9f0df;
+  --primary-muted: #e4f5e8;
   --accent: #0c831f;
-  --muted: #6b7280;
-  --muted-foreground: #374151;
-  --border: #e5e7eb;
-  --border-strong: #d1d5db;
-  --divider: #e5e7eb;
-  --ring: rgba(12, 131, 31, 0.22);
-  --shadow-sm: 0 1px 2px rgba(26, 29, 33, 0.04);
-  --sidebar-width: 15.25rem;
+  --muted: #5f7368;
+  --muted-foreground: #3d4f45;
+  --border: #d5e5da;
+  --border-strong: #b7ceb9;
+  --divider: #dfece2;
+  --ring: rgba(12, 131, 31, 0.28);
+  --shadow-sm: 0 1px 2px rgba(20, 32, 26, 0.04), 0 8px 24px rgba(20, 32, 26, 0.05);
+  --shadow-md: 0 4px 6px rgba(20, 32, 26, 0.04), 0 16px 40px rgba(20, 32, 26, 0.08);
+  --sidebar-width: 15.5rem;
   --cart-green: #0c831f;
-  --radius-lg: 0.75rem;
-  --radius-md: 0.5rem;
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --auth-panel: #064e14;
+  --auth-panel-mid: #0a6b1a;
 }
 
 @theme inline {
@@ -58,7 +63,18 @@ body {
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes auth-float {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
   }
   to {
     opacity: 1;
@@ -67,7 +83,11 @@ body {
 }
 
 .animate-fade-in {
-  animation: fade-in 0.25s ease-out both;
+  animation: fade-in 0.28s ease-out both;
+}
+
+.animate-auth-card {
+  animation: auth-float 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -77,7 +97,7 @@ body {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #c5d8cb;
   border-radius: 99px;
 }
 .custom-scrollbar-light::-webkit-scrollbar {
@@ -87,7 +107,7 @@ body {
   background: transparent;
 }
 .custom-scrollbar-light::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #c5d8cb;
   border-radius: 99px;
 }
 

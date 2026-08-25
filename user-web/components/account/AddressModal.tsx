@@ -2,7 +2,6 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState, type InputHTMLAttributes } from 'react';
 import { createPortal } from 'react-dom';
-import { blinkitTokens } from '@/lib/design-tokens';
 import { getApiErrorMessage } from '@/lib/auth';
 import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
 import { useAuthStore } from '@/store/authStore';
@@ -164,8 +163,8 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const [landmark, setLandmark] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [lat, setLat] = useState<number>(blinkitTokens.defaultStore.lat);
-  const [lng, setLng] = useState<number>(blinkitTokens.defaultStore.lng);
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [saving, setSaving] = useState(false);
@@ -188,10 +187,9 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     setSuggestions([]);
     setStep('map');
 
-    const fallbackArea =
-      headerLocation?.fullAddress || blinkitTokens.defaultStore.fullAddress;
-    const fallbackLat = headerLocation?.lat ?? blinkitTokens.defaultStore.lat;
-    const fallbackLng = headerLocation?.lng ?? blinkitTokens.defaultStore.lng;
+    const fallbackArea = headerLocation?.fullAddress || '';
+    const fallbackLat = headerLocation?.lat ?? null;
+    const fallbackLng = headerLocation?.lng ?? null;
 
     if (editing) {
       const parsed = parseAddress(editing.fullAddress);
@@ -236,6 +234,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const delivery = useMemo(() => splitAreaCity(area || query), [area, query]);
 
   const mapSrc = useMemo(() => {
+    if (lat == null || lng == null) return '';
     const delta = 0.008;
     const bbox = `${lng - delta}%2C${lat - delta}%2C${lng + delta}%2C${lat + delta}`;
     // No OSM marker - Blinkit uses fixed .center-marker over the map
@@ -292,7 +291,7 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       () => {
         setError('Could not get current location. Allow location access or search manually.');
       },
-      { enableHighAccuracy: true, timeout: 12000 },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
     );
   };
 
@@ -300,6 +299,10 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     e?.preventDefault();
     if (!flat.trim() || !area.trim() || !name.trim()) {
       setError('Please fill all required fields');
+      return;
+    }
+    if (lat == null || lng == null) {
+      setError('Please search or detect a location on the map');
       return;
     }
     setSaving(true);
@@ -428,7 +431,25 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const mapBlock = (
     <div className="styles__MapContainer-sc-cc1wzf-13 jxdAuJ">
       <div className="map-container">
-        <iframe title="Map" src={mapSrc} />
+        {mapSrc ? (
+          <iframe title="Map" src={mapSrc} />
+        ) : (
+          <div
+            style={{
+              display: 'grid',
+              placeItems: 'center',
+              height: '100%',
+              minHeight: 220,
+              background: '#f4f6f8',
+              color: '#666',
+              fontSize: 13,
+              padding: 16,
+              textAlign: 'center',
+            }}
+          >
+            Search or detect your location to place the pin
+          </div>
+        )}
         <div>
           <div>
             <div className="center-marker" />

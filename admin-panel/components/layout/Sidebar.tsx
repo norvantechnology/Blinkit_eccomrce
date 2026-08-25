@@ -52,7 +52,7 @@ function NavLink({
         type="button"
         onClick={() => setExpanded((v) => !v)}
         className={cn(
-          'flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors',
+          'flex w-full items-center gap-2.5 rounded-[var(--radius-md)] px-2.5 py-2 text-[13px] font-medium transition-colors',
           isParentActive || isActive
             ? 'bg-[var(--primary-muted)] text-[var(--primary)]'
             : 'text-[var(--muted-foreground)] hover:bg-[var(--surface-muted)]',
@@ -93,10 +93,10 @@ function NavLink({
       href={item.href}
       onClick={onNavigate}
       className={cn(
-        'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors',
+        'flex items-center gap-2.5 rounded-[var(--radius-md)] px-2.5 py-2 text-[13px] font-medium transition-colors',
         depth > 0 && 'py-1.5 text-[12.5px]',
         isActive
-          ? 'bg-[var(--primary)] text-white'
+          ? 'bg-[var(--primary)] text-white shadow-sm'
           : 'text-[var(--muted-foreground)] hover:bg-[var(--surface-muted)] hover:text-[var(--foreground)]',
       )}
     >
@@ -155,7 +155,7 @@ export default function Sidebar() {
           <button
             type="button"
             onClick={closeMobile}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--muted)] transition hover:bg-[var(--surface-muted)] lg:hidden"
+            className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-[var(--muted)] transition hover:bg-[var(--surface-muted)] lg:hidden"
             aria-label="Close menu"
           >
             <X className="h-4 w-4" />

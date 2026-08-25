@@ -49,6 +49,9 @@
   width: 100%;
   max-width: 520px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .bk-profile-edit__msg {
@@ -71,12 +74,12 @@
 }
 
 .bk-profile-edit__section {
-  padding: 0 0 16px;
-  margin: 0 0 16px;
+  padding: 4px 0 18px;
+  margin: 0 0 4px;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.bk-profile-edit__section:last-of-type {
+.bk-profile-edit__section--fields {
   border-bottom: 0;
   margin-bottom: 0;
   padding-bottom: 8px;
@@ -224,25 +227,5 @@
   .bk-profile-edit__save {
     margin-top: 8px;
     max-width: 220px;
-  }
-}
-
-/* Avatar sits under its label, left-aligned with fields */
-.bk-profile-edit .bk-avatar {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.bk-profile-edit .bk-avatar__disc {
-  width: 72px;
-  height: 72px;
-}
-
-@media (min-width: 1020px) {
-  .bk-profile-edit .bk-avatar__disc {
-    width: 80px;
-    height: 80px;
   }
 }

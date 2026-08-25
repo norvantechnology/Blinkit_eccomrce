@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
-import { useLocationStore } from '@/store/locationStore';
+import { buildSelectedLocation, useLocationStore } from '@/store/locationStore';
 import { useUiStore } from '@/store/uiStore';
 import { addressesService } from '@/services/addresses.service';
 import { blinkitTokens } from '@/lib/design-tokens';
@@ -28,6 +28,12 @@ function localizeLabel(label: string | undefined, t: (key: MessageKey) => string
   return key ? t(key) : label;
 }
 
+function labelFromAddress(label: string) {
+  if (label === 'home') return 'Home';
+  if (label === 'work') return 'Work';
+  return 'Other';
+}
+
 /** LocationBar - Blinkit gcLVHe / bdWwbr / fqbcdJ measurements. */
 export function LocationBar({
   className,
@@ -45,60 +51,65 @@ export function LocationBar({
   const loading = useLocationStore((s) => s.loading);
   const setLocation = useLocationStore((s) => s.setLocation);
   const setLoading = useLocationStore((s) => s.setLoading);
-  const setDefaultStoreLocation = useLocationStore((s) => s.setDefaultStoreLocation);
   const locationPickerOpen = useUiStore((s) => s.locationPickerOpen);
   const setLocationPickerOpen = useUiStore((s) => s.setLocationPickerOpen);
   const { t } = useI18n();
 
   useEffect(() => {
     if (!hydrated) return;
+
     let cancelled = false;
+    // Always start clean on mount/refresh - no static MG Road pin
+    setLocation(null);
+
     const id = window.setTimeout(() => {
       void (async () => {
+        // Guests: leave empty until they pick / detect
+        if (!user) {
+          if (!cancelled) setLoading(false);
+          return;
+        }
+
         setLoading(true);
         try {
-          if (user) {
-            const addresses = await addressesService.list();
-            if (cancelled) return;
-            const preferred = addresses.find((a) => a.isDefault) || addresses[0];
-            if (preferred) {
-              setLocation({
-                label: preferred.label === 'home' ? 'Home' : preferred.label === 'work' ? 'Work' : 'Other',
+          const addresses = await addressesService.list();
+          if (cancelled) return;
+          const preferred = addresses.find((a) => a.isDefault) || addresses[0];
+          // Only restore real saved pins (never invent coordinates)
+          if (
+            preferred &&
+            preferred.lat != null &&
+            preferred.lng != null &&
+            Number.isFinite(preferred.lat) &&
+            Number.isFinite(preferred.lng)
+          ) {
+            setLocation(
+              buildSelectedLocation({
+                label: labelFromAddress(preferred.label),
                 fullAddress: preferred.fullAddress,
-                lat: preferred.lat ?? blinkitTokens.defaultStore.lat,
-                lng: preferred.lng ?? blinkitTokens.defaultStore.lng,
-                etaMinutes: blinkitTokens.defaultStore.etaMinutes,
-              });
-              return;
-            }
+                lat: preferred.lat,
+                lng: preferred.lng,
+              }),
+            );
+          } else {
+            setLocation(null);
           }
-          setDefaultStoreLocation();
         } catch {
-          if (!cancelled) setDefaultStoreLocation();
+          if (!cancelled) setLocation(null);
         } finally {
           if (!cancelled) setLoading(false);
         }
       })();
     }, 0);
+
     return () => {
       cancelled = true;
       window.clearTimeout(id);
     };
-  }, [hydrated, user, setDefaultStoreLocation, setLoading, setLocation]);
+  }, [hydrated, user, setLoading, setLocation]);
 
-  const displayLocation =
-    location ??
-    (!hydrated
-      ? {
-          label: 'Home',
-          fullAddress: blinkitTokens.defaultStore.fullAddress,
-          lat: blinkitTokens.defaultStore.lat,
-          lng: blinkitTokens.defaultStore.lng,
-          etaMinutes: blinkitTokens.defaultStore.etaMinutes,
-        }
-      : null);
-
-  const addressLine = displayLocation?.fullAddress || t('location.selectLocation');
+  const addressLine = location?.fullAddress || t('location.selectLocation');
+  const etaMinutes = location?.etaMinutes ?? blinkitTokens.deliveryEtaMinutes;
 
   const openPicker = () => {
     if (locationPickerOpen) {
@@ -110,7 +121,6 @@ export function LocationBar({
       setLocationPickerOpen(true);
       return;
     }
-    // Prefer eta text block so popup centers under “Delivery in …” copy (Blinkit)
     const eta = el.querySelector('.bk-location__eta') as HTMLElement | null;
     const r = (eta ?? el).getBoundingClientRect();
     setLocationPickerOpen(true, {
@@ -133,7 +143,7 @@ export function LocationBar({
       className={cn('bk-location', className)}
     >
       <div className="bk-location__eta">
-        {loading && !displayLocation ? (
+        {loading && !location ? (
           <>
             <div className="blinkit-shimmer mb-1.5 h-[21px] w-40 rounded-lg" />
             <div className="blinkit-shimmer h-3.5 w-52 rounded-lg" />
@@ -141,16 +151,14 @@ export function LocationBar({
         ) : (
           <>
             <p className="bk-location__title">
-              {t('location.deliveryIn', {
-                n: displayLocation?.etaMinutes ?? blinkitTokens.defaultStore.etaMinutes,
-              })}
+              {t('location.deliveryIn', { n: etaMinutes })}
             </p>
             <div className="bk-location__subrow">
               <span className="bk-location__sub">
-                {displayLocation?.label ? (
+                {location?.label ? (
                   <>
                     <span className="bk-location__label">
-                      {localizeLabel(displayLocation.label, t)}
+                      {localizeLabel(location.label, t)}
                     </span>
                     <span className="bk-location__sep"> - </span>
                   </>

@@ -29,10 +29,10 @@ const variants: Record<ButtonVariant, string> = {
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'h-8 gap-1.5 rounded-xl px-3 text-xs font-semibold',
-  md: 'h-10 gap-2 rounded-xl px-4 text-sm font-semibold',
-  lg: 'h-12 gap-2.5 rounded-2xl px-6 text-sm font-semibold',
-  icon: 'h-10 w-10 rounded-xl p-0',
+  sm: 'h-8 gap-1.5 rounded-[var(--radius-sm)] px-3 text-xs font-semibold',
+  md: 'h-10 gap-2 rounded-[var(--radius-md)] px-4 text-sm font-semibold',
+  lg: 'h-12 gap-2.5 rounded-[var(--radius-lg)] px-6 text-sm font-semibold',
+  icon: 'h-10 w-10 rounded-[var(--radius-md)] p-0',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

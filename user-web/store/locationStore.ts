@@ -14,22 +14,28 @@ interface LocationState {
   loading: boolean;
   setLocation: (location: SelectedLocation | null) => void;
   setLoading: (loading: boolean) => void;
-  setDefaultStoreLocation: () => void;
 }
 
+/** In-memory only - refresh clears location (no static / persisted pin). */
 export const useLocationStore = create<LocationState>((set) => ({
   location: null,
   loading: false,
   setLocation: (location) => set({ location }),
   setLoading: (loading) => set({ loading }),
-  setDefaultStoreLocation: () =>
-    set({
-      location: {
-        label: 'Home',
-        fullAddress: blinkitTokens.defaultStore.fullAddress,
-        lat: blinkitTokens.defaultStore.lat,
-        lng: blinkitTokens.defaultStore.lng,
-        etaMinutes: blinkitTokens.defaultStore.etaMinutes,
-      },
-    }),
 }));
+
+export function buildSelectedLocation(input: {
+  label: string;
+  fullAddress: string;
+  lat: number;
+  lng: number;
+  etaMinutes?: number;
+}): SelectedLocation {
+  return {
+    label: input.label,
+    fullAddress: input.fullAddress,
+    lat: input.lat,
+    lng: input.lng,
+    etaMinutes: input.etaMinutes ?? blinkitTokens.deliveryEtaMinutes,
+  };
+}

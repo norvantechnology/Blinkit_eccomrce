@@ -54,11 +54,6 @@ export const blinkitTokens = {
   },
   headerHeightDesktop: 86,
   headerHeightMobile: 68,
-  defaultStore: {
-    lat: 12.9716,
-    lng: 77.5946,
-    label: 'Bangalore',
-    fullAddress: 'MG Road, Bangalore',
-    etaMinutes: 8,
-  },
+  /** Display ETA only - never used as a fake pin/address */
+  deliveryEtaMinutes: 8,
 } as const;

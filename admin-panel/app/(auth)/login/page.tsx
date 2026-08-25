@@ -73,7 +73,7 @@ function LoginForm() {
     >
       {formError && (
         <div
-          className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="mb-5 rounded-[var(--radius-md)] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
           role="alert"
         >
           {formError}
@@ -154,8 +154,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-slate-50">
-          <div className="h-7 w-7 animate-spin rounded-full border-2 border-slate-300 border-t-green-600" />
+        <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--primary)]" />
         </div>
       }
     >

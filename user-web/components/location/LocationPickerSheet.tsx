@@ -3,11 +3,10 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { blinkitTokens } from '@/lib/design-tokens';
 import { reverseGeocode, type GeoSuggestion } from '@/lib/geocode';
 import { searchDeliveryPlaces } from '@/lib/places-search';
 import { useAuthStore } from '@/store/authStore';
-import { useLocationStore } from '@/store/locationStore';
+import { buildSelectedLocation, useLocationStore } from '@/store/locationStore';
 import { useUiStore } from '@/store/uiStore';
 import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
 import { addressesService, type Address } from '@/services/addresses.service';
@@ -58,8 +57,18 @@ export function LocationPickerSheet() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Address | null>(null);
   const debounceRef = useRef<number | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const gpsAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+      searchAbortRef.current?.abort();
+      gpsAbortRef.current?.abort();
+    };
+  }, []);
 
   const close = useCallback(() => {
     setOpen(false);
@@ -69,6 +78,7 @@ export function LocationPickerSheet() {
     setMenuAddr(null);
     setConfirmDelete(false);
     setDeleteTarget(null);
+    searchAbortRef.current?.abort();
   }, [setOpen]);
 
   const { dismiss, dismissThen } = useCloseOnPopstate(open, close);
@@ -105,13 +115,15 @@ export function LocationPickerSheet() {
   }, [open, reloadSaved]);
 
   const applyLocation = (fullAddress: string, lat: number, lng: number, label = 'Other') => {
-    setLocation({
-      label,
-      fullAddress,
-      lat,
-      lng,
-      etaMinutes: blinkitTokens.defaultStore.etaMinutes,
-    });
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    setLocation(
+      buildSelectedLocation({
+        label,
+        fullAddress,
+        lat,
+        lng,
+      }),
+    );
     dismiss();
   };
 
@@ -119,16 +131,22 @@ export function LocationPickerSheet() {
     setQuery(value);
     setError('');
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    searchAbortRef.current?.abort();
+
     if (value.trim().length < 2) {
       setSuggestions([]);
       setSearching(false);
       return;
     }
+
     setSearching(true);
     debounceRef.current = window.setTimeout(() => {
+      const controller = new AbortController();
+      searchAbortRef.current = controller;
       void (async () => {
         try {
-          const api = await searchDeliveryPlaces(value.trim());
+          const api = await searchDeliveryPlaces(value.trim(), { signal: controller.signal });
+          if (controller.signal.aborted) return;
           setSuggestions(
             api.map((s) => ({
               placeId: s.placeId,
@@ -139,13 +157,14 @@ export function LocationPickerSheet() {
             })),
           );
         } catch {
+          if (controller.signal.aborted) return;
           setSuggestions([]);
           setError(t('location.searchFailed'));
         } finally {
-          setSearching(false);
+          if (!controller.signal.aborted) setSearching(false);
         }
       })();
-    }, 320);
+    }, 280);
   };
 
   const useCurrentLocation = () => {
@@ -155,36 +174,43 @@ export function LocationPickerSheet() {
     }
     setLoadingGps(true);
     setError('');
+    gpsAbortRef.current?.abort();
+    const controller = new AbortController();
+    gpsAbortRef.current = controller;
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         void (async () => {
           try {
-            const address = await reverseGeocode(lat, lng);
+            const address = await reverseGeocode(lat, lng, controller.signal);
+            if (controller.signal.aborted) return;
             applyLocation(address, lat, lng, t('location.current'));
           } catch {
+            if (controller.signal.aborted) return;
             applyLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`, lat, lng, t('location.current'));
           } finally {
-            setLoadingGps(false);
+            if (!controller.signal.aborted) setLoadingGps(false);
           }
         })();
       },
       () => {
-        setLoadingGps(false);
-        setError(t('location.geoFailed'));
+        if (!controller.signal.aborted) {
+          setLoadingGps(false);
+          setError(t('location.geoFailed'));
+        }
       },
-      { enableHighAccuracy: true, timeout: 12000 },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
     );
   };
 
   const pickSaved = (addr: Address) => {
-    applyLocation(
-      addr.fullAddress,
-      addr.lat ?? blinkitTokens.defaultStore.lat,
-      addr.lng ?? blinkitTokens.defaultStore.lng,
-      labelTitle(addr.label),
-    );
+    if (addr.lat == null || addr.lng == null) {
+      setError(t('location.searchFailed'));
+      return;
+    }
+    applyLocation(addr.fullAddress, addr.lat, addr.lng, labelTitle(addr.label));
   };
 
   const goAddAddress = () => {

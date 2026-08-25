@@ -8,7 +8,10 @@ export type GeoSuggestion = {
   lng: number;
 };
 
-export async function searchPlaces(q: string): Promise<GeoSuggestion[]> {
+export async function searchPlaces(
+  q: string,
+  signal?: AbortSignal,
+): Promise<GeoSuggestion[]> {
   const url = new URL('https://nominatim.openstreetmap.org/search');
   url.searchParams.set('q', q);
   url.searchParams.set('format', 'json');
@@ -18,6 +21,7 @@ export async function searchPlaces(q: string): Promise<GeoSuggestion[]> {
 
   const res = await fetch(url.toString(), {
     headers: { Accept: 'application/json' },
+    signal,
   });
   if (!res.ok) return [];
   const rows = (await res.json()) as Array<{
@@ -35,7 +39,11 @@ export async function searchPlaces(q: string): Promise<GeoSuggestion[]> {
   }));
 }
 
-export async function reverseGeocode(lat: number, lng: number): Promise<string> {
+export async function reverseGeocode(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal,
+): Promise<string> {
   const url = new URL('https://nominatim.openstreetmap.org/reverse');
   url.searchParams.set('lat', String(lat));
   url.searchParams.set('lon', String(lng));
@@ -43,6 +51,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
 
   const res = await fetch(url.toString(), {
     headers: { Accept: 'application/json' },
+    signal,
   });
   if (!res.ok) return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   const data = (await res.json()) as { display_name?: string };

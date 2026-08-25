@@ -99,9 +99,9 @@ export default function DashboardPage() {
               const Icon = stat.icon;
               return (
                 <PermissionGate key={stat.label} permission={stat.permission}>
-                  <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">
+                  <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]">
                     <div className="flex items-center justify-between gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--primary-muted)] text-[var(--primary)]">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[var(--primary-muted)] text-[var(--primary)]">
                         <Icon className="h-4 w-4" strokeWidth={2} />
                       </div>
                       <span className="text-[11px] font-medium text-[var(--muted)]">{stat.note}</span>
@@ -129,9 +129,9 @@ export default function DashboardPage() {
                 <PermissionGate key={link.href} permission={link.permission}>
                   <Link
                     href={link.href}
-                    className="group flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--shadow-sm)] transition-colors hover:border-[var(--primary)]/35 hover:bg-[var(--primary-muted)]/40"
+                    className="group flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--shadow-sm)] transition-colors hover:border-[var(--primary)]/35 hover:bg-[var(--primary-muted)]/40"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--primary)]">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] text-[var(--primary)]">
                       <Icon className="h-[18px] w-[18px]" strokeWidth={1.85} />
                     </div>
                     <div className="min-w-0 flex-1">

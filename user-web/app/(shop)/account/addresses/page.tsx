@@ -5,8 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AddressModal } from '@/components/account/AddressModal';
 import { addressesService, type Address } from '@/services/addresses.service';
 import { getApiErrorMessage } from '@/lib/auth';
-import { blinkitTokens } from '@/lib/design-tokens';
-import { useLocationStore } from '@/store/locationStore';
+import { buildSelectedLocation, useLocationStore } from '@/store/locationStore';
 import { useI18n } from '@/lib/i18n/useI18n';
 import type { MessageKey } from '@/lib/i18n/messages';
 
@@ -123,13 +122,15 @@ function AddressesPageContent() {
 
   const syncHeaderLocation = (addr: Address) => {
     if (!addr.isDefault) return;
-    setLocation({
-      label: addr.label === 'home' ? 'Home' : addr.label === 'work' ? 'Work' : 'Other',
-      fullAddress: addr.fullAddress,
-      lat: addr.lat ?? blinkitTokens.defaultStore.lat,
-      lng: addr.lng ?? blinkitTokens.defaultStore.lng,
-      etaMinutes: blinkitTokens.defaultStore.etaMinutes,
-    });
+    if (addr.lat == null || addr.lng == null) return;
+    setLocation(
+      buildSelectedLocation({
+        label: addr.label === 'home' ? 'Home' : addr.label === 'work' ? 'Work' : 'Other',
+        fullAddress: addr.fullAddress,
+        lat: addr.lat,
+        lng: addr.lng,
+      }),
+    );
   };
 
   const openAdd = () => {

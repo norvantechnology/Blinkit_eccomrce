@@ -76,9 +76,4 @@ export const authService = {
   },
 
   deleteAccount: (otp: string) => apiClient.delete('/auth/account', { data: { otp } }),
-
-  setPassword: async (password: string) => {
-    const { data } = await apiClient.post('/auth/password', { password });
-    return data.data.user as UserProfile;
-  },
 };
