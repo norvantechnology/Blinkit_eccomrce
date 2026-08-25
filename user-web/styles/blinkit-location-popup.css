@@ -91,21 +91,22 @@
 }
 
 .btn.location-box.mask-button {
-  width: 148px;
+  width: auto;
+  min-width: 148px;
   height: 36px;
   border-radius: 4px;
   background-color: #0c831f;
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  gap: 6px;
+  gap: 0;
   font-size: 12px;
   font-family: Okra, Helvetica, sans-serif;
   font-weight: 500;
   color: #fff;
   border: none;
   cursor: pointer;
-  padding: 0 10px;
+  padding: 0 14px;
   box-shadow: none;
   flex-shrink: 0;
   white-space: nowrap;

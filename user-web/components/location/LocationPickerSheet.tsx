@@ -213,18 +213,6 @@ export function LocationPickerSheet() {
     applyLocation(addr.fullAddress, addr.lat, addr.lng, labelTitle(addr.label));
   };
 
-  const goAddAddress = () => {
-    if (!user) {
-      dismissThen(() => {
-        router.replace('/login');
-      });
-      return;
-    }
-    dismissThen(() => {
-      router.push('/account/addresses?add=1');
-    });
-  };
-
   const deleteAddress = (e: MouseEvent, addr: Address) => {
     e.stopPropagation();
     setDeleteTarget(addr);
@@ -326,14 +314,6 @@ export function LocationPickerSheet() {
         onClick={useCurrentLocation}
         disabled={loadingGps}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/blinkit-parity/icons/location/detect-pin.svg"
-          alt=""
-          width={12}
-          height={12}
-          className="bk-loc-detect-pin"
-        />
         {loadingGps ? t('location.detecting') : t('location.detect')}
       </button>
       <div className="oval-container">
@@ -477,32 +457,9 @@ export function LocationPickerSheet() {
       );
     }
 
-    /* Mobile empty state stays blank (Blinkit). Desktop keeps the login/add prompt. */
-    if (mode === 'mobile') return null;
-
-    return (
-      <p style={{ padding: '16px 0', fontSize: 13, color: '#999' }}>
-        {user ? t('addresses.empty') : t('location.loginSaved')}
-        <button
-          type="button"
-          onClick={goAddAddress}
-          style={{
-            display: 'block',
-            marginTop: 8,
-            border: 0,
-            background: 'transparent',
-            color: '#0c831f',
-            fontWeight: 600,
-            fontSize: 13,
-            cursor: 'pointer',
-            padding: 0,
-            fontFamily: 'Okra, Helvetica, sans-serif',
-          }}
-        >
-          {t('location.addNew')}
-        </button>
-      </p>
-    );
+    // Desktop empty (Blinkit): no “No saved addresses” / “+ Add new” block —
+    // popup stays compact like detect + search only.
+    return null;
   };
 
   const suggestionBlock =
@@ -598,7 +555,8 @@ export function LocationPickerSheet() {
 
           {suggestionBlock}
 
-          {!query.trim() ? (
+          {/* Saved list only when the user actually has addresses (Blinkit empty = compact modal) */}
+          {!query.trim() && user && saved.length > 0 ? (
             <div className="ChangeLocationV1__LocationBottom-sc-1sww6op-2 iklVqv">
               <div className="ChangeLocationV1__LocationAddressContainer-sc-1sww6op-4 fXRPjX">
                 <div className="ChangeLocationV1__LocationListTitle-sc-1sww6op-5 iHPeDK">
