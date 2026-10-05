@@ -102,6 +102,8 @@ jobs:
             cd "$APP_DIR"
             rm -f backend/.env
             docker compose up -d --build backend postgres redis
+            docker image prune -f
+            docker builder prune -f --filter until=72h
             docker compose ps
 
   deploy-user-web:
