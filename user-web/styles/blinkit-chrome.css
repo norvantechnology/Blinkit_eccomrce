@@ -362,7 +362,6 @@
 }
 
 .bk-location__sub {
-  font-size: 13px;
   color: #666666;
   font-weight: 400;
   clear: both;
@@ -370,10 +369,11 @@
   overflow: hidden;
   white-space: nowrap;
   width: auto;
-  max-width: 210px;
+  max-width: 220px;
   text-overflow: ellipsis;
   margin: 0;
-  line-height: 16px;
+  font-size: 14px;
+  line-height: 18px;
 }
 
 .bk-location__label {
@@ -394,8 +394,8 @@
 @media (max-width: 1020px) {
   .bk-location__sub {
     max-width: calc(100vw - 16px - 8px - 28px - 132px);
-    font-size: 12px;
-    line-height: 15px;
+    font-size: 13px;
+    line-height: 16px;
   }
 
   /* Account chrome: back + language + search */
