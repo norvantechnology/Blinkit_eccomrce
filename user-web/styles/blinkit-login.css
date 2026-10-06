@@ -321,72 +321,211 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-.login-email {
-  display: block;
+/* Shared login field shell - phone and email boxes are identical */
+.login-field {
   position: relative;
-  width: 100%;
-}
-
-.login-email__icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  width: 18px;
-  height: 18px;
-  transform: translateY(-50%);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.login-email__input.input {
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
-  color: #1c1c1c;
-  font-family: Okra, Helvetica, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  width: 300px;
+  max-width: 100%;
   height: 48px;
-  outline: 0;
-  padding: 12px 14px 12px 42px;
-  width: 100%;
+  margin: 0 auto;
+  padding: 0 14px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
 }
 
-.login-email__input.input:focus,
-.login-email__input.input:focus-visible {
+.login-field:focus-within {
   border-color: #666;
 }
 
-.login-phone {
-  display: inline-block;
-  line-height: normal;
-  position: relative;
-}
-
 @media screen and (max-width: 1020px) {
-  .login-phone {
+  .login-field {
     width: 100%;
   }
 }
 
-.login-phone::after {
-  color: #333;
-  content: '+91';
-  font-weight: 600;
-  font-size: 14px;
-  left: 15px;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+.login-field__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
   pointer-events: none;
+}
+
+.modal-content--login .login-field__input,
+.login-field__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #1f1f1f;
   font-family: Okra, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: normal;
+  letter-spacing: normal;
+}
+
+.login-field__input::placeholder {
+  color: #999;
+  font-weight: 500;
+}
+
+/* Country code picker (phone) */
+.login-country {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin-right: 10px;
+  padding-right: 10px;
+  border-right: 1px solid #e8e8e8;
+}
+
+.login-country__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #333;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: default;
+}
+
+.login-country__btn.is-selectable {
+  cursor: pointer;
+}
+
+.login-country__btn.is-selectable:hover {
+  background: #f5f5f5;
+}
+
+.login-country__flag {
+  display: block;
+  width: 20px;
+  height: 15px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.login-country__chevron {
+  width: 6px;
+  height: 6px;
+  margin: 0 2px 3px 2px;
+  border-right: 1.5px solid #666;
+  border-bottom: 1.5px solid #666;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease, margin 0.15s ease;
+}
+
+.login-country__chevron.is-open {
+  margin-bottom: -3px;
+  transform: rotate(-135deg);
+}
+
+.login-country__menu {
+  position: fixed;
+  z-index: 10010;
+  box-sizing: border-box;
+  padding: 6px;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+.login-country__search {
+  width: 100%;
+  height: 36px;
+  margin-bottom: 6px;
+  padding: 0 10px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  outline: 0;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 13px;
+  color: #1f1f1f;
+}
+
+.login-country__search:focus {
+  border-color: #999;
+}
+
+.login-country__list {
+  max-height: 220px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.login-country__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1f1f1f;
+  text-align: left;
+  cursor: pointer;
+}
+
+.login-country__option:hover {
+  background: #f5f5f5;
+}
+
+.login-country__option.is-selected {
+  background: #f2f8f3;
+  font-weight: 600;
+}
+
+.login-country__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.login-country__dial {
+  color: #666;
+  font-weight: 500;
+}
+
+.login-country__empty {
+  padding: 12px 10px;
+  font-size: 13px;
+  color: #999;
+  text-align: center;
 }
 
 /* Blinkit base .input / .textarea */
 .modal-content--login .input,
-.modal-content--login .textarea,
-.login-phone__input.input {
+.modal-content--login .textarea {
   background: #fff;
   border: 1px solid #ccc;
   color: #333;
@@ -406,37 +545,6 @@
   outline: 0;
   padding: 12px 10px;
   font-family: Okra, Helvetica, sans-serif;
-}
-
-/* Blinkit .login-phone__input - exact responsive rules
-   !important on box model: Tailwind preflight forces border-box on * */
-.modal-content--login .login-phone__input,
-.modal-content--login .login-phone__input.input,
-.login-phone__input,
-.login-phone__input.input {
-  box-sizing: border-box !important;
-  font-size: 14px !important;
-  padding: 15px 20px 15px 50px !important;
-  width: 100%;
-  border-radius: 12px;
-  font-weight: 600;
-  font-family: Okra, Helvetica, sans-serif;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  line-height: normal !important;
-  letter-spacing: normal;
-}
-
-@media screen and (min-width: 1020px) {
-  .modal-content--login .login-phone .login-phone__input,
-  .modal-content--login .login-phone .login-phone__input.input,
-  .login-phone .login-phone__input,
-  .login-phone .login-phone__input.input {
-    /* Blinkit: content-box + width 220px (pad sits outside) */
-    box-sizing: content-box !important;
-    width: 220px !important;
-  }
 }
 
 /* Name / non-phone fields: same chrome, no +91 gutter */
@@ -467,22 +575,6 @@
     width: 260px !important;
     max-width: none;
   }
-}
-
-.login-phone__input::placeholder,
-.login-phone__input.input::placeholder {
-  color: #999;
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.login-phone__input:focus,
-.login-phone__input.input:focus,
-.login-phone__input:focus-visible,
-.login-phone__input.input:focus-visible {
-  border-color: #ccc;
-  outline: none;
-  box-shadow: none;
 }
 
 /* -- Continue button -- */
@@ -974,5 +1066,54 @@
   /* Form sheet sits under Lottie; keep Blinkit mobile pad (not 56px) */
   .PhoneNumberLogin__LoginContainer {
     padding-top: 10px;
+  }
+}
+
+/* Login success - Blinkit "Successfully logged in!" */
+.modal-content--login .login-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 570px;
+  max-width: 100%;
+  height: 234px;
+  box-sizing: border-box;
+  padding: 24px;
+  background: #fff;
+  text-align: center;
+  animation: login-success-in 0.2s ease-out;
+}
+
+.login-success__icon {
+  display: block;
+  width: 44px;
+  height: 44px;
+  color: #54b226;
+  flex-shrink: 0;
+}
+
+.login-success__text {
+  margin-top: 24px;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #54b226;
+}
+
+@keyframes login-success-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media screen and (max-width: 1020px) {
+  .modal-content--login .login-success {
+    width: 100%;
+    height: 100%;
   }
 }

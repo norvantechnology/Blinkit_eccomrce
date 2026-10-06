@@ -15,6 +15,10 @@ const placesRoutes = require('./modules/places/places.routes');
 const { publicRouter: contentRoutes } = require('./modules/store-settings/store-settings.routes');
 const { adminRouter: storeSettingsAdminRoutes } = require('./modules/store-settings/store-settings.routes');
 const {
+  publicRouter: countryCodesRoutes,
+  adminRouter: countryCodesAdminRoutes,
+} = require('./modules/country-codes/country-codes.routes');
+const {
   userUploadsRouter,
   adminUploadsRouter,
 } = require('./modules/uploads/uploads.routes');
@@ -56,6 +60,7 @@ apiRouter.use('/auth', authRoutes);
 apiRouter.use('/admin/auth', authRouter);
 apiRouter.use('/admin/uploads', adminUploadsRouter);
 apiRouter.use('/admin/store-settings', storeSettingsAdminRoutes);
+apiRouter.use('/admin/country-codes', countryCodesAdminRoutes);
 apiRouter.use('/admin', adminRouter);
 
 // §8.3 User Profile & Addresses
@@ -64,6 +69,8 @@ apiRouter.use('/users', usersRoutes);
 apiRouter.use('/places', placesRoutes);
 /** Public CMS content (privacy policy, etc.) */
 apiRouter.use('/content', contentRoutes);
+/** Public login country calling codes (admin-managed) */
+apiRouter.use('/country-codes', countryCodesRoutes);
 apiRouter.use('/addresses', addressesRoutes);
 
 // Uploads (S3) - user + admin mirrors

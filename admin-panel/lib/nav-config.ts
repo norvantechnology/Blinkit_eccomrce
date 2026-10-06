@@ -88,6 +88,7 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Account Privacy', href: '/settings/account-privacy', permissions: ['store.manage'] },
       { label: 'Roles & Permissions', href: '/settings/roles-permissions', permissions: ['roles.manage'] },
       { label: 'Languages', href: '/settings/languages', permissions: ['store.manage'] },
+      { label: 'Country Codes', href: '/settings/country-codes', permissions: ['store.manage'] },
     ],
   },
   { label: 'Audit Logs', href: '/audit-logs', permissions: ['audit.view'] },

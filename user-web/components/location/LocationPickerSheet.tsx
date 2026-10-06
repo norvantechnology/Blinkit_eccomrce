@@ -1,6 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { reverseGeocode, type GeoSuggestion } from '@/lib/geocode';
@@ -753,12 +760,44 @@ export function LocationPickerSheet() {
       </div>
     ) : null;
 
+  const preparingModal = loadingGps ? (
+    <div className="bk-loc-preparing" role="presentation">
+      <div
+        className="bk-loc-preparing__card"
+        role="status"
+        aria-live="polite"
+        style={
+          {
+            '--bk-prep-top': `${desktopTop}px`,
+            '--bk-prep-left': `${desktopLeft}px`,
+            '--bk-prep-width': `${PANEL_W}px`,
+          } as CSSProperties
+        }
+      >
+        <div className="bk-loc-preparing__title">
+          {t('location.welcomeTo')} <span>{t('location.brandName')}</span>
+        </div>
+        <div className="bk-loc-preparing__row">
+          <span className="bk-loc-preparing__dots" aria-hidden>
+            <span />
+            <span />
+            <span />
+          </span>
+          <span className="bk-loc-preparing__text">{t('location.detectingLocation')}</span>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return createPortal(
     <>
-      {desktopPanel}
-      {mobilePanel}
+      <div style={loadingGps ? { display: 'none' } : undefined}>
+        {desktopPanel}
+        {mobilePanel}
+      </div>
       {addressActionSheet}
       {deleteConfirmModal}
+      {preparingModal}
     </>,
     document.body,
   );

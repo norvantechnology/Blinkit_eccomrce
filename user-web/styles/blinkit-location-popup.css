@@ -949,3 +949,115 @@
 .bk-loc-confirm__btn--yes {
   color: #e53935;
 }
+
+/* "Welcome to … / Preparing your experience..." while detecting GPS location */
+.bk-loc-preparing {
+  position: fixed;
+  inset: 0;
+  z-index: 2010;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 96px 16px 0;
+  background: rgba(50, 50, 50, 0.7);
+  box-sizing: border-box;
+  animation: bk-loc-preparing-fade 0.2s ease-out;
+}
+
+.bk-loc-preparing__card {
+  width: 500px;
+  max-width: 100%;
+  padding: 28px 24px 26px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.28);
+  box-sizing: border-box;
+  font-family: Okra, Helvetica, sans-serif;
+}
+
+/* Laptop: same spot and width as the Change Location popup it replaces */
+@media (min-width: 1021px) {
+  .bk-loc-preparing__card {
+    position: fixed;
+    top: var(--bk-prep-top, 86px);
+    left: var(--bk-prep-left, 16px);
+    width: var(--bk-prep-width, 500px);
+  }
+}
+
+.bk-loc-preparing__title {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  color: #333;
+}
+
+.bk-loc-preparing__title span {
+  color: #0c831f;
+}
+
+.bk-loc-preparing__row {
+  display: flex;
+  align-items: center;
+  margin-top: 22px;
+}
+
+.bk-loc-preparing__dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+  padding-left: 8px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.bk-loc-preparing__dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #0c831f;
+  opacity: 0.35;
+  animation: bk-loc-preparing-blink 1.2s ease-in-out infinite;
+}
+
+.bk-loc-preparing__dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.bk-loc-preparing__dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.bk-loc-preparing__text {
+  font-size: 12px;
+  line-height: 16px;
+  color: #333;
+}
+
+@keyframes bk-loc-preparing-blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes bk-loc-preparing-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bk-loc-preparing__dots span {
+    animation: none;
+    opacity: 0.6;
+  }
+}

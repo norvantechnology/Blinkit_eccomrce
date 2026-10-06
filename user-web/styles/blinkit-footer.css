@@ -5,7 +5,7 @@
 
 /* Footer__FooterContainer */
 .bk-footer {
-  max-width: 1300px;
+  max-width: 1280px;
   margin: 48px auto 0;
   transition: 0.4s;
   font-family: Okra, Helvetica, sans-serif;
@@ -32,7 +32,7 @@
   font-family: Okra, Helvetica, sans-serif;
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 1280px) {
   .bk-footer__inner {
     padding-left: 16px;
     padding-right: 16px;
@@ -75,7 +75,7 @@
   color: rgb(0, 0, 0);
   font-size: 18px;
   margin: 24px 0;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 /* FooterLinks__HeadingContainer */
@@ -98,7 +98,7 @@
   color: #0c831f;
   font-size: 16px;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.15;
   text-decoration: none;
   cursor: pointer;
   background: none;
@@ -121,18 +121,26 @@
   column-gap: 24px;
 }
 
+/* Categories: row-major 3 columns (Bath & Body | Hair | Skin & Face …) */
 .bk-footer__cats {
   list-style: none;
   margin: 0;
   padding: 0;
-  column-count: 3;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 12px;
   column-gap: 24px;
 }
 
 .bk-footer__cats .bk-footer__item {
-  display: block;
-  break-inside: avoid;
-  margin-bottom: 12px;
+  display: inline-block;
+}
+
+@media (min-width: 1021px) {
+  .bk-footer__cols,
+  .bk-footer__cats {
+    margin: 12px 0;
+  }
 }
 
 @media (max-width: 1020px) {
@@ -176,7 +184,7 @@
 .bk-footer__item {
   display: inline-block;
   font-size: 14px;
-  line-height: 18px;
+  line-height: 1.15;
   font-family: Okra, Helvetica, sans-serif;
   color: #666666;
 }
@@ -187,7 +195,7 @@
   text-decoration: none;
   font-size: 14px;
   font-weight: 400;
-  line-height: 18px;
+  line-height: 1.15;
   font-family: Okra, Helvetica, sans-serif;
   cursor: pointer;
 }
@@ -196,14 +204,12 @@
   color: #333333;
 }
 
-/* DownloadAndFollowRow__Wrapper - full-bleed grey bar */
+/* DownloadAndFollowRow__Wrapper - grey bar, same width as footer content */
 .bk-footer__band {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100vw;
-  max-width: 100vw;
-  margin-left: calc(50% - 50vw);
+  width: 100%;
   background-color: #fcfcfc;
   box-sizing: border-box;
 }
@@ -212,7 +218,6 @@
 .bk-footer__band-grid {
   padding: 16px;
   width: 100%;
-  max-width: 1280px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
@@ -249,7 +254,8 @@
 }
 
 .bk-footer__band-item--start {
-  justify-content: flex-start;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .bk-footer__band-item--center {
@@ -264,7 +270,7 @@
 }
 
 .bk-footer__band-item--end {
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 @media (max-width: 1020px) {
@@ -272,6 +278,11 @@
   .bk-footer__band-item--center,
   .bk-footer__band-item--end {
     justify-content: center;
+  }
+
+  .bk-footer__band-item--start {
+    white-space: normal;
+    text-align: center;
   }
 
   .bk-footer__band-item--center {
@@ -304,7 +315,7 @@
 }
 
 .bk-footer__flex--social {
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 0;
 }
 
@@ -555,7 +566,7 @@
     font-weight: 600;
     color: rgb(0, 0, 0);
     margin: 24px 0;
-    line-height: 1.2;
+    line-height: 1.15;
   }
 
   .bk-footer__heading-row {
@@ -571,7 +582,7 @@
     font-size: 16px;
     color: #0c831f;
     font-weight: 400;
-    line-height: 1.2;
+    line-height: 1.15;
     font-family: Okra, Helvetica, sans-serif;
   }
 
@@ -581,14 +592,14 @@
 
   .bk-footer__item {
     font-size: 14px;
-    line-height: 18px;
+    line-height: 1.15;
     color: #666666;
   }
 
   .bk-footer__link {
     color: #666666;
     font-size: 14px;
-    line-height: 18px;
+    line-height: 1.15;
     font-weight: 400;
     font-family: Okra, Helvetica, sans-serif;
   }

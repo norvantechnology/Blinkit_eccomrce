@@ -7,6 +7,8 @@ const start = async () => {
   // Sync schema gaps (email OTP) before serving traffic
   const { ensureEmailAuthSchema } = require('./database/prisma/ensureEmailAuthSchema');
   await ensureEmailAuthSchema();
+  const { ensureCountryCodesSchema } = require('./database/prisma/ensureCountryCodesSchema');
+  await ensureCountryCodesSchema();
 
   // Require after secrets so env.js / clients see populated process.env
   const app = require('./app');

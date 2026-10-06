@@ -506,6 +506,56 @@
   color: #999999;
 }
 
+/* Rotating hint - old slides up and out, new slides up from below */
+.bk-search__hint {
+  position: absolute;
+  inset: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  will-change: transform, opacity;
+}
+
+.bk-search__hint--out {
+  animation: bk-search-hint-out 0.4s ease-in-out forwards;
+}
+
+.bk-search__hint--in {
+  animation: bk-search-hint-in 0.4s ease-in-out both;
+}
+
+@keyframes bk-search-hint-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes bk-search-hint-in {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bk-search__hint--out {
+    display: none;
+  }
+
+  .bk-search__hint--in {
+    animation: none;
+  }
+}
+
 /* ProfileButton */
 .bk-profile {
   justify-content: center;
@@ -717,27 +767,31 @@
 .account-dropdown__qrcode--copy {
   flex: 1;
   min-width: 0;
+  max-width: 136px;
 }
 
+/* Blinkit QR copy: 16px bold heading, blue highlight line, 12px grey hint */
 .account-dropdown__qrcode--heading {
-  font-size: 14px;
-  font-weight: normal;
-  font-family: Okra-Bold, Okra, var(--bk-font, sans-serif);
-  line-height: 1.2em;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: Okra, var(--bk-font, sans-serif);
+  line-height: 19px;
   margin-bottom: 3px;
   color: #1f1f1f;
+  letter-spacing: -0.1px;
 }
 
 .account-dropdown__qrcode--heading span {
+  display: block;
   color: #318dee;
 }
 
 .account-dropdown__qrcode--hint {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
-  font-family: Okra-Regular, Okra, var(--bk-font, sans-serif);
-  line-height: 1.35;
-  color: #969696;
+  font-family: Okra, var(--bk-font, sans-serif);
+  line-height: 14px;
+  color: #666666;
 }
 
 .full-width {

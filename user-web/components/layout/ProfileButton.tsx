@@ -140,8 +140,10 @@ export function ProfileButton({ className }: { className?: string }) {
             </div>
             <div className="account-dropdown__qrcode--copy">
               <div className="account-dropdown__qrcode--heading">
-                {t('footer.downloadApp')}
+                {t('account.qrTitle')}
+                <span>{t('account.qrHighlight')}</span>
               </div>
+              <div className="account-dropdown__qrcode--hint">{t('account.qrHint')}</div>
             </div>
           </div>
         </div>

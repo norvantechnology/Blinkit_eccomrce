@@ -5,15 +5,23 @@ import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 import { setSession, getApiErrorMessage, type UserProfile, type AuthTokens } from '@/lib/auth';
 import { useAuthStore } from '@/store/authStore';
-import { formatPhoneForApi, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n/useI18n';
 import { BRAND_ASSETS } from '@/lib/brand-assets';
 import { OtpInput } from '@/components/auth/OtpInput';
 import { LoginLottie } from '@/components/auth/LoginLottie';
+import { CountryCodePicker } from '@/components/auth/CountryCodePicker';
+import {
+  countryCodesService,
+  DEFAULT_COUNTRY,
+  type CountryCode,
+} from '@/services/country-codes.service';
 import '@/styles/blinkit-login.css';
 
 type Channel = 'phone' | 'email';
-type Step = 'identifier' | 'otp' | 'profile';
+type Step = 'identifier' | 'otp' | 'profile' | 'success';
+
+const SUCCESS_REDIRECT_MS = 1500;
 
 interface LoginModalProps {
   onCloseHref?: string;
@@ -40,11 +48,39 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
   const [error, setError] = useState('');
   const [resendIn, setResendIn] = useState(0);
   const [staticOtpHint, setStaticOtpHint] = useState<string | null>(null);
+  const [countries, setCountries] = useState<CountryCode[]>([DEFAULT_COUNTRY]);
+  const [country, setCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
   const verifyingRef = useRef(false);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
 
-  const formattedPhone = useMemo(() => formatPhoneForApi(phoneDigits), [phoneDigits]);
+  useEffect(() => {
+    let active = true;
+    countryCodesService
+      .list()
+      .then((list) => {
+        if (!active) return;
+        setCountries(list);
+        setCountry(list.find((c) => c.isDefault) || list[0]);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const formattedPhone = `${country.dialCode}${phoneDigits}`;
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
-  const phoneValid = /^[6-9]\d{9}$/.test(phoneDigits.replace(/\D/g, ''));
+  const phoneValid =
+    phoneDigits.length >= country.minLength &&
+    phoneDigits.length <= country.maxLength &&
+    (country.isoCode !== 'IN' || /^[6-9]/.test(phoneDigits));
+
+  const changeCountry = (next: CountryCode) => {
+    setCountry(next);
+    setPhoneDigits((d) => d.slice(0, next.maxLength));
+    setError('');
+    phoneInputRef.current?.focus();
+  };
   const emailValid = isValidEmail(normalizedEmail);
   const identifierValid = channel === 'phone' ? phoneValid : emailValid;
 
@@ -62,17 +98,20 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (step !== 'success') return;
+    const id = window.setTimeout(goHome, SUCCESS_REDIRECT_MS);
+    return () => window.clearTimeout(id);
+  }, [step]);
+
   const finishAuth = (user: UserProfile, tokens: AuthTokens) => {
     setSession(user, tokens);
     setUser(user);
-    if (!user.name) {
-      setStep('profile');
-      return;
-    }
-    goHome();
+    setStep(user.name ? 'success' : 'profile');
   };
 
   const dismissLogin = () => {
+    if (step === 'success') return;
     const next =
       onCloseHref.startsWith('/') && !onCloseHref.startsWith('//') ? onCloseHref : '/';
     router.replace(next);
@@ -149,7 +188,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
         accessToken: localStorage.getItem('accessToken') || '',
         refreshToken: localStorage.getItem('refreshToken') || '',
       });
-      goHome();
+      setStep('success');
     } catch (err) {
       setError(getApiErrorMessage(err, t('login.saveProfileFailed')));
     } finally {
@@ -179,21 +218,23 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          className={cn('LoginModal__BackIcon', step === 'otp' && 'OtpVerification__BackIcon')}
-          onClick={handleChromeBack}
-          aria-label="Back"
-        >
-          <svg viewBox="0 0 999 800" width="16" height="13" aria-hidden="true">
-            <g transform="translate(0 729) scale(1 -1)">
-              <path
-                fill="currentColor"
-                d="M949 379H169L434 644Q449 659 449 679Q449 699 434 714Q419 729 399 729Q379 729 364 714L14 364Q4 354 4 349Q0 338 0 329Q0 320 4 309Q7 307 9.5 302Q12 297 14 294L364-56Q379-71 399-71Q419-71 434-56Q449-41 449-21Q449-1 434 14L169 279H949Q972 279 985.5 293Q999 307 999 329.5Q999 352 985.5 365.5Q972 379 949 379Z"
-              />
-            </g>
-          </svg>
-        </button>
+        {step !== 'success' && (
+          <button
+            type="button"
+            className={cn('LoginModal__BackIcon', step === 'otp' && 'OtpVerification__BackIcon')}
+            onClick={handleChromeBack}
+            aria-label="Back"
+          >
+            <svg viewBox="0 0 999 800" width="16" height="13" aria-hidden="true">
+              <g transform="translate(0 729) scale(1 -1)">
+                <path
+                  fill="currentColor"
+                  d="M949 379H169L434 644Q449 659 449 679Q449 699 434 714Q419 729 399 729Q379 729 364 714L14 364Q4 354 4 349Q0 338 0 329Q0 320 4 309Q7 307 9.5 302Q12 297 14 294L364-56Q379-71 399-71Q419-71 434-56Q449-41 449-21Q449-1 434 14L169 279H949Q972 279 985.5 293Q999 307 999 329.5Q999 352 985.5 365.5Q972 379 949 379Z"
+                />
+              </g>
+            </svg>
+          </button>
+        )}
 
         <div className="LoginSteps__LoginWrapper login center-aligned">
           <div className="login__body">
@@ -244,25 +285,33 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
 
                 <form className="login-form" onSubmit={handleContinue}>
                   {channel === 'phone' ? (
-                    <div className="login-phone">
+                    <div className="login-field login-field--phone">
+                      <CountryCodePicker
+                        countries={countries}
+                        value={country}
+                        onChange={changeCountry}
+                      />
                       <input
+                        ref={phoneInputRef}
                         type="tel"
-                        maxLength={10}
-                        className="login-phone__input input"
+                        maxLength={country.maxLength}
+                        className="login-field__input"
                         data-test-id="phone-no-text-box"
                         placeholder={t('login.phonePlaceholder')}
                         inputMode="numeric"
                         autoComplete="tel-national"
                         value={phoneDigits}
-                        onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        onChange={(e) =>
+                          setPhoneDigits(e.target.value.replace(/\D/g, '').slice(0, country.maxLength))
+                        }
                         autoFocus
                       />
                     </div>
                   ) : (
-                    <div className="login-email">
+                    <div className="login-field login-field--email">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        className="login-email__icon"
+                        className="login-field__icon"
                         src="/blinkit-parity/icons/email.svg"
                         alt=""
                         width={18}
@@ -271,7 +320,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
                       />
                       <input
                         type="email"
-                        className="login-email__input input"
+                        className="login-field__input"
                         data-test-id="email-text-box"
                         placeholder={t('login.emailPlaceholder')}
                         autoComplete="email"
@@ -317,7 +366,7 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
                   <span className="otp-msg__label">{t('login.otpSent')}</span>
                   <div className="otp-msg__phone">
                     <span className="login-help weight--semibold login-help__phone">
-                      {channel === 'phone' ? `+91-${phoneDigits}` : normalizedEmail}
+                      {channel === 'phone' ? `${country.dialCode}-${phoneDigits}` : normalizedEmail}
                     </span>
                   </div>
                 </div>
@@ -388,6 +437,29 @@ export function LoginModal({ onCloseHref = '/' }: LoginModalProps) {
                   {loading ? t('login.saving') : t('login.continue')}
                 </button>
               </form>
+            )}
+
+            {step === 'success' && (
+              <div className="login-success" role="status" aria-live="polite">
+                <svg
+                  className="login-success__icon"
+                  viewBox="0 0 44 44"
+                  width="44"
+                  height="44"
+                  aria-hidden="true"
+                >
+                  <circle cx="22" cy="22" r="22" fill="currentColor" />
+                  <path
+                    d="M13.5 22.5l5.5 5.5 11.5-11.5"
+                    fill="none"
+                    stroke="#fff"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <div className="login-success__text">{t('login.success')}</div>
+              </div>
             )}
           </div>
         </div>

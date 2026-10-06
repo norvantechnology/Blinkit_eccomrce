@@ -237,3 +237,22 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+
+/// Login country calling codes - managed from admin panel.
+model CountryCode {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  isoCode   String   @unique @map("iso_code") @db.VarChar(2)
+  dialCode  String   @map("dial_code") @db.VarChar(6)
+  flag      String?
+  minLength Int      @default(10) @map("min_length")
+  maxLength Int      @default(10) @map("max_length")
+  isActive  Boolean  @default(true) @map("is_active")
+  isDefault Boolean  @default(false) @map("is_default")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive, sortOrder])
+  @@map("country_codes")
+}

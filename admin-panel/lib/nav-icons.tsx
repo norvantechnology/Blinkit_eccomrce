@@ -33,6 +33,7 @@ import {
   PackageSearch,
   Store,
   Languages,
+  Phone,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -75,6 +76,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   '/settings/store-details': Store,
   '/settings/roles-permissions': Shield,
   '/settings/languages': Languages,
+  '/settings/country-codes': Phone,
   '/audit-logs': ScrollText,
 };
 
