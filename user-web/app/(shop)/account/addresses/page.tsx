@@ -70,6 +70,9 @@ function AddressesPageContent() {
 
   useEffect(() => {
     void load();
+    const onChanged = () => void load();
+    window.addEventListener('bk:addresses-changed', onChanged);
+    return () => window.removeEventListener('bk:addresses-changed', onChanged);
   }, [load]);
 
   /** Deep-link from Change Location edit/add → open modal, then strip query so Back won't reopen it */

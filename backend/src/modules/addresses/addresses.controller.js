@@ -55,4 +55,14 @@ const search = async (req, res, next) => {
   }
 };
 
-module.exports = { list, search, create, update, remove, setDefault };
+const reverse = async (req, res, next) => {
+  try {
+    const result = await addressesService.reverse(req.query.lat, req.query.lng);
+    res.set('Cache-Control', 'public, max-age=3600');
+    return success(res, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { list, search, reverse, create, update, remove, setDefault };

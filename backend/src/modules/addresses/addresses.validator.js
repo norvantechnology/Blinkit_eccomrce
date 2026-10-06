@@ -26,9 +26,15 @@ const searchQuerySchema = Joi.object({
   q: Joi.string().min(2).max(200).required(),
 });
 
+const reverseQuerySchema = Joi.object({
+  lat: Joi.number().min(-90).max(90).required(),
+  lng: Joi.number().min(-180).max(180).required(),
+});
+
 module.exports = {
   createAddressSchema,
   updateAddressSchema,
   addressIdParamSchema,
   searchQuerySchema,
+  reverseQuerySchema,
 };

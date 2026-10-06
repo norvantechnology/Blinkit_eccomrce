@@ -23,6 +23,7 @@ import {
 import { usersService } from '@/services/users.service';
 import { reverseGeocode } from '@/lib/geocode';
 import { searchDeliveryPlaces } from '@/lib/places-search';
+import { AddressMap, type UserFix } from '@/components/account/AddressMap';
 import '@/styles/blinkit-address-form-modal.css';
 import '@/styles/blinkit-iconfont.css';
 import '@/styles/blinkit-location-popup.css';
@@ -67,7 +68,15 @@ function parseAddress(full: string) {
 /** Stop refining once the fix is this precise (metres) or after GPS_WATCH_MS. */
 const GPS_GOOD_ACCURACY_M = 50;
 const GPS_WATCH_MS = 12000;
-const GPS_APPROX_ACCURACY_M = 1000;
+/** After the first fix, wait this long for a better one before settling. */
+const GPS_REFINE_MS = 3000;
+const GPS_APPROX_ACCURACY_M = 500;
+
+function zoomForAccuracy(accuracy: number) {
+  if (accuracy <= 100) return 18;
+  if (accuracy <= 1000) return 16;
+  return 15;
+}
 
 function geoErrorMessage(err: GeolocationPositionError) {
   if (err.code === err.PERMISSION_DENIED) {
@@ -196,6 +205,13 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const [locating, setLocating] = useState(false);
   const [gpsNote, setGpsNote] = useState('');
   const [gpsError, setGpsError] = useState('');
+  const [recenterKey, setRecenterKey] = useState(0);
+  const [mapZoom, setMapZoom] = useState(16);
+  const [userFix, setUserFix] = useState<UserFix | null>(null);
+  const pinGeocodeRef = useRef<{ timer: number | null; abort: AbortController | null }>({
+    timer: null,
+    abort: null,
+  });
   const gpsWatchRef = useRef<{ id: number | null; timer: number | null; abort: AbortController | null }>({
     id: null,
     timer: null,
@@ -236,6 +252,9 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     setError('');
     setGpsError('');
     setGpsNote('');
+    setUserFix(null);
+    setMapZoom(16);
+    setRecenterKey((k) => k + 1);
     setSuggestions([]);
     setStep('map');
 
@@ -286,13 +305,34 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
 
   const delivery = useMemo(() => splitAreaCity(area || query), [area, query]);
 
-  const mapSrc = useMemo(() => {
-    if (lat == null || lng == null) return '';
-    const delta = 0.008;
-    const bbox = `${lng - delta}%2C${lat - delta}%2C${lng + delta}%2C${lat + delta}`;
-    // No OSM marker - Blinkit uses fixed .center-marker over the map
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik`;
-  }, [lat, lng]);
+  /** User panned the map: the fixed centre pin is the new delivery point. */
+  const handlePinMove = useCallback((nextLat: number, nextLng: number) => {
+    setLat(nextLat);
+    setLng(nextLng);
+    setGpsNote('');
+    const ref = pinGeocodeRef.current;
+    if (ref.timer != null) window.clearTimeout(ref.timer);
+    ref.abort?.abort();
+    ref.timer = window.setTimeout(() => {
+      const controller = new AbortController();
+      pinGeocodeRef.current.abort = controller;
+      void reverseGeocode(nextLat, nextLng, controller.signal)
+        .then((address) => {
+          if (controller.signal.aborted) return;
+          setQuery(address);
+          setArea(address);
+        })
+        .catch(() => {});
+    }, 450);
+  }, []);
+
+  useEffect(() => {
+    const ref = pinGeocodeRef.current;
+    return () => {
+      if (ref.timer != null) window.clearTimeout(ref.timer);
+      ref.abort?.abort();
+    };
+  }, []);
 
   const handleSearch = async (value: string) => {
     setQuery(value);
@@ -318,6 +358,8 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     if (s.lat != null && s.lng != null) {
       setLat(s.lat);
       setLng(s.lng);
+      setMapZoom(17);
+      setRecenterKey((k) => k + 1);
     }
     setSuggestions([]);
     setSearchFocused(false);
@@ -345,6 +387,9 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       const nextLng = coords.longitude;
       setLat(nextLat);
       setLng(nextLng);
+      setUserFix({ lat: nextLat, lng: nextLng, accuracy: coords.accuracy });
+      setMapZoom(zoomForAccuracy(coords.accuracy));
+      setRecenterKey((k) => k + 1);
       gpsWatchRef.current.abort?.abort();
       const controller = new AbortController();
       gpsWatchRef.current.abort = controller;
@@ -370,16 +415,25 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
       if (best && best.accuracy > GPS_APPROX_ACCURACY_M) {
         const km = Math.round(best.accuracy / 100) / 10;
         setGpsNote(
-          `Your browser could only find an approximate location (about ${km} km). Search your exact address for an accurate pin.`,
+          `Approximate location (within about ${km} km). Move the map to put the pin on your exact address, or search for it.`,
         );
       }
     };
 
     const onFix = (pos: GeolocationPosition) => {
       if (best && pos.coords.accuracy >= best.accuracy) return;
+      const first = !best;
       best = pos.coords;
       applyFix(pos.coords);
-      if (pos.coords.accuracy <= GPS_GOOD_ACCURACY_M) finish();
+      if (pos.coords.accuracy <= GPS_GOOD_ACCURACY_M) {
+        finish();
+        return;
+      }
+      if (first) {
+        const w = gpsWatchRef.current;
+        if (w.timer != null) window.clearTimeout(w.timer);
+        w.timer = window.setTimeout(finish, GPS_REFINE_MS);
+      }
     };
 
     const fallbackLowAccuracy = (firstErr: GeolocationPositionError) => {
@@ -555,8 +609,15 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const mapBlock = (
     <div className="styles__MapContainer-sc-cc1wzf-13 jxdAuJ">
       <div className="map-container">
-        {mapSrc ? (
-          <iframe title="Map" src={mapSrc} />
+        {lat != null && lng != null ? (
+          <AddressMap
+            lat={lat}
+            lng={lng}
+            recenterKey={recenterKey}
+            zoom={mapZoom}
+            userFix={userFix}
+            onPinMove={handlePinMove}
+          />
         ) : (
           <div
             style={{
@@ -576,6 +637,12 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
         )}
         <div>
           <div>
+            {lat != null && lng != null ? (
+              <div className="bk-addr-pin-tip" aria-hidden>
+                <strong>Order will be delivered here</strong>
+                <span>Move the map to set your exact location</span>
+              </div>
+            ) : null}
             <div className="center-marker" />
           </div>
         </div>

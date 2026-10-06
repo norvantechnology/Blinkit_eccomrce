@@ -20,4 +20,18 @@ router.get(
   addressesController.search,
 );
 
+/** Map pin drag + "Go to current location" fire this often, so a looser limit than search. */
+const reverseLimiter = rateLimiter({
+  max: 120,
+  windowSeconds: 600,
+  keyGenerator: (req) => `places:reverse:${req.ip}`,
+});
+
+router.get(
+  '/reverse',
+  reverseLimiter,
+  validateRequest(addressesValidator.reverseQuerySchema, 'query'),
+  addressesController.reverse,
+);
+
 module.exports = router;

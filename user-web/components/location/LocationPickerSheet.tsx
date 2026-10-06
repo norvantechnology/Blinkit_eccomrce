@@ -17,6 +17,7 @@ import { buildSelectedLocation, useLocationStore } from '@/store/locationStore';
 import { useUiStore } from '@/store/uiStore';
 import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
 import { addressesService, type Address } from '@/services/addresses.service';
+import { AddressModal } from '@/components/account/AddressModal';
 import { useI18n } from '@/lib/i18n/useI18n';
 import type { MessageKey } from '@/lib/i18n/messages';
 import '@/styles/blinkit-location-popup.css';
@@ -63,6 +64,8 @@ export function LocationPickerSheet() {
   const [menuAddr, setMenuAddr] = useState<Address | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Address | null>(null);
+  const [editingAddr, setEditingAddr] = useState<Address | null>(null);
+  const [addrModalOpen, setAddrModalOpen] = useState(false);
   const debounceRef = useRef<number | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
   const gpsAbortRef = useRef<AbortController | null>(null);
@@ -259,7 +262,10 @@ export function LocationPickerSheet() {
     }
   };
 
-  /** Edit → close location sheet cleanly, then open address modal on account page */
+  /**
+   * Edit → close the sheet and open the address modal on the current page.
+   * Waits for the sheet's history entry to unwind first, otherwise that popstate would close the modal.
+   */
   const editAddress = (e: MouseEvent, addr: Address) => {
     e.stopPropagation();
     closeAddressMenu();
@@ -269,12 +275,56 @@ export function LocationPickerSheet() {
       });
       return;
     }
-    dismissThen(() => {
-      router.push(`/account/addresses?edit=${encodeURIComponent(addr.id)}`);
-    });
+    let opened = false;
+    const openModal = () => {
+      if (opened) return;
+      opened = true;
+      window.removeEventListener('popstate', openModal);
+      setEditingAddr(addr);
+      setAddrModalOpen(true);
+    };
+    window.addEventListener('popstate', openModal);
+    window.setTimeout(openModal, 400);
+    dismiss();
   };
 
-  if (!open || !mounted) return null;
+  const closeAddrModal = () => {
+    setAddrModalOpen(false);
+    setEditingAddr(null);
+  };
+
+  const handleAddrSaved = (addr: Address) => {
+    const current = useLocationStore.getState().location;
+    const isCurrent =
+      current?.lat != null &&
+      current?.lng != null &&
+      editingAddr?.lat != null &&
+      editingAddr?.lng != null &&
+      Math.abs(current.lat - editingAddr.lat) < 1e-6 &&
+      Math.abs(current.lng - editingAddr.lng) < 1e-6;
+    if ((addr.isDefault || isCurrent) && addr.lat != null && addr.lng != null) {
+      setLocation(
+        buildSelectedLocation({
+          label: labelTitle(addr.label),
+          fullAddress: addr.fullAddress,
+          lat: addr.lat,
+          lng: addr.lng,
+        }),
+      );
+    }
+    window.dispatchEvent(new CustomEvent('bk:addresses-changed'));
+  };
+
+  const addressModal = (
+    <AddressModal
+      open={addrModalOpen}
+      onClose={closeAddrModal}
+      editing={editingAddr}
+      onSaved={handleAddrSaved}
+    />
+  );
+
+  if (!open || !mounted) return mounted ? addressModal : null;
 
   const PANEL_W = 500;
 
@@ -789,16 +839,21 @@ export function LocationPickerSheet() {
     </div>
   ) : null;
 
-  return createPortal(
+  return (
     <>
-      <div style={loadingGps ? { display: 'none' } : undefined}>
-        {desktopPanel}
-        {mobilePanel}
-      </div>
-      {addressActionSheet}
-      {deleteConfirmModal}
-      {preparingModal}
-    </>,
-    document.body,
+      {createPortal(
+        <>
+          <div style={loadingGps ? { display: 'none' } : undefined}>
+            {desktopPanel}
+            {mobilePanel}
+          </div>
+          {addressActionSheet}
+          {deleteConfirmModal}
+          {preparingModal}
+        </>,
+        document.body,
+      )}
+      {addressModal}
+    </>
   );
 }

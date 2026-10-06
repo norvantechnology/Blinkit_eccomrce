@@ -1,3 +1,5 @@
+import apiClient from '@/lib/api-client';
+
 /** Lightweight OSM Nominatim helpers when MAPS_API_KEY search is unavailable. */
 
 export type GeoSuggestion = {
@@ -39,15 +41,25 @@ export async function searchPlaces(
   }));
 }
 
+/** Coordinates → address via backend (Google when enabled, else OSM); direct Nominatim if the API is down. */
 export async function reverseGeocode(
   lat: number,
   lng: number,
   signal?: AbortSignal,
 ): Promise<string> {
+  try {
+    const { data } = await apiClient.get('/places/reverse', { params: { lat, lng }, signal });
+    const fullAddress = data?.data?.fullAddress as string | undefined;
+    if (fullAddress) return fullAddress;
+  } catch (err) {
+    if (signal?.aborted) throw err;
+  }
+
   const url = new URL('https://nominatim.openstreetmap.org/reverse');
   url.searchParams.set('lat', String(lat));
   url.searchParams.set('lon', String(lng));
   url.searchParams.set('format', 'json');
+  url.searchParams.set('zoom', '18');
 
   const res = await fetch(url.toString(), {
     headers: { Accept: 'application/json' },

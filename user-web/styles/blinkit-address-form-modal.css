@@ -1482,9 +1482,9 @@
 .bk-addr-gps-msg {
   padding: 8px 10px;
   border-radius: 8px;
-  background: #fff8e1;
-  border: 1px solid #f8cb46;
-  color: #6b5200;
+  background: #f4f6fb;
+  border: 1px solid #e3e8f4;
+  color: #4a4a4a;
   font-size: 12px;
   line-height: 16px;
   font-family: Okra, Helvetica, sans-serif;
@@ -1499,5 +1499,157 @@
 @media (prefers-reduced-motion: reduce) {
   .hEmjqm.is-locating .bk-addr-gps-icon {
     animation: none;
+  }
+}
+
+/* Draggable Leaflet map (replaces the static OSM iframe) */
+.bk-addr-leaflet {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #e5e3df;
+  cursor: grab;
+}
+
+.bk-addr-leaflet:active {
+  cursor: grabbing;
+}
+
+.bk-addr-leaflet .leaflet-top {
+  top: 64px;
+}
+
+.bk-addr-leaflet .leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* "Order will be delivered here" bubble above the fixed centre pin */
+.bk-addr-pin-tip {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  transform: translate(-50%, calc(-100% - 52px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #1c1c1c;
+  color: #fff;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 11px;
+  line-height: 14px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.bk-addr-pin-tip strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bk-addr-pin-tip span {
+  color: #d9d9d9;
+}
+
+.bk-addr-pin-tip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: #1c1c1c;
+  transform: rotate(45deg);
+}
+
+@media (max-width: 1020px) {
+  .bk-addr-leaflet .leaflet-top {
+    top: 118px;
+  }
+
+  .bk-addr-mobile-map .bk-addr-pin-tip {
+    transform: translate(-50%, calc(-100% - 58px));
+  }
+}
+
+/* Draggable Leaflet map (replaces the static OSM iframe) */
+.bk-addr-leaflet {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #e5e3df;
+  cursor: grab;
+}
+
+.bk-addr-leaflet:active {
+  cursor: grabbing;
+}
+
+.bk-addr-leaflet .leaflet-top {
+  top: 64px;
+}
+
+.bk-addr-leaflet .leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* "Order will be delivered here" bubble above the fixed centre pin */
+.bk-addr-pin-tip {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  transform: translate(-50%, calc(-100% - 52px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #1c1c1c;
+  color: #fff;
+  font-family: Okra, Helvetica, sans-serif;
+  font-size: 11px;
+  line-height: 14px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.bk-addr-pin-tip strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bk-addr-pin-tip span {
+  color: #d9d9d9;
+}
+
+.bk-addr-pin-tip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: #1c1c1c;
+  transform: rotate(45deg);
+}
+
+@media (max-width: 1020px) {
+  .bk-addr-leaflet .leaflet-top {
+    top: 118px;
+  }
+
+  .bk-addr-mobile-map .bk-addr-pin-tip {
+    transform: translate(-50%, calc(-100% - 58px));
   }
 }

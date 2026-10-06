@@ -12,6 +12,8 @@ const search = async (query) => {
   return results;
 };
 
+const reverse = (lat, lng) => mapsProvider.reverseGeocode(Number(lat), Number(lng));
+
 const create = (userId, data) => addressesRepository.create(userId, data);
 
 const update = async (userId, id, data) => {
@@ -38,4 +40,4 @@ const setDefault = async (userId, id) => {
   return address;
 };
 
-module.exports = { list, search, create, update, remove, setDefault };
+module.exports = { list, search, reverse, create, update, remove, setDefault };
