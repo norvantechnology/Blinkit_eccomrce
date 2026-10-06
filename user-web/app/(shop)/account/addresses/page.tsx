@@ -41,6 +41,8 @@ function AddressesPageContent() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Address | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const clearAddressQuery = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -115,9 +117,31 @@ function AddressesPageContent() {
 
   useEffect(() => {
     if (!menuId) return;
-    const close = () => setMenuId(null);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
+    const close = () => {
+      setMenuId(null);
+      setConfirmId(null);
+    };
+    // React's root listener is on document too, so stopPropagation inside the menu can't stop this.
+    // composedPath: the clicked node (e.g. Cancel) may already be unmounted by the time this runs.
+    const onClick = (e: globalThis.MouseEvent) => {
+      const inside = e
+        .composedPath()
+        .some(
+          (n) =>
+            n instanceof Element &&
+            n.matches('.ua-card__menu-pop, .AddressCard__TooltipIcon-sc-1v9p7y9-1'),
+        );
+      if (!inside) close();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    document.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
   }, [menuId]);
 
   const syncHeaderLocation = (addr: Address) => {
@@ -167,13 +191,16 @@ function AddressesPageContent() {
   };
 
   const handleDelete = async (id: string) => {
-    setMenuId(null);
-    if (!window.confirm(t('addresses.deleteConfirm'))) return;
+    setDeletingId(id);
     try {
       await addressesService.remove(id);
+      setMenuId(null);
+      setConfirmId(null);
       await load();
     } catch (err) {
       setError(getApiErrorMessage(err, t('addresses.deleteFailed')));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -290,6 +317,7 @@ function AddressesPageContent() {
                       e.preventDefault();
                       e.stopPropagation();
                       setMenuId((id) => (id === addr.id ? null : addr.id));
+                      setConfirmId(null);
                     }}
                   >
                     Ý
@@ -309,11 +337,37 @@ function AddressesPageContent() {
                       ) : null}
                       <button
                         type="button"
-                        className="is-danger"
-                        onClick={() => handleDelete(addr.id)}
+                        aria-expanded={confirmId === addr.id}
+                        onClick={() => setConfirmId(addr.id)}
                       >
                         {t('addresses.delete')}
                       </button>
+                      {confirmId === addr.id ? (
+                        <div className="ua-del-tip" role="alertdialog" aria-live="polite">
+                          <div className="ua-del-tip__arrow" aria-hidden />
+                          <div className="ua-del-tip__inner">
+                            <div>{t('addresses.deleteConfirmLong')}</div>
+                            <button
+                              type="button"
+                              className="ua-del-tip__btn"
+                              data-test-id="btn-confirm-delete-address"
+                              disabled={deletingId === addr.id}
+                              onClick={() => handleDelete(addr.id)}
+                            >
+                              {t('addresses.delete')}
+                            </button>
+                            <button
+                              type="button"
+                              className="ua-del-tip__btn ua-del-tip__btn--cancel"
+                              data-test-id="btn-cancel-delete-address"
+                              disabled={deletingId === addr.id}
+                              onClick={() => setConfirmId(null)}
+                            >
+                              {t('addresses.cancel')}
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
