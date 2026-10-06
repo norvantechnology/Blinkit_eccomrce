@@ -76,6 +76,12 @@
   text-align: left;
 }
 
+/* Lowercase label reads low next to the "+" glyph */
+.UserAddressesV2__AddAddressText {
+  position: relative;
+  top: -2px;
+}
+
 .UserAddressesV2__AddIconContainer-sc-bnlqpe-8,
 .fMgxzu,
 .UserAddressesV2__AddIconContainer {

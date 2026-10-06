@@ -265,7 +265,7 @@ function AddressesPageContent() {
                   style={{ fontSize: 12 }}
                 />
               </div>
-              {t('addresses.add')}
+              <span className="UserAddressesV2__AddAddressText">{t('addresses.add')}</span>
             </div>
           </div>
         </div>

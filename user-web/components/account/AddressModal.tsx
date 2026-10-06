@@ -1,6 +1,14 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useMemo, useState, type InputHTMLAttributes } from 'react';
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type InputHTMLAttributes,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { getApiErrorMessage } from '@/lib/auth';
 import { useCloseOnPopstate } from '@/lib/useCloseOnPopstate';
@@ -54,6 +62,21 @@ function parseAddress(full: string) {
   const parts = full.split(',').map((p) => p.trim()).filter(Boolean);
   if (parts.length <= 1) return { flat: parts[0] || '', area: '' };
   return { flat: parts[0], area: parts.slice(1).join(', ') };
+}
+
+/** Stop refining once the fix is this precise (metres) or after GPS_WATCH_MS. */
+const GPS_GOOD_ACCURACY_M = 50;
+const GPS_WATCH_MS = 12000;
+const GPS_APPROX_ACCURACY_M = 1000;
+
+function geoErrorMessage(err: GeolocationPositionError) {
+  if (err.code === err.PERMISSION_DENIED) {
+    return 'Location access is blocked. Allow location for this site in your browser settings, then try again.';
+  }
+  if (err.code === err.TIMEOUT) {
+    return 'Getting your location took too long. Try again or search your address.';
+  }
+  return 'Could not get your current location. Turn on device location or search your address.';
 }
 
 function splitAreaCity(text: string) {
@@ -170,20 +193,49 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [gpsNote, setGpsNote] = useState('');
+  const [gpsError, setGpsError] = useState('');
+  const gpsWatchRef = useRef<{ id: number | null; timer: number | null; abort: AbortController | null }>({
+    id: null,
+    timer: null,
+    abort: null,
+  });
+
+  const stopGps = useCallback(() => {
+    const w = gpsWatchRef.current;
+    if (w.id != null) navigator.geolocation?.clearWatch(w.id);
+    if (w.timer != null) window.clearTimeout(w.timer);
+    w.abort?.abort();
+    gpsWatchRef.current = { id: null, timer: null, abort: null };
+    setLocating(false);
+  }, []);
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
+    if (!open) return;
+    return stopGps;
+  }, [open, stopGps]);
+
+  useEffect(() => {
     const mq = window.matchMedia('(max-width: 1020px)');
     const apply = () => setIsMobile(mq.matches);
+    const onChange = () => {
+      apply();
+      setStep(mq.matches ? 'map' : 'form');
+    };
     apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
   }, []);
 
+  /** Reset only when the modal opens or switches address - user/header refreshes must not move a GPS/search pin. */
   useEffect(() => {
     if (!open) return;
     setError('');
+    setGpsError('');
+    setGpsNote('');
     setSuggestions([]);
     setStep('map');
 
@@ -215,7 +267,8 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     }
     setName(user?.name || '');
     setPhone((user?.phone || '').replace(/^\+91/, '') || '');
-  }, [open, editing, user, headerLocation, isMobile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
+  }, [open, editing]);
 
   useEffect(() => {
     if (!open) return;
@@ -256,6 +309,9 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   };
 
   const applySuggestion = (s: PlaceSuggestion) => {
+    stopGps();
+    setGpsNote('');
+    setGpsError('');
     const text = s.fullAddress || s.description;
     setQuery(text);
     setArea(text);
@@ -267,32 +323,100 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
     setSearchFocused(false);
   };
 
-  const useGps = () => {
+  /**
+   * Watch GPS for a few seconds and keep the most accurate fix - laptops often return a rough
+   * Wi-Fi/IP fix first. Pin moves on the first fix and again whenever a better one arrives.
+   */
+  const locateMe = () => {
+    if (locating) return;
+    setGpsError('');
+    setGpsNote('');
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported in this browser');
+      setGpsError('Location is not supported in this browser. Search your address instead.');
       return;
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const nextLat = pos.coords.latitude;
-        const nextLng = pos.coords.longitude;
-        setLat(nextLat);
-        setLng(nextLng);
-        void (async () => {
-          try {
-            const address = await reverseGeocode(nextLat, nextLng);
-            setQuery(address);
-            setArea(address);
-          } catch {
-            /* keep coords */
-          }
-        })();
+    stopGps();
+    setLocating(true);
+
+    let best: GeolocationCoordinates | null = null;
+
+    const applyFix = (coords: GeolocationCoordinates) => {
+      const nextLat = coords.latitude;
+      const nextLng = coords.longitude;
+      setLat(nextLat);
+      setLng(nextLng);
+      gpsWatchRef.current.abort?.abort();
+      const controller = new AbortController();
+      gpsWatchRef.current.abort = controller;
+      void (async () => {
+        let address = `${nextLat.toFixed(5)}, ${nextLng.toFixed(5)}`;
+        try {
+          address = await reverseGeocode(nextLat, nextLng, controller.signal);
+        } catch {
+          if (controller.signal.aborted) return;
+        }
+        if (controller.signal.aborted) return;
+        setQuery(address);
+        setArea(address);
+      })();
+    };
+
+    const finish = () => {
+      const w = gpsWatchRef.current;
+      if (w.id != null) navigator.geolocation.clearWatch(w.id);
+      if (w.timer != null) window.clearTimeout(w.timer);
+      gpsWatchRef.current = { ...w, id: null, timer: null };
+      setLocating(false);
+      if (best && best.accuracy > GPS_APPROX_ACCURACY_M) {
+        const km = Math.round(best.accuracy / 100) / 10;
+        setGpsNote(
+          `Your browser could only find an approximate location (about ${km} km). Search your exact address for an accurate pin.`,
+        );
+      }
+    };
+
+    const onFix = (pos: GeolocationPosition) => {
+      if (best && pos.coords.accuracy >= best.accuracy) return;
+      best = pos.coords;
+      applyFix(pos.coords);
+      if (pos.coords.accuracy <= GPS_GOOD_ACCURACY_M) finish();
+    };
+
+    const fallbackLowAccuracy = (firstErr: GeolocationPositionError) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          onFix(pos);
+          finish();
+        },
+        () => {
+          finish();
+          setGpsError(geoErrorMessage(firstErr));
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+      );
+    };
+
+    const id = navigator.geolocation.watchPosition(
+      onFix,
+      (err) => {
+        if (best) return;
+        const w = gpsWatchRef.current;
+        if (w.id != null) navigator.geolocation.clearWatch(w.id);
+        if (w.timer != null) window.clearTimeout(w.timer);
+        gpsWatchRef.current = { ...w, id: null, timer: null };
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocating(false);
+          setGpsError(geoErrorMessage(err));
+          return;
+        }
+        fallbackLowAccuracy(err);
       },
-      () => {
-        setError('Could not get current location. Allow location access or search manually.');
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: GPS_WATCH_MS, maximumAge: 0 },
     );
+    gpsWatchRef.current.id = id;
+    gpsWatchRef.current.timer = window.setTimeout(() => {
+      if (best) finish();
+    }, GPS_WATCH_MS);
   };
 
   const handleSubmit = async (e?: FormEvent) => {
@@ -462,14 +586,16 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
   const locationInfo = (
     <div className="styles__LocationInfoWrapper-sc-cc1wzf-17 iQirAt">
       <div
-        className="styles__DetectLocationButton-sc-cc1wzf-16 hEmjqm"
+        className={`styles__DetectLocationButton-sc-cc1wzf-16 hEmjqm${locating ? ' is-locating' : ''}`}
         role="button"
         tabIndex={0}
-        onClick={useGps}
+        aria-busy={locating}
+        aria-disabled={locating}
+        onClick={locateMe}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            useGps();
+            locateMe();
           }
         }}
       >
@@ -482,8 +608,13 @@ export function AddressModal({ open, onClose, editing, onSaved }: Props) {
             height={14}
           />
         </span>
-        Go to current location
+        {locating ? 'Locating…' : 'Go to current location'}
       </div>
+      {gpsError || gpsNote ? (
+        <div className={`bk-addr-gps-msg${gpsError ? ' is-error' : ''}`} role="status" aria-live="polite">
+          {gpsError || gpsNote}
+        </div>
+      ) : null}
       <div className="styles__LocationInfoHeader-sc-cc1wzf-18 eboNFh">
         Delivering your order to{' '}
       </div>
